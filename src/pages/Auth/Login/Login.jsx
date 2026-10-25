@@ -3,7 +3,7 @@ import { TrendingUp, Package, ShieldCheck, Info } from "lucide-react";
 
 function Login() {
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-16 md:py-24">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-5 md:py-10">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
         {/* Left Column - Marketing */}
         <div className="max-w-lg">

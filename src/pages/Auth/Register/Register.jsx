@@ -7,19 +7,21 @@ function Register() {
   const [role, setRole] = useState("buyer");
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-16 md:py-24">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-        
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-5 md:py-10">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
         {/* Left Column - Marketing */}
         <div className="max-w-lg">
           <p className="text-blue-600 font-semibold text-xs tracking-wider uppercase mb-4">
             Join the marketplace
           </p>
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight mb-4">
-            Great products.<br />New possibilities.
+            Great products.
+            <br />
+            New possibilities.
           </h1>
           <p className="text-gray-500 mb-8 text-base">
-            Create an account to bid on your next find or give your products a new home.
+            Create an account to bid on your next find or give your products a
+            new home.
           </p>
 
           {/* Gray Info Box */}
@@ -28,17 +30,22 @@ function Register() {
               Choose how you'll use Bidora
             </h3>
             <p className="text-sm text-gray-500 mb-3 leading-relaxed">
-              <strong className="text-gray-700 font-medium">Buyers</strong> browse, bid and buy out. 
-              Sellers upload products and follow their auctions from approval to result.
+              <strong className="text-gray-700 font-medium">Buyers</strong>{" "}
+              browse, bid and buy out. Sellers upload products and follow their
+              auctions from approval to result.
             </p>
             <p className="text-sm text-gray-500 leading-relaxed">
-              Products are reviewed before going live. Winners and sellers arrange handover directly.
+              Products are reviewed before going live. Winners and sellers
+              arrange handover directly.
             </p>
           </div>
 
           <div className="text-sm text-gray-600">
             Already have an account?{" "}
-            <Link to="/login" className="text-blue-600 font-medium hover:underline">
+            <Link
+              to="/login"
+              className="text-blue-600 font-medium hover:underline"
+            >
               Log in
             </Link>
           </div>
@@ -47,7 +54,9 @@ function Register() {
         {/* Right Column - Register Card */}
         <div className="w-full max-w-md mx-auto lg:ml-auto">
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-            <h2 className="text-2xl font-bold text-gray-900">Create your account</h2>
+            <h2 className="text-2xl font-bold text-gray-900">
+              Create your account
+            </h2>
             <p className="text-sm text-gray-500 mt-1 mb-6">
               Start with the role that's right for you.
             </p>
@@ -71,14 +80,22 @@ function Register() {
                   >
                     <div className="flex items-center justify-between w-full mb-1">
                       <div className="flex items-center gap-2">
-                        <ShoppingBag className={`w-4 h-4 ${role === "buyer" ? "text-blue-600" : "text-gray-500"}`} />
-                        <span className={`text-sm font-medium ${role === "buyer" ? "text-blue-900" : "text-gray-700"}`}>
+                        <ShoppingBag
+                          className={`w-4 h-4 ${role === "buyer" ? "text-blue-600" : "text-gray-500"}`}
+                        />
+                        <span
+                          className={`text-sm font-medium ${role === "buyer" ? "text-blue-900" : "text-gray-700"}`}
+                        >
                           Buyer
                         </span>
                       </div>
                       {/* Custom Radio Circle */}
-                      <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${role === "buyer" ? "border-blue-600" : "border-gray-300"}`}>
-                        {role === "buyer" && <div className="w-2 h-2 rounded-full bg-blue-600" />}
+                      <div
+                        className={`w-4 h-4 rounded-full border flex items-center justify-center ${role === "buyer" ? "border-blue-600" : "border-gray-300"}`}
+                      >
+                        {role === "buyer" && (
+                          <div className="w-2 h-2 rounded-full bg-blue-600" />
+                        )}
                       </div>
                     </div>
                     <span className="text-xs text-gray-500">Bid and buy</span>
@@ -96,23 +113,35 @@ function Register() {
                   >
                     <div className="flex items-center justify-between w-full mb-1">
                       <div className="flex items-center gap-2">
-                        <Store className={`w-4 h-4 ${role === "seller" ? "text-blue-600" : "text-gray-500"}`} />
-                        <span className={`text-sm font-medium ${role === "seller" ? "text-blue-900" : "text-gray-700"}`}>
+                        <Store
+                          className={`w-4 h-4 ${role === "seller" ? "text-blue-600" : "text-gray-500"}`}
+                        />
+                        <span
+                          className={`text-sm font-medium ${role === "seller" ? "text-blue-900" : "text-gray-700"}`}
+                        >
                           Seller
                         </span>
                       </div>
                       {/* Custom Radio Circle */}
-                      <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${role === "seller" ? "border-blue-600" : "border-gray-300"}`}>
-                        {role === "seller" && <div className="w-2 h-2 rounded-full bg-blue-600" />}
+                      <div
+                        className={`w-4 h-4 rounded-full border flex items-center justify-center ${role === "seller" ? "border-blue-600" : "border-gray-300"}`}
+                      >
+                        {role === "seller" && (
+                          <div className="w-2 h-2 rounded-full bg-blue-600" />
+                        )}
                       </div>
                     </div>
-                    <span className="text-xs text-gray-500">Sell your stuff</span>
+                    <span className="text-xs text-gray-500">
+                      Sell your stuff
+                    </span>
                   </button>
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Full name</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Full name
+                </label>
                 <input
                   type="text"
                   placeholder="Enter your full name"
@@ -121,7 +150,9 @@ function Register() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email address</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Email address
+                </label>
                 <input
                   type="email"
                   placeholder="Enter your email address"
@@ -130,7 +161,9 @@ function Register() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Password
+                </label>
                 <input
                   type="password"
                   placeholder="Create a password"
@@ -142,7 +175,9 @@ function Register() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Confirm password</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Confirm password
+                </label>
                 <input
                   type="password"
                   placeholder="Re-enter your password"
@@ -157,7 +192,15 @@ function Register() {
                     className="mt-0.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />
                   <span className="text-xs text-gray-600 leading-tight">
-                    I agree to the <a href="#" className="text-blue-600 hover:underline">Terms of Use</a> and <a href="#" className="text-blue-600 hover:underline">Privacy Policy</a>.
+                    I agree to the{" "}
+                    <a href="#" className="text-blue-600 hover:underline">
+                      Terms of Use
+                    </a>{" "}
+                    and{" "}
+                    <a href="#" className="text-blue-600 hover:underline">
+                      Privacy Policy
+                    </a>
+                    .
                   </span>
                 </label>
               </div>
@@ -174,19 +217,22 @@ function Register() {
             <div className="mt-6 bg-blue-50 border border-blue-100 rounded-lg p-3 flex gap-3 items-start">
               <Info className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
               <p className="text-xs text-blue-700 leading-relaxed">
-                Admin accounts are created internally. Public registration is for buyers and sellers only.
+                Admin accounts are created internally. Public registration is
+                for buyers and sellers only.
               </p>
             </div>
 
             <div className="mt-6 text-center text-sm text-gray-600">
               Already registered?{" "}
-              <Link to="/login" className="text-blue-600 font-medium hover:underline">
+              <Link
+                to="/login"
+                className="text-blue-600 font-medium hover:underline"
+              >
                 Log in
               </Link>
             </div>
           </div>
         </div>
-
       </div>
     </div>
   );
