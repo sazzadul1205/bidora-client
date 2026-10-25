@@ -42,6 +42,7 @@ export const updateProfile = (profileData, frontNidFile, backNidFile) => {
   formData.append("Address", profileData.address || "");
   formData.append("City", profileData.city || "");
   formData.append("NationalIdNumber", profileData.nationalId || "");
+  formData.append("PhoneNumber", profileData.phoneNumber || ""); 
   
   if (frontNidFile) formData.append("NationalIdFrontImage", frontNidFile);
   if (backNidFile) formData.append("NationalIdBackImage", backNidFile);
