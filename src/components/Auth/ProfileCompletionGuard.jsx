@@ -31,8 +31,8 @@ export default function ProfileCompletionGuard({ children }) {
             return;
           }
 
-          // Not complete or not approved - redirect to settings to complete/profile setup
-          navigate('/settings');
+          // Not complete or not approved - redirect to profile pending page
+          navigate('/profile-pending');
           return;
         }
 

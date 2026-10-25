@@ -159,8 +159,8 @@ function AuthenticatedLayout() {
                 <NavLink to={dashboardLink} end className={navLinkClass}>
                   <LayoutDashboard className="w-4 h-4" /> Dashboard
                 </NavLink>
-                // Inside AuthenticatedLayout.jsx, replace the Buyer/Seller
-                blocks with this:
+                {/* Inside AuthenticatedLayout.jsx, replace the Buyer/Seller
+                blocks with this: */}
                 {role === "Buyer" && (
                   <>
                     <NavLink to="/buyer/bids" className={navLinkClass}>

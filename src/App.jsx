@@ -15,6 +15,7 @@ import SellerSales from "./pages/seller/Sales/SellerSales";
 import Settings from "./pages/Auth/Settings/Settings";
 
 import ProfileCompletionGuard from "./components/Auth/ProfileCompletionGuard";
+import ProfilePending from "./pages/ProfilePending/ProfilePending";
 
 // Admin Pages
 import AdminDashboard from "./pages/admin/Dashboard/AdminDashboard";
@@ -36,6 +37,9 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
         </Route>
+
+        {/* Profile Pending Route */}
+        <Route path="/profile-pending" element={<ProfilePending />} />
 
         {/* Authenticated Routes */}
         <Route element={<AuthenticatedLayout />}>
