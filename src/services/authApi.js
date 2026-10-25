@@ -34,9 +34,28 @@ export const getCurrentUser = () => {
 }
 
 // Updates the user's profile details (Name, Address, City, National ID, etc.)
-export const updateProfile = (profileData) => {
-  return authApi.put('/auth/me', profileData, getAuthConfig())
-}
+// Sends multipart/form-data so the backend [FromForm] binding works and NID
+// image files are uploaded alongside the text fields.
+export const updateProfile = (profileData, frontNidFile, backNidFile) => {
+  const formData = new FormData();
+  formData.append("FullName", profileData.fullName || "");
+  formData.append("Address", profileData.address || "");
+  formData.append("City", profileData.city || "");
+  formData.append("NationalIdNumber", profileData.nationalId || "");
+  
+  if (frontNidFile) formData.append("NationalIdFrontImage", frontNidFile);
+  if (backNidFile) formData.append("NationalIdBackImage", backNidFile);
+
+  const token = localStorage.getItem("token");
+  
+  // Explicitly set Content-Type to multipart/form-data, and add the Bearer token
+  const headers = {
+    "Content-Type": "multipart/form-data", 
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+
+  return authApi.put("/auth/me", formData, { headers });
+};
 
 // Changes the user's password. Backend expects { currentPassword, newPassword, confirmNewPassword }
 export const changePassword = (passwordData) => {
