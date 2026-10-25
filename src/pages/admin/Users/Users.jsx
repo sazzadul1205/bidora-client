@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { getUsers, lockUser } from "../../../services/adminApi";
-import { Lock, Loader2, Search } from "lucide-react";
+import { Lock, Search } from "lucide-react";
 import { toast } from "../../../utils/toast";
+import { SkeletonRow, Skeleton } from "../../../components/Skeleton";
 
 export default function Users() {
   const [users, setUsers] = useState([]);
@@ -69,7 +70,33 @@ export default function Users() {
     }
   };
 
-  if (loading) return <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-blue-600" /></div>;
+  if (loading) return (
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <Skeleton className="h-7 w-40" />
+        <Skeleton className="h-10 w-64 rounded-lg" />
+      </div>
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+        <table className="w-full text-left text-sm text-gray-600">
+          <thead className="bg-gray-50 border-b border-gray-200 text-gray-900">
+            <tr>
+              <th className="px-6 py-4 font-medium">Name</th>
+              <th className="px-6 py-4 font-medium">Email</th>
+              <th className="px-6 py-4 font-medium">Role</th>
+              <th className="px-6 py-4 font-medium text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200">
+            <SkeletonRow cols={4} />
+            <SkeletonRow cols={4} />
+            <SkeletonRow cols={4} />
+            <SkeletonRow cols={4} />
+            <SkeletonRow cols={4} />
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
 
   return (
     <div>

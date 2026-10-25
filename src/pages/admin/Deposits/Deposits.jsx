@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { getPendingDepositRequests, reviewDepositRequest } from "../../../services/adminApi";
-import { Loader2, CheckCircle } from "lucide-react";
+import { CheckCircle } from "lucide-react";
 import { toast } from "../../../utils/toast";
+import { SkeletonRow, Skeleton } from "../../../components/Skeleton";
 
 export default function Deposits() {
   const [requests, setRequests] = useState([]);
@@ -54,7 +55,31 @@ export default function Deposits() {
 
   const actionStatus = useWatch({ control, name: "status", defaultValue: "Approved" });
 
-  if (loading) return <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-blue-600" /></div>;
+  if (loading) return (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <Skeleton className="h-7 w-40" />
+      </div>
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <table className="w-full text-left text-sm text-gray-600">
+          <thead className="bg-gray-50 border-b border-gray-200 text-gray-900">
+            <tr>
+              <th className="px-6 py-4 font-medium">Method</th>
+              <th className="px-6 py-4 font-medium">Amount</th>
+              <th className="px-6 py-4 font-medium">Reference</th>
+              <th className="px-6 py-4 font-medium text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200">
+            <SkeletonRow cols={4} />
+            <SkeletonRow cols={4} />
+            <SkeletonRow cols={4} />
+            <SkeletonRow cols={4} />
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
 
   return (
     <div>

@@ -1,21 +1,30 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import PublicLayout from './Layouts/PublicLayout/PublicLayout'
-import AuthenticatedLayout from './Layouts/AuthenticatedLayout/AuthenticatedLayout'
-import Login from './pages/Auth/Login/Login'
-import Register from './pages/Auth/Register/Register'
-import Products from './pages/Products'
-import Dashboard from './pages/Dashboard'
-import SellerDashboard from './pages/SellerDashboard'
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import PublicLayout from "./Layouts/PublicLayout/PublicLayout";
+import AuthenticatedLayout from "./Layouts/AuthenticatedLayout/AuthenticatedLayout";
+import Login from "./pages/Auth/Login/Login";
+import Register from "./pages/Auth/Register/Register";
+import Products from "./pages/Products";
+import Dashboard from "./pages/Dashboard";
+import SellerDashboard from "./pages/SellerDashboard";
+import BuyerDashboard from "./pages/buyer/Dashboard/BuyerDashboard";
+import MyBids from "./pages/buyer/MyBids/MyBids";
+import WonAuctions from "./pages/buyer/WonAuctions/WonAuctions";
+import MyProducts from "./pages/seller/MyProducts/MyProducts";
+import CreateProduct from "./pages/seller/CreateProduct/CreateProduct";
+import SellerSales from "./pages/seller/Sales/SellerSales";
+import Settings from "./pages/Auth/Settings/Settings";
+
+import ProfileCompletionGuard from "./components/Auth/ProfileCompletionGuard";
 
 // Admin Pages
-import AdminDashboard from './pages/admin/Dashboard/AdminDashboard'
-import Users from './pages/admin/Users/Users'
-import AdminProducts from './pages/admin/Products/AdminProducts'
-import Deposits from './pages/admin/Deposits/Deposits'
-import Verifications from './pages/admin/Verifications/Verifications'
-import Auctions from './pages/admin/Auctions/Auctions'
-import Disputes from './pages/admin/Disputes/Disputes'
-import Categories from './pages/admin/Categories/Categories'
+import AdminDashboard from "./pages/admin/Dashboard/AdminDashboard";
+import Users from "./pages/admin/Users/Users";
+import AdminProducts from "./pages/admin/Products/AdminProducts";
+import Deposits from "./pages/admin/Deposits/Deposits";
+import Verifications from "./pages/admin/Verifications/Verifications";
+import Auctions from "./pages/admin/Auctions/Auctions";
+import Disputes from "./pages/admin/Disputes/Disputes";
+import Categories from "./pages/admin/Categories/Categories";
 
 function App() {
   return (
@@ -30,9 +39,7 @@ function App() {
 
         {/* Authenticated Routes */}
         <Route element={<AuthenticatedLayout />}>
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/seller-dashboard" element={<SellerDashboard />} />
-          {/* Admin Routes */}
+          {/* ADMIN ROUTES */}
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/users" element={<Users />} />
           <Route path="/admin/products" element={<AdminProducts />} />
@@ -41,10 +48,97 @@ function App() {
           <Route path="/admin/auctions" element={<Auctions />} />
           <Route path="/admin/disputes" element={<Disputes />} />
           <Route path="/admin/categories" element={<Categories />} />
+
+          {/* BUYER ROUTES */}
+          <Route
+            path="/buyer"
+            element={
+              <ProfileCompletionGuard>
+                <BuyerDashboard />
+              </ProfileCompletionGuard>
+            }
+          />
+          <Route
+            path="/buyer/bids"
+            element={
+              <ProfileCompletionGuard>
+                <MyBids />
+              </ProfileCompletionGuard>
+            }
+          />
+          <Route
+            path="/buyer/won"
+            element={
+              <ProfileCompletionGuard>
+                <WonAuctions />
+              </ProfileCompletionGuard>
+            }
+          />
+          <Route
+            path="/dashboard"
+            element={
+              <ProfileCompletionGuard>
+                <Dashboard />
+              </ProfileCompletionGuard>
+            }
+          />
+          <Route
+            path="/wallet"
+            element={
+              <ProfileCompletionGuard>
+                <div>Wallet</div>
+              </ProfileCompletionGuard>
+            }
+          />
+
+          {/* SELLER ROUTES */}
+          <Route
+            path="/seller"
+            element={
+              <ProfileCompletionGuard>
+                <SellerDashboard />
+              </ProfileCompletionGuard>
+            }
+          />
+          <Route
+            path="/seller-dashboard"
+            element={
+              <ProfileCompletionGuard>
+                <SellerDashboard />
+              </ProfileCompletionGuard>
+            }
+          />
+          <Route
+            path="/seller/products"
+            element={
+              <ProfileCompletionGuard>
+                <MyProducts />
+              </ProfileCompletionGuard>
+            }
+          />
+          <Route
+            path="/seller/products/create"
+            element={
+              <ProfileCompletionGuard>
+                <CreateProduct />
+              </ProfileCompletionGuard>
+            }
+          />
+          <Route
+            path="/seller/sales"
+            element={
+              <ProfileCompletionGuard>
+                <SellerSales />
+              </ProfileCompletionGuard>
+            }
+          />
+
+          {/* Account Settings */}
+          <Route path="/settings" element={<Settings />} />
         </Route>
       </Routes>
     </BrowserRouter>
-  )
+  );
 }
 
-export default App
+export default App;

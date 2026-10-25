@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { getCategories } from "../../../services/publicApi";
 import { createCategory, deleteCategory } from "../../../services/adminApi";
-import { Loader2, Trash2, Plus } from "lucide-react";
+import { Trash2, Plus } from "lucide-react";
 import { toast, confirmDialog } from "../../../utils/toast";
+import { Skeleton } from "../../../components/Skeleton";
 
 export default function Categories() {
   const [categories, setCategories] = useState([]);
@@ -64,7 +65,35 @@ export default function Categories() {
     }
   };
 
-  if (loading) return <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-blue-600" /></div>;
+  if (loading) return (
+    <div className="max-w-2xl">
+      <div className="flex items-center justify-between mb-6">
+        <Skeleton className="h-7 w-32" />
+      </div>
+      <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm mb-6">
+        <div className="flex gap-4">
+          <Skeleton className="h-10 flex-1" />
+          <Skeleton className="h-10 w-32" />
+        </div>
+      </div>
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <ul className="divide-y divide-gray-200">
+          <li className="px-6 py-4 flex justify-between items-center">
+            <Skeleton className="h-5 w-40" />
+            <Skeleton className="h-8 w-8 rounded" />
+          </li>
+          <li className="px-6 py-4 flex justify-between items-center">
+            <Skeleton className="h-5 w-32" />
+            <Skeleton className="h-8 w-8 rounded" />
+          </li>
+          <li className="px-6 py-4 flex justify-between items-center">
+            <Skeleton className="h-5 w-48" />
+            <Skeleton className="h-8 w-8 rounded" />
+          </li>
+        </ul>
+      </div>
+    </div>
+  );
 
   return (
     <div className="max-w-2xl">

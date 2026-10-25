@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { getAllDisputes, startDisputeReview, resolveDispute } from "../../../services/adminApi";
-import { Loader2, Scale, PlayCircle } from "lucide-react";
+import { Scale, PlayCircle } from "lucide-react";
 import { toast } from "../../../utils/toast";
+import { SkeletonRow, Skeleton } from "../../../components/Skeleton";
 
 export default function Disputes() {
   const [disputes, setDisputes] = useState([]);
@@ -63,7 +64,32 @@ export default function Disputes() {
     }
   };
 
-  if (loading) return <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-blue-600" /></div>;
+  if (loading) return (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <Skeleton className="h-7 w-28" />
+      </div>
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <table className="w-full text-left text-sm text-gray-600">
+          <thead className="bg-gray-50 border-b border-gray-200 text-gray-900">
+            <tr>
+              <th className="px-6 py-4 font-medium">ID</th>
+              <th className="px-6 py-4 font-medium">Sale ID</th>
+              <th className="px-6 py-4 font-medium">Complaint</th>
+              <th className="px-6 py-4 font-medium">Status</th>
+              <th className="px-6 py-4 font-medium text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200">
+            <SkeletonRow cols={5} />
+            <SkeletonRow cols={5} />
+            <SkeletonRow cols={5} />
+            <SkeletonRow cols={5} />
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
 
   return (
     <div>

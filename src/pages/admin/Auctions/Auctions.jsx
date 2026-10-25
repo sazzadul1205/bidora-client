@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { getAllAuctions, configureAuction, cancelAuction } from "../../../services/adminApi";
-import { Loader2, Calendar, XCircle } from "lucide-react";
+import { Calendar, XCircle } from "lucide-react";
 import { toast } from "../../../utils/toast";
+import { SkeletonRow, Skeleton } from "../../../components/Skeleton";
 
 export default function Auctions() {
   const [auctions, setAuctions] = useState([]);
@@ -62,7 +63,36 @@ export default function Auctions() {
     }
   };
 
-  if (loading) return <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-blue-600" /></div>;
+  if (loading) return (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <Skeleton className="h-7 w-32 mb-2" />
+          <Skeleton className="h-4 w-48" />
+        </div>
+      </div>
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <table className="w-full text-left text-sm text-gray-600">
+          <thead className="bg-gray-50 border-b border-gray-200 text-gray-900">
+            <tr>
+              <th className="px-6 py-4 font-medium">Product Title</th>
+              <th className="px-6 py-4 font-medium">Status</th>
+              <th className="px-6 py-4 font-medium">Start Time</th>
+              <th className="px-6 py-4 font-medium">End Time</th>
+              <th className="px-6 py-4 font-medium text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200">
+            <SkeletonRow cols={5} />
+            <SkeletonRow cols={5} />
+            <SkeletonRow cols={5} />
+            <SkeletonRow cols={5} />
+            <SkeletonRow cols={5} />
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
 
   return (
     <div>

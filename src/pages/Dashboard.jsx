@@ -1,6 +1,57 @@
+import { useState, useEffect } from "react";
 import { Gavel, Trophy } from "lucide-react";
+import { SkeletonStatCard, Skeleton } from "../components/Skeleton";
 
 function Dashboard() {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const t = setTimeout(() => setLoading(false), 800);
+    return () => clearTimeout(t);
+  }, []);
+
+  if (loading) return (
+    <div className="max-w-6xl mx-auto space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <Skeleton className="h-7 w-48 mb-2" />
+          <Skeleton className="h-4 w-64" />
+        </div>
+        <Skeleton className="h-10 w-40 rounded-lg" />
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <SkeletonStatCard />
+        <SkeletonStatCard />
+        <SkeletonStatCard />
+      </div>
+      <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 flex gap-3 items-start">
+        <Skeleton className="h-4 w-4 mt-1" />
+        <div className="flex-1">
+          <Skeleton className="h-4 w-full" />
+        </div>
+      </div>
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div className="px-5 py-3 border-b border-gray-200 flex justify-between items-center">
+          <Skeleton className="h-5 w-24" />
+          <Skeleton className="h-4 w-32" />
+        </div>
+        <div className="p-6 text-center text-gray-500">
+          <Skeleton className="h-8 w-8 mx-auto mb-2 rounded" />
+          <Skeleton className="h-4 w-48 mx-auto" />
+        </div>
+      </div>
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div className="px-5 py-3 border-b border-gray-200 flex justify-between items-center">
+          <Skeleton className="h-5 w-28" />
+        </div>
+        <div className="p-6 text-center text-gray-500">
+          <Skeleton className="h-8 w-8 mx-auto mb-2 rounded" />
+          <Skeleton className="h-4 w-40 mx-auto" />
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="max-w-6xl mx-auto space-y-4">
       {/* Page Header */}
