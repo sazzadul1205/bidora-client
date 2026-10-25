@@ -1,6 +1,6 @@
-
 import axios from 'axios'
 
+// No auth config needed here. These are open to the public.
 const publicApi = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
   headers: {
@@ -8,29 +8,32 @@ const publicApi = axios.create({
   },
 })
 
-// Public category endpoints
+// View all available categories
 export const getCategories = () => {
   return publicApi.get('/category')
 }
 
-// Public product endpoints
+// View all approved and available products
 export const getProducts = () => {
   return publicApi.get('/product')
 }
 
+// View details of a specific product
 export const getProductById = (id) => {
   return publicApi.get(`/product/${id}`)
 }
 
-// Public auction endpoints
+// View all auctions
 export const getAuctions = () => {
   return publicApi.get('/auction')
 }
 
+// View only auctions currently live and accepting bids
 export const getActiveAuctions = () => {
   return publicApi.get('/auction/active')
 }
 
+// View auctions scheduled for the future
 export const getUpcomingAuctions = () => {
   return publicApi.get('/auction/upcoming')
 }

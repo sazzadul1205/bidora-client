@@ -1,8 +1,7 @@
-
-import authApi from './authApi'
+import authApi, { getAuthConfig } from './authApi'
 import { getCategories, getProducts, getProductById, getAuctions, getActiveAuctions, getUpcomingAuctions } from './publicApi'
 
-// Public browsing
+// Export public routes
 export {
   getCategories,
   getProducts,
@@ -12,59 +11,72 @@ export {
   getUpcomingAuctions,
 }
 
-// Product management
-export const getMyProducts = () => authApi.get('/product/my-products')
+// Protected Product Management
+export const getMyProducts = () => authApi.get('/product/my-products', getAuthConfig())
+
+// Create a draft product. Backend expects FormData (Title, Description, Prices, CategoryId, Images, etc.)
 export const createProduct = (formData) =>
-  authApi.post('/product', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  })
+  authApi.post('/product', formData, getAuthConfig())
+
+// Update a draft product. Backend expects FormData (and lists for images to delete/add)
 export const updateProduct = (id, formData) =>
-  authApi.put(`/product/${id}`, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  })
+  authApi.put(`/product/${id}`, formData, getAuthConfig())
+
+// Submit a draft product for admin review. Backend locks 25% of starting price in the seller's wallet.
 export const submitProductForApproval = (id) =>
-  authApi.post(`/product/${id}/submit-for-approval`)
+  authApi.post(`/product/${id}/submit-for-approval`, {}, getAuthConfig())
+
+// Withdraw a pending product back to Draft (releases the 25% wallet lock)
 export const withdrawProductSubmission = (id) =>
-  authApi.post(`/product/${id}/withdraw`)
-export const deleteProduct = (id) => authApi.delete(`/product/${id}`)
+  authApi.post(`/product/${id}/withdraw`, {}, getAuthConfig())
 
-// Auctions
-export const getMyAuctions = () => authApi.get('/auction/my-auctions')
-export const getAuctionById = (id) => authApi.get(`/auction/${id}`)
+// Delete a draft or rejected product
+export const deleteProduct = (id) => authApi.delete(`/product/${id}`, getAuthConfig())
+
+// Protected Auctions
+export const getMyAuctions = () => authApi.get('/auction/my-auctions', getAuthConfig())
+export const getAuctionById = (id) => authApi.get(`/auction/${id}`, getAuthConfig())
 export const getAuctionsByProduct = (productId) =>
-  authApi.get(`/auction/product/${productId}`)
+  authApi.get(`/auction/product/${productId}`, getAuthConfig())
+
+// Update auction schedule. Backend expects { startTime, endTime }
 export const updateAuctionSchedule = (id, data) =>
-  authApi.put(`/auction/${id}/schedule`, data)
+  authApi.put(`/auction/${id}/schedule`, data, getAuthConfig())
+
+// Cancel an upcoming auction. Backend expects { reason }. Note: Seller forfeits their deposit.
 export const cancelAuction = (id, data) =>
-  authApi.put(`/auction/${id}/cancel`, data)
+  authApi.put(`/auction/${id}/cancel`, data, getAuthConfig())
 
-// Wallet and seller deposit
-export const getMyWallet = () => authApi.get('/wallet/me')
+// Protected Wallet
+export const getMyWallet = () => authApi.get('/wallet/me', getAuthConfig())
+
+// Submit a deposit request (FormData)
 export const requestDeposit = (formData) =>
-  authApi.post('/wallet/deposit-request', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  })
-export const getWalletTransactions = () => authApi.get('/wallet/transactions')
-export const getWalletReservations = () => authApi.get('/wallet/reservations')
+  authApi.post('/wallet/deposit-request', formData, getAuthConfig())
 
-// Sales and delivery
-export const getMySales = () => authApi.get('/sale/my-sales')
-export const getSaleById = (id) => authApi.get(`/sale/${id}`)
+export const getWalletTransactions = () => authApi.get('/wallet/transactions', getAuthConfig())
+export const getWalletReservations = () => authApi.get('/wallet/reservations', getAuthConfig())
+
+// Protected Sales & Delivery
+export const getMySales = () => authApi.get('/sale/my-sales', getAuthConfig())
+export const getSaleById = (id) => authApi.get(`/sale/${id}`, getAuthConfig())
+
+// Dispatch a paid item. Backend expects { dispatchInfo, trackingEvidence }
 export const dispatchSale = (id, data) =>
-  authApi.post(`/sale/${id}/dispatch`, data)
+  authApi.post(`/sale/${id}/dispatch`, data, getAuthConfig())
 
-// Disputes
-export const getMyDisputes = () => authApi.get('/dispute/my-disputes')
-export const getDisputeById = (id) => authApi.get(`/dispute/${id}`)
-export const createDispute = (data) => authApi.post('/dispute', data)
+// Protected Disputes
+export const getMyDisputes = () => authApi.get('/dispute/my-disputes', getAuthConfig())
+export const getDisputeById = (id) => authApi.get(`/dispute/${id}`, getAuthConfig())
+export const createDispute = (data) => authApi.post('/dispute', data, getAuthConfig())
 
-// Profile
-export const getMyProfile = () => authApi.get('/auth/me')
-export const updateMyProfile = (data) => authApi.put('/auth/me', data)
-export const submitProfileVerification = (data) =>
-  authApi.put('/profile/submit-verification', data)
+// Protected Profile
+export const getMyProfile = () => authApi.get('/auth/me', getAuthConfig())
+export const updateMyProfile = (data) => authApi.put('/auth/me', data, getAuthConfig())
+export const submitProfileVerification = () =>
+  authApi.put('/profile/submit-verification', {}, getAuthConfig())
 
-// Password
+// Re-export
 export { changePassword } from './authApi'
 
 export default {

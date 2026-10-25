@@ -7,42 +7,43 @@ const authApi = axios.create({
   },
 })
 
-// Small helper to build the auth header from the saved token.
-const authHeader = () => {
+// Helper to manually attach the Bearer token for protected routes
+export const getAuthConfig = () => {
   const token = localStorage.getItem('token')
-  return token ? { Authorization: `Bearer ${token}` } : {}
+  return token ? { headers: { Authorization: `Bearer ${token}` } } : {}
 }
 
-// Register a new Buyer or Seller.
+// --- Public Auth Endpoints ---
+
+// Creates a new account. Backend expects { email, password, fullName, role ("Buyer" or "Seller") }
 export const register = (userData) => {
   return authApi.post('/auth/register', userData)
 }
 
-// Log in and save the JWT.
+// Logs in and saves the JWT token to localStorage for future requests
 export const login = async (credentials) => {
   const response = await authApi.post('/auth/login', credentials)
-
   localStorage.setItem('token', response.data.token)
-
   return response
 }
 
-// Retrieve the logged-in user's account and profile.
+
+// Gets the current logged-in user's account and profile details
 export const getCurrentUser = () => {
-  return authApi.get('/auth/me', { headers: authHeader() })
+  return authApi.get('/auth/me', getAuthConfig())
 }
 
-// Update the logged-in user's profile.
+// Updates the user's profile details (Name, Address, City, National ID, etc.)
 export const updateProfile = (profileData) => {
-  return authApi.put('/auth/me', profileData, { headers: authHeader() })
+  return authApi.put('/auth/me', profileData, getAuthConfig())
 }
 
-// Change the logged-in user's password.
+// Changes the user's password. Backend expects { currentPassword, newPassword, confirmNewPassword }
 export const changePassword = (passwordData) => {
-  return authApi.post('/auth/change-password', passwordData, { headers: authHeader() })
+  return authApi.post('/auth/change-password', passwordData, getAuthConfig())
 }
 
-// Log out locally.
+// Clears the token from the browser
 export const logout = () => {
   localStorage.removeItem('token')
 }
