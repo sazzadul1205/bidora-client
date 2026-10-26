@@ -210,11 +210,6 @@ function AuthenticatedLayout() {
                     </NavLink>
                   </>
                 )}
-                {role !== "Admin" && (
-                  <NavLink to="/wallet" className={navLinkClass}>
-                    <Wallet className="w-4 h-4" /> My wallet
-                  </NavLink>
-                )}
               </nav>
             </div>
 

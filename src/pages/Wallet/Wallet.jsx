@@ -13,7 +13,6 @@ import {
 import { toast } from "../../utils/toast";
 import { Skeleton } from "../../components/Skeleton";
 
-// Import from your EXISTING buyerApi (or sellerApi — they are identical for wallet)
 import {
   getMyWallet,
   requestDeposit,
@@ -22,10 +21,16 @@ import {
   getMyDepositRequests,
 } from "../../services/buyerApi";
 
+// --- Tab Components ---
+import OverviewTab from "./OverviewTab/OverviewTab";
+import TransactionsTab from "./TransactionsTab/TransactionsTab";
+import ReservationsTab from "./ReservationsTab/ReservationsTab";
+import DepositRequestsTab from "./DepositRequestsTab/DepositRequestsTab";
+
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 
-// Receipt Dropzone
+// --- Receipt Dropzone (kept local to this page) ---
 function ReceiptDropzone({ file, onFileChange }) {
   const [dragActive, setDragActive] = useState(false);
   const [previewUrl, setPreviewUrl] = useState("");
@@ -181,9 +186,6 @@ export default function Wallet() {
     }
   };
 
-  // Initial load only. The async body is inlined inside the effect so the
-  // React compiler can statically see every setState() call happens after an
-  // await — never synchronously — avoiding cascading renders.
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -377,196 +379,42 @@ export default function Wallet() {
 
         <div className="p-6">
           {activeTab === "overview" && (
-            <div className="text-center py-12">
-              <WalletIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900">
-                Welcome to your wallet
-              </h3>
-              <p className="text-sm text-gray-500 mt-1 max-w-md mx-auto">
-                Deposit funds to start bidding on auctions. Your money is safe
-                and you can request a deposit at any time.
-              </p>
-              <button
-                onClick={() => setShowDepositModal(true)}
-                className="mt-6 inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg"
-              >
-                <ArrowDownToLine className="w-4 h-4" /> Make First Deposit
-              </button>
-            </div>
+            <OverviewTab
+              depositRequests={depositRequests}
+              transactions={transactions}
+              reservations={reservations}
+              onRequestDeposit={() => setShowDepositModal(true)}
+              onViewAllDeposits={() => setActiveTab("deposit-requests")}
+              onViewAllTransactions={() => setActiveTab("transactions")}
+              onViewAllReservations={() => setActiveTab("reservations")}
+              formatMoney={formatMoney}
+              getTxColor={getTxColor}
+            />
           )}
 
           {activeTab === "transactions" && (
-            <div>
-              {transactions.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
-                  <History className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                  <p className="font-medium">No transactions yet.</p>
-                </div>
-              ) : (
-                <ul className="divide-y divide-gray-100">
-                  {transactions.map((tx) => (
-                    <li
-                      key={tx.id}
-                      className="py-4 flex items-center justify-between gap-4"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`p-2 rounded-lg ${getTxColor(tx.type)}`}
-                        >
-                          <ArrowUpRight className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-900 text-sm">
-                            {tx.type}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {tx.reference || "—"}
-                          </p>
-                          <p className="text-xs text-gray-400 mt-0.5">
-                            {formatDate(tx.createdAt)}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p
-                          className={`text-sm font-bold ${tx.type === "Debit" || tx.type === "Penalty" ? "text-red-600" : "text-green-600"}`}
-                        >
-                          {tx.type === "Debit" || tx.type === "Penalty"
-                            ? "-"
-                            : "+"}
-                          {formatMoney(tx.amount)}
-                        </p>
-                        <p className="text-xs text-gray-400">
-                          Bal: {formatMoney(tx.balanceAfter)}
-                        </p>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+            <TransactionsTab
+              transactions={transactions}
+              formatMoney={formatMoney}
+              formatDate={formatDate}
+              getTxColor={getTxColor}
+            />
           )}
 
           {activeTab === "reservations" && (
-            <div>
-              {reservations.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
-                  <Lock className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                  <p className="font-medium">No active reservations.</p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    Funds are locked when you bid or list a product.
-                  </p>
-                </div>
-              ) : (
-                <ul className="divide-y divide-gray-100">
-                  {reservations.map((r) => (
-                    <li
-                      key={r.id}
-                      className="py-4 flex items-center justify-between gap-4"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-orange-50 text-orange-600">
-                          <Lock className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-900 text-sm">
-                            {r.type}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {r.productTitle || `Reservation #${r.id}`}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm font-bold text-orange-600">
-                          {formatMoney(r.amount)}
-                        </p>
-                        <span
-                          className={`inline-block mt-1 text-xs px-2 py-0.5 rounded-full font-medium ${
-                            r.status === "Reserved"
-                              ? "bg-orange-100 text-orange-700"
-                              : "bg-gray-100 text-gray-600"
-                          }`}
-                        >
-                          {r.status}
-                        </span>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+            <ReservationsTab
+              reservations={reservations}
+              formatMoney={formatMoney}
+            />
           )}
 
           {activeTab === "deposit-requests" && (
-            <div>
-              {depositRequests.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
-                  <ArrowDownToLine className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                  <p className="font-medium">No deposit requests yet.</p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    Submit a deposit request to add funds to your wallet.
-                  </p>
-                  <button
-                    onClick={() => setShowDepositModal(true)}
-                    className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg"
-                  >
-                    <ArrowDownToLine className="w-4 h-4" /> Request Deposit
-                  </button>
-                </div>
-              ) : (
-                <ul className="divide-y divide-gray-100">
-                  {depositRequests.map((d) => (
-                    <li key={d.id} className="py-4">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex items-center gap-3">
-                          <div
-                            className={`p-2 rounded-lg ${
-                              d.status === "Approved"
-                                ? "bg-green-50 text-green-600"
-                                : d.status === "Rejected"
-                                  ? "bg-red-50 text-red-600"
-                                  : "bg-amber-50 text-amber-600"
-                            }`}
-                          >
-                            <ArrowDownToLine className="w-4 h-4" />
-                          </div>
-                          <div>
-                            <p className="font-medium text-gray-900 text-sm">
-                              {d.method} — {formatMoney(d.amount)}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              Ref: {d.transactionReference}
-                            </p>
-                            <p className="text-xs text-gray-400 mt-0.5">
-                              Submitted {formatDate(d.createdAt)}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <span
-                            className={`inline-block text-xs px-2 py-1 rounded-full font-medium ${
-                              d.status === "Approved"
-                                ? "bg-green-100 text-green-700"
-                                : d.status === "Rejected"
-                                  ? "bg-red-100 text-red-700"
-                                  : "bg-amber-100 text-amber-700"
-                            }`}
-                          >
-                            {d.status}
-                          </span>
-                        </div>
-                      </div>
-                      {d.status === "Rejected" && d.rejectionReason && (
-                        <p className="mt-2 text-xs text-red-600 bg-red-50 rounded-lg p-2">
-                          <strong>Reason:</strong> {d.rejectionReason}
-                        </p>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+            <DepositRequestsTab
+              depositRequests={depositRequests}
+              onRequestDeposit={() => setShowDepositModal(true)}
+              formatMoney={formatMoney}
+              formatDate={formatDate}
+            />
           )}
         </div>
       </div>
