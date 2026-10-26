@@ -50,16 +50,23 @@ export default function AdminProducts() {
 
   const onSubmit = async (data) => {
     try {
+      const status = actionStatus || "Approved";
       await reviewProduct(selectedProduct.id, {
-        status: data.status,
-        rejectionReason: data.status === "Rejected" ? data.reason : null,
+        Status: status,
+        RejectionReason: status === "Rejected" ? data.reason : null,
       });
       setSelectedProduct(null);
       reset();
       fetchProducts();
-      toast.success(`Product ${data.status === "Approved" ? "approved" : "rejected"} successfully!`);
+      toast.success(`Product ${status === "Approved" ? "approved" : "rejected"} successfully!`);
     } catch (err) {
-      toast.error("Error reviewing product: " + (err.response?.data?.message || err.message));
+      const serverMsg = err.response?.data?.message;
+      const validationErrors = err.response?.data?.errors;
+      let detail = serverMsg || "Error reviewing product: " + (err.message || "");
+      if (validationErrors) {
+        detail = Object.values(validationErrors).flat().join(" ");
+      }
+      toast.error(detail);
     }
   };
 

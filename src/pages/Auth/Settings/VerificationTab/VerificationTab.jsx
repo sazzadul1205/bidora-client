@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { submitProfileVerification } from "../../../services/buyerApi";
-import { submitProfileVerification as submitProfileVerificationSeller } from "../../../services/sellerApi";
-import { toast } from "../../../utils/toast";
+import { submitProfileVerification } from "../../../../services/buyerApi";
+import { submitProfileVerification as submitProfileVerificationSeller } from "../../../../services/sellerApi";
+import { toast } from "../../../../utils/toast";
 import { ShieldCheck, Lock, AlertCircle } from "lucide-react";
 
 export default function VerificationTab({ userData, role, refreshUser }) {

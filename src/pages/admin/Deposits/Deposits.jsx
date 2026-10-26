@@ -38,18 +38,25 @@ export default function Deposits() {
     return () => { mounted = false; };
   }, []);
 
-  const onSubmit = async (data) => {
+const onSubmit = async (data) => {
     try {
+      const status = actionStatus || "Approved";
       await reviewDepositRequest(selected.id, {
-        status: data.status,
-        rejectionReason: data.status === "Rejected" ? data.reason : null,
+        Status: status,
+        RejectionReason: status === "Rejected" ? data.reason : null,
       });
       setSelected(null);
       reset();
       fetchRequests();
-      toast.success(`Deposit ${data.status === "Approved" ? "approved" : "rejected"} successfully!`);
-    } catch {
-      toast.error("Error reviewing deposit.");
+      toast.success(`Deposit ${status === "Approved" ? "approved" : "rejected"} successfully!`);
+    } catch (err) {
+      const serverMsg = err.response?.data?.message;
+      const validationErrors = err.response?.data?.errors;
+      let detail = serverMsg || "Error reviewing deposit: " + (err.message || "");
+      if (validationErrors) {
+        detail = Object.values(validationErrors).flat().join(" ");
+      }
+      toast.error(detail);
     }
   };
 

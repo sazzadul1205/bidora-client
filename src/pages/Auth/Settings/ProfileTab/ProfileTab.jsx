@@ -21,7 +21,6 @@ function NidDropzone({ label, file, existingUrl, onFileChange, disabled }) {
   const objectUrlRef = useRef(null);
   const inputRef = useRef(null);
 
-  // Construct the full URL for the previously uploaded image
   const savedImageUrl = existingUrl
     ? `${import.meta.env.VITE_API_BASE_URL.replace("/api", "")}${existingUrl}`
     : null;
@@ -71,7 +70,6 @@ function NidDropzone({ label, file, existingUrl, onFileChange, disabled }) {
     if (inputRef.current) inputRef.current.value = "";
   };
 
-  // Determine what image to show (newly selected OR previously saved)
   const displayImage = previewUrl || savedImageUrl;
 
   return (
@@ -130,7 +128,6 @@ function NidDropzone({ label, file, existingUrl, onFileChange, disabled }) {
 
         {displayImage ? (
           <div className="w-full flex flex-col items-center">
-            {/* SHOW THE ACTUAL IMAGE */}
             <img
               src={displayImage}
               alt={`${label}`}
@@ -190,11 +187,13 @@ export default function ProfileTab({ userData, refreshUser }) {
   const [frontNidFile, setFrontNidFile] = useState(null);
   const [backNidFile, setBackNidFile] = useState(null);
   const profile = userData?.profile || {};
+
+  // Determine role early
   const role = userData?.account?.roles?.[0];
+  const isAdmin = role === "Admin";
 
   const verificationStatus = profile.verificationStatus || "NotSubmitted";
 
-  // Locks all fields if Pending, Verified, or Approved
   const isLocked = ["PendingReview", "Verified", "Approved"].includes(
     verificationStatus,
   );
@@ -234,8 +233,8 @@ export default function ProfileTab({ userData, refreshUser }) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-7">
-      {/* REJECTED BANNER */}
-      {isRejected && (
+      {/* REJECTED BANNER (Hidden for Admin) */}
+      {isRejected && !isAdmin && (
         <div className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4">
           <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-600" />
           <div>
@@ -254,8 +253,8 @@ export default function ProfileTab({ userData, refreshUser }) {
         </div>
       )}
 
-      {/* LOCKED BANNER (PENDING OR ACCEPTED) */}
-      {isLocked && (
+      {/* LOCKED BANNER (Hidden for Admin) */}
+      {isLocked && !isAdmin && (
         <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4">
           <Lock className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
           <div>
@@ -276,7 +275,9 @@ export default function ProfileTab({ userData, refreshUser }) {
             Personal Information
           </h2>
           <p className="mt-1 text-sm text-gray-500">
-            Update your contact details and National ID documents.
+            {isAdmin
+              ? "Update your admin account information."
+              : "Update your contact details and National ID documents."}
           </p>
         </div>
 
@@ -325,103 +326,121 @@ export default function ProfileTab({ userData, refreshUser }) {
             )}
           </div>
 
-          <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">
-              Phone Number
-            </label>
-            <input
-              type="tel"
-              disabled={isLocked}
-              {...register("phoneNumber")}
-              className={`w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500 ${isLocked ? "bg-gray-50 text-gray-500 cursor-not-allowed" : ""}`}
-            />
+          {/* HIDE FOR ADMIN: Phone Number */}
+          {!isAdmin && (
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                Phone Number
+              </label>
+              <input
+                type="tel"
+                disabled={isLocked}
+                {...register("phoneNumber")}
+                className={`w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500 ${isLocked ? "bg-gray-50 text-gray-500 cursor-not-allowed" : ""}`}
+              />
+            </div>
+          )}
+
+          {/* HIDE FOR ADMIN: National ID Number */}
+          {!isAdmin && (
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                National ID Number{" "}
+                {isAccepted && (
+                  <Lock className="inline h-3 w-3 text-gray-400 mb-1" />
+                )}
+              </label>
+              <input
+                type="text"
+                disabled={isLocked || isAccepted}
+                {...register("nationalId")}
+                autoComplete="off"
+                className={`w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500 ${isLocked || isAccepted ? "bg-gray-50 text-gray-500 cursor-not-allowed" : ""}`}
+              />
+            </div>
+          )}
+
+          {/* HIDE FOR ADMIN: City */}
+          {!isAdmin && (
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                City
+              </label>
+              <input
+                type="text"
+                disabled={isLocked}
+                {...register("city")}
+                className={`w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500 ${isLocked ? "bg-gray-50 text-gray-500 cursor-not-allowed" : ""}`}
+              />
+            </div>
+          )}
+
+          {/* HIDE FOR ADMIN: Address */}
+          {!isAdmin && (
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                Address
+              </label>
+              <textarea
+                rows={3}
+                disabled={isLocked}
+                {...register("address")}
+                className={`w-full resize-y rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500 ${isLocked ? "bg-gray-50 text-gray-500 cursor-not-allowed" : ""}`}
+              />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* HIDE FOR ADMIN: National ID Documents Section */}
+      {!isAdmin && (
+        <div className="border-t border-gray-200 pt-6">
+          <div className="mb-5">
+            <h2 className="text-lg font-semibold text-gray-900">
+              National ID Documents
+            </h2>
           </div>
 
-          <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">
-              National ID Number{" "}
-              {isAccepted && (
-                <Lock className="inline h-3 w-3 text-gray-400 mb-1" />
-              )}
-            </label>
-            <input
-              type="text"
-              // Specifically lock the NID number if ACCEPTED (even if rejected, they might need to correct a typo)
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+            <NidDropzone
+              label="Front of National ID"
+              file={frontNidFile}
+              existingUrl={profile.nationalIdFrontImageUrl}
+              onFileChange={setFrontNidFile}
               disabled={isLocked || isAccepted}
-              {...register("nationalId")}
-              autoComplete="off"
-              className={`w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500 ${isLocked || isAccepted ? "bg-gray-50 text-gray-500 cursor-not-allowed" : ""}`}
             />
-          </div>
-
-          <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">
-              City
-            </label>
-            <input
-              type="text"
-              disabled={isLocked}
-              {...register("city")}
-              className={`w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500 ${isLocked ? "bg-gray-50 text-gray-500 cursor-not-allowed" : ""}`}
-            />
-          </div>
-
-          <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700">
-              Address
-            </label>
-            <textarea
-              rows={3}
-              disabled={isLocked}
-              {...register("address")}
-              className={`w-full resize-y rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500 ${isLocked ? "bg-gray-50 text-gray-500 cursor-not-allowed" : ""}`}
+            <NidDropzone
+              label="Back of National ID"
+              file={backNidFile}
+              existingUrl={profile.nationalIdBackImageUrl}
+              onFileChange={setBackNidFile}
+              disabled={isLocked || isAccepted}
             />
           </div>
         </div>
-      </div>
-
-      <div className="border-t border-gray-200 pt-6">
-        <div className="mb-5">
-          <h2 className="text-lg font-semibold text-gray-900">
-            National ID Documents
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-          <NidDropzone
-            label="Front of National ID"
-            file={frontNidFile}
-            existingUrl={profile.nationalIdFrontImageUrl}
-            onFileChange={setFrontNidFile}
-            disabled={isLocked || isAccepted}
-          />
-          <NidDropzone
-            label="Back of National ID"
-            file={backNidFile}
-            existingUrl={profile.nationalIdBackImageUrl}
-            onFileChange={setBackNidFile}
-            disabled={isLocked || isAccepted}
-          />
-        </div>
-      </div>
+      )}
 
       <div className="flex flex-col-reverse gap-3 border-t border-gray-200 pt-5 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-xs text-gray-500">
-          {isLocked
+          {isLocked && !isAdmin
             ? "You cannot save changes while your profile is locked."
-            : "Your selected files are uploaded when you click Save Changes."}
+            : "Your information is saved when you click Save Changes."}
         </p>
         <button
           type="submit"
-          disabled={isSubmitting || isLocked}
+          disabled={isSubmitting || (isLocked && !isAdmin)}
           className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {isLocked ? (
+          {isLocked && !isAdmin ? (
             <Lock className="h-4 w-4" />
           ) : (
             <Save className="h-4 w-4" />
           )}
-          {isSubmitting ? "Saving..." : isLocked ? "Locked" : "Save Changes"}
+          {isSubmitting
+            ? "Saving..."
+            : isLocked && !isAdmin
+              ? "Locked"
+              : "Save Changes"}
         </button>
       </div>
     </form>

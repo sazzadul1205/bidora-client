@@ -182,7 +182,7 @@ function Login() {
                 )}
               </div>
 
-              <div className="flex items-center justify-between pt-1">
+              {/* <div className="flex items-center justify-between pt-1">
                 <label className="flex items-center gap-2">
                   <input
                     type="checkbox"
@@ -193,7 +193,7 @@ function Login() {
                 <a href="#" className="text-sm text-blue-600 hover:underline">
                   Forgot password?
                 </a>
-              </div>
+              </div> */}
 
               <button
                 type="submit"

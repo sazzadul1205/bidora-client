@@ -7,6 +7,56 @@ const authApi = axios.create({
   },
 })
 
+// --- DEBUG LOGGING (remove later when stable) ---
+const DEBUG = true
+const reqLog = (cfg) => {
+  if (!DEBUG) return
+  console.log('%c[API REQUEST]', 'color: #2563eb; font-weight: bold', {
+    method: cfg.method?.toUpperCase(),
+    url: cfg.url,
+    params: cfg.params,
+    data: cfg.data,
+    headers: cfg.headers,
+  })
+  console.log('%c[API REQUEST RAW]', 'color: #2563eb; font-weight: bold',
+    'URL:', cfg.method?.toUpperCase(), cfg.url,
+    '\nPAYLOAD:', JSON.stringify(cfg.data, null, 2),
+    '\nHEADERS:', JSON.stringify(cfg.headers, null, 2)
+  )
+}
+const resLog = (res) => {
+  if (!DEBUG) return
+  console.log('%c[API RESPONSE]', 'color: #16a34a; font-weight: bold', {
+    url: res.config?.url,
+    status: res.status,
+    data: res.data,
+  })
+  console.log('%c[API RESPONSE RAW]', 'color: #16a34a; font-weight: bold',
+    'URL:', res.config?.url,
+    '\nSTATUS:', res.status,
+    '\nBODY:', JSON.stringify(res.data, null, 2)
+  )
+}
+const errLog = (err) => {
+  if (!DEBUG) return
+  console.log('%c[API ERROR RAW]', 'color: #dc2626; font-weight: bold',
+    'URL:', err.config?.url,
+    '\nSTATUS:', err.response?.status,
+    '\nREQUEST BODY:', JSON.stringify(err.config?.data, null, 2),
+    '\nRESPONSE BODY:', JSON.stringify(err.response?.data, null, 2),
+    '\nERROR MESSAGE:', err.message
+  )
+}
+authApi.interceptors.request.use(
+  (cfg) => { reqLog(cfg); return cfg },
+  (err) => { errLog(err); return Promise.reject(err) }
+)
+authApi.interceptors.response.use(
+  (res) => { resLog(res); return res },
+  (err) => { errLog(err); return Promise.reject(err) }
+)
+// -------------------------------------------
+
 // Helper to manually attach the Bearer token for protected routes
 export const getAuthConfig = () => {
   const token = localStorage.getItem('token')
