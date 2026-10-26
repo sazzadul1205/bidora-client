@@ -1,7 +1,22 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { getAllAuctions, configureAuction, cancelAuction } from "../../../services/adminApi";
-import { Calendar, XCircle } from "lucide-react";
+import {
+  getAllAuctions,
+  configureAuction,
+  cancelAuction,
+} from "../../../services/adminApi";
+import { imageUrl, handleImageError } from "../../../utils/image";
+import {
+  Calendar,
+  XCircle,
+  Clock,
+  CheckCircle,
+  Gavel,
+  Package,
+  Search,
+  Loader2,
+  X,
+} from "lucide-react";
 import { toast } from "../../../utils/toast";
 import { SkeletonRow, Skeleton } from "../../../components/Skeleton";
 
@@ -10,14 +25,23 @@ export default function Auctions() {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);
   const [action, setAction] = useState("");
-  const { register, handleSubmit, reset } = useForm();
+  const [activeTab, setActiveTab] = useState("NeedsSchedule");
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm();
 
   const fetchAuctions = async () => {
     try {
       const res = await getAllAuctions();
-      setAuctions(res.data.data);
+      setAuctions(res.data.data || []);
     } catch (err) {
       console.error(err);
+      toast.error("Failed to load auctions.");
     } finally {
       setLoading(false);
     }
@@ -28,14 +52,17 @@ export default function Auctions() {
     (async () => {
       try {
         const res = await getAllAuctions();
-        if (mounted) setAuctions(res.data.data);
+        if (mounted) setAuctions(res.data.data || []);
       } catch (err) {
         console.error(err);
+        toast.error("Failed to load auctions.");
       } finally {
         if (mounted) setLoading(false);
       }
     })();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const openModal = (auction, type) => {
@@ -49,128 +76,399 @@ export default function Auctions() {
       if (action === "configure") {
         await configureAuction(selected.auctionId, {
           startTime: new Date(data.startTime).toISOString(),
-          endTime: new Date(data.endTime).toISOString()
+          endTime: new Date(data.endTime).toISOString(),
         });
+        toast.success("Auction scheduled successfully!");
       } else {
         await cancelAuction(selected.auctionId, { reason: data.reason });
+        toast.success("Auction cancelled successfully!");
       }
       setSelected(null);
       fetchAuctions();
-      toast.success(`Auction ${action === "configure" ? "configured" : "cancelled"} successfully!`);
     } catch (err) {
-      toast.error("Action failed: " + (err.response?.data?.message || "Unknown error"));
+      toast.error(
+        err.response?.data?.message || `Failed to ${action} auction.`,
+      );
     }
   };
 
-  if (loading) return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <Skeleton className="h-7 w-32 mb-2" />
-          <Skeleton className="h-4 w-48" />
+  const formatDate = (dateString) => {
+    if (!dateString) return "Not set";
+    return new Date(dateString).toLocaleString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  // --- FILTERING LOGIC ---
+  const filteredAuctions = auctions.filter((a) => {
+    // 1. Search Filter
+    if (
+      searchTerm &&
+      !a.productTitle.toLowerCase().includes(searchTerm.toLowerCase())
+    ) {
+      return false;
+    }
+    // 2. Tab Filter
+    if (activeTab === "NeedsSchedule")
+      return a.status === "Upcoming" && !a.startTime;
+    if (activeTab === "Scheduled")
+      return a.status === "Upcoming" && a.startTime;
+    if (activeTab === "Active") return a.status === "Active";
+    if (activeTab === "History")
+      return a.status === "Completed" || a.status === "Cancelled";
+    return true;
+  });
+
+  const needsScheduleCount = auctions.filter(
+    (a) => a.status === "Upcoming" && !a.startTime,
+  ).length;
+
+  // --- LOADING STATE ---
+  if (loading)
+    return (
+      <div className="max-w-7xl mx-auto">
+        <div className="flex items-center justify-between mb-6">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-10 w-64 rounded-lg" />
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+          <table className="w-full text-left text-sm text-gray-600">
+            <thead className="bg-gray-50 border-b border-gray-200 text-gray-900">
+              <tr>
+                <th className="px-6 py-4 font-medium">Product</th>
+                <th className="px-6 py-4 font-medium">Status</th>
+                <th className="px-6 py-4 font-medium">Schedule</th>
+                <th className="px-6 py-4 font-medium text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              <SkeletonRow cols={4} />
+              <SkeletonRow cols={4} />
+              <SkeletonRow cols={4} />
+            </tbody>
+          </table>
         </div>
       </div>
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <table className="w-full text-left text-sm text-gray-600">
-          <thead className="bg-gray-50 border-b border-gray-200 text-gray-900">
-            <tr>
-              <th className="px-6 py-4 font-medium">Product Title</th>
-              <th className="px-6 py-4 font-medium">Status</th>
-              <th className="px-6 py-4 font-medium">Start Time</th>
-              <th className="px-6 py-4 font-medium">End Time</th>
-              <th className="px-6 py-4 font-medium text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            <SkeletonRow cols={5} />
-            <SkeletonRow cols={5} />
-            <SkeletonRow cols={5} />
-            <SkeletonRow cols={5} />
-            <SkeletonRow cols={5} />
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
+    );
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Auctions</h1>
+    <div className="max-w-7xl mx-auto">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Auction Management
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Schedule approved products and monitor live auctions.
+          </p>
+        </div>
+
+        <div className="relative">
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search by product title..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none w-72 bg-white"
+          />
+        </div>
+      </div>
 
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        {/* Tabs Navigation */}
+        <div className="border-b border-gray-200 bg-gray-50/50">
+          <nav className="flex overflow-x-auto">
+            {[
+              {
+                id: "NeedsSchedule",
+                label: "Needs Schedule",
+                icon: Clock,
+                badge: needsScheduleCount,
+              },
+              { id: "Scheduled", label: "Scheduled", icon: Calendar },
+              { id: "Active", label: "Active", icon: Gavel },
+              {
+                id: "History",
+                label: "Completed / Cancelled",
+                icon: CheckCircle,
+              },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 px-6 py-4 text-sm font-medium border-b-2 transition whitespace-nowrap ${
+                  activeTab === tab.id
+                    ? "border-blue-600 text-blue-600 bg-white"
+                    : "border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                }`}
+              >
+                <tab.icon className="w-4 h-4" />
+                {tab.label}
+                {tab.badge !== undefined && tab.badge > 0 && (
+                  <span className="bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded-full ml-1">
+                    {tab.badge}
+                  </span>
+                )}
+              </button>
+            ))}
+          </nav>
+        </div>
+
+        {/* Table */}
         <table className="w-full text-left text-sm text-gray-600">
           <thead className="bg-gray-50 border-b border-gray-200 text-gray-900">
             <tr>
-              <th className="px-6 py-4 font-medium">Product Title</th>
+              <th className="px-6 py-4 font-medium">Product</th>
               <th className="px-6 py-4 font-medium">Status</th>
-              <th className="px-6 py-4 font-medium">Start Time</th>
-              <th className="px-6 py-4 font-medium">End Time</th>
+              <th className="px-6 py-4 font-medium">Schedule</th>
               <th className="px-6 py-4 font-medium text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {auctions.length === 0 ? (
-              <tr><td colSpan="5" className="text-center py-8 text-gray-500">No auctions found.</td></tr>
-            ) : auctions.map((a) => (
-              <tr key={a.auctionId} className="hover:bg-gray-50">
-                <td className="px-6 py-4 font-medium text-gray-900">{a.productTitle}</td>
-                <td className="px-6 py-4">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    a.status === "Active" ? "bg-green-100 text-green-700" :
-                    a.status === "Upcoming" ? "bg-yellow-100 text-yellow-700" :
-                    a.status === "Completed" ? "bg-gray-100 text-gray-700" : "bg-red-100 text-red-700"
-                  }`}>
-                    {a.status}
-                  </span>
-                </td>
-                <td className="px-6 py-4">{a.startTime ? new Date(a.startTime).toLocaleString() : "Not set"}</td>
-                <td className="px-6 py-4">{a.endTime ? new Date(a.endTime).toLocaleString() : "Not set"}</td>
-                <td className="px-6 py-4 text-right space-x-3">
-                  {a.status === "Upcoming" && (
-                    <button onClick={() => openModal(a, "configure")} className="text-blue-600 hover:text-blue-800 font-medium inline-flex items-center gap-1">
-                      <Calendar className="w-4 h-4" /> Configure
-                    </button>
-                  )}
-                  {(a.status === "Upcoming" || a.status === "Active") && (
-                    <button onClick={() => openModal(a, "cancel")} className="text-red-600 hover:text-red-800 font-medium inline-flex items-center gap-1">
-                      <XCircle className="w-4 h-4" /> Cancel
-                    </button>
-                  )}
+            {filteredAuctions.length === 0 ? (
+              <tr>
+                <td colSpan="4" className="text-center py-12">
+                  <Package className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500 font-medium">
+                    No auctions found.
+                  </p>
+                  <p className="text-gray-400 text-xs mt-1">
+                    {searchTerm
+                      ? "Try adjusting your search."
+                      : "This tab is currently empty."}
+                  </p>
                 </td>
               </tr>
-            ))}
+            ) : (
+              filteredAuctions.map((a) => (
+                <tr
+                  key={a.auctionId}
+                  className="hover:bg-gray-50 transition-colors"
+                >
+                  {/* Product Info */}
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-4">
+                      {a.mainImageUrl ? (
+                        <img
+                          src={imageUrl(a.mainImageUrl)}
+                          alt={a.productTitle}
+                          onError={handleImageError}
+                          className="w-12 h-12 rounded-lg object-cover border border-gray-200 bg-gray-50 shrink-0"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center shrink-0">
+                          <Package className="w-5 h-5 text-gray-400" />
+                        </div>
+                      )}
+                      <div>
+                        <p className="font-semibold text-gray-900 line-clamp-1">
+                          {a.productTitle}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-0.5 truncate max-w-37.5">
+                          Seller ID: {a.sellerId}
+                        </p>
+                      </div>
+                    </div>
+                  </td>
+
+                  {/* Status */}
+                  <td className="px-6 py-4">
+                    <span
+                      className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                        a.status === "Active"
+                          ? "bg-green-100 text-green-700"
+                          : a.status === "Upcoming"
+                            ? "bg-yellow-100 text-yellow-700"
+                            : a.status === "Completed"
+                              ? "bg-blue-100 text-blue-700"
+                              : "bg-red-100 text-red-700"
+                      }`}
+                    >
+                      {a.status}
+                    </span>
+                    {a.status === "Active" && (
+                      <p className="text-xs text-gray-500 mt-1 font-medium">
+                        {a.bidCount} Bids
+                      </p>
+                    )}
+                  </td>
+
+                  {/* Schedule */}
+                  <td className="px-6 py-4">
+                    <div className="text-xs space-y-1.5">
+                      <p
+                        className={
+                          !a.startTime
+                            ? "text-orange-600 font-semibold flex items-center gap-1"
+                            : "text-gray-700"
+                        }
+                      >
+                        {!a.startTime && <Clock className="w-3 h-3" />}
+                        <span className="text-gray-400">Start:</span>{" "}
+                        {formatDate(a.startTime)}
+                      </p>
+                      <p
+                        className={
+                          !a.endTime
+                            ? "text-orange-600 font-semibold flex items-center gap-1"
+                            : "text-gray-700"
+                        }
+                      >
+                        {!a.endTime && <Clock className="w-3 h-3" />}
+                        <span className="text-gray-400">End:</span>{" "}
+                        {formatDate(a.endTime)}
+                      </p>
+                    </div>
+                  </td>
+
+                  {/* Actions */}
+                  <td className="px-6 py-4 text-right space-x-2">
+                    {a.status === "Upcoming" && (
+                      <button
+                        onClick={() => openModal(a, "configure")}
+                        className="inline-flex items-center gap-1.5 text-blue-600 hover:text-blue-800 font-medium bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors"
+                      >
+                        <Calendar className="w-4 h-4" />
+                        {a.startTime ? "Edit Schedule" : "Set Schedule"}
+                      </button>
+                    )}
+                    {(a.status === "Upcoming" || a.status === "Active") && (
+                      <button
+                        onClick={() => openModal(a, "cancel")}
+                        className="inline-flex items-center gap-1.5 text-red-600 hover:text-red-800 font-medium bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition-colors"
+                      >
+                        <XCircle className="w-4 h-4" /> Cancel
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
 
+      {/* ========================================================= */}
+      {/* ACTION MODAL */}
+      {/* ========================================================= */}
       {selected && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white p-6 rounded-xl w-full max-w-md shadow-xl">
-            <h2 className="text-lg font-bold mb-4 capitalize">{action} Auction</h2>
-            <p className="text-sm text-gray-500 mb-4">Product: {selected.productTitle}</p>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+              <div>
+                <h2 className="text-lg font-bold text-gray-900">
+                  {action === "configure"
+                    ? "Schedule Auction"
+                    : "Cancel Auction"}
+                </h2>
+                <p className="text-xs text-gray-500 mt-0.5 truncate max-w-70">
+                  {selected.productTitle}
+                </p>
+              </div>
+              <button
+                onClick={() => setSelected(null)}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
               {action === "configure" ? (
                 <>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Start Time (Local)</label>
-                    <input type="datetime-local" {...register("startTime", { required: true })} className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Start Time (Local)
+                    </label>
+                    <input
+                      type="datetime-local"
+                      {...register("startTime", {
+                        required: "Start time is required",
+                      })}
+                      className={`w-full border p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none ${errors.startTime ? "border-red-500" : "border-gray-300"}`}
+                    />
+                    {errors.startTime && (
+                      <p className="text-xs text-red-600 mt-1">
+                        {errors.startTime.message}
+                      </p>
+                    )}
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">End Time (Local)</label>
-                    <input type="datetime-local" {...register("endTime", { required: true })} className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      End Time (Local)
+                    </label>
+                    <input
+                      type="datetime-local"
+                      {...register("endTime", {
+                        required: "End time is required",
+                      })}
+                      className={`w-full border p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none ${errors.endTime ? "border-red-500" : "border-gray-300"}`}
+                    />
+                    {errors.endTime && (
+                      <p className="text-xs text-red-600 mt-1">
+                        {errors.endTime.message}
+                      </p>
+                    )}
+                  </div>
+                  <div className="bg-blue-50 text-blue-800 text-xs p-3 rounded-lg border border-blue-100">
+                    Note: The auction will automatically go live at the Start
+                    Time. Ensure the start time is in the future.
                   </div>
                 </>
               ) : (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Reason for Cancellation</label>
-                  <textarea {...register("reason", { required: true })} className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none h-24" placeholder="Provide a reason..." />
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Reason for Cancellation
+                  </label>
+                  <textarea
+                    {...register("reason", {
+                      required: "A reason is required to cancel.",
+                    })}
+                    className={`w-full border p-2.5 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none h-28 resize-none ${errors.reason ? "border-red-500" : "border-gray-300"}`}
+                    placeholder="E.g. Seller requested cancellation, product details were inaccurate, etc."
+                  />
+                  {errors.reason && (
+                    <p className="text-xs text-red-600 mt-1">
+                      {errors.reason.message}
+                    </p>
+                  )}
+                  <div className="bg-red-50 text-red-800 text-xs p-3 rounded-lg border border-red-100 mt-3">
+                    Warning: Cancelling this auction will release all buyer and
+                    seller reserved funds and notify participants.
+                  </div>
                 </div>
               )}
 
-              <div className="flex justify-end gap-2 mt-6">
-                <button type="button" onClick={() => setSelected(null)} className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg">Cancel</button>
-                <button type="submit" className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg">Confirm</button>
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={() => setSelected(null)}
+                  className="px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className={`inline-flex items-center gap-2 px-5 py-2.5 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-50 ${
+                    action === "configure"
+                      ? "bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-600/20"
+                      : "bg-red-600 hover:bg-red-700 shadow-md shadow-red-600/20"
+                  }`}
+                >
+                  {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
+                  {isSubmitting
+                    ? "Saving..."
+                    : action === "configure"
+                      ? "Save Schedule"
+                      : "Confirm Cancellation"}
+                </button>
               </div>
             </form>
           </div>

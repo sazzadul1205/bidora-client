@@ -27,6 +27,8 @@ import Verifications from "./pages/admin/Verifications/Verifications";
 import Auctions from "./pages/admin/Auctions/Auctions";
 import Disputes from "./pages/admin/Disputes/Disputes";
 import Categories from "./pages/admin/Categories/Categories";
+import EditProduct from "./pages/seller/EditProduct/EditProduct";
+import ViewProduct from "./pages/seller/ViewProduct/ViewProduct";
 
 function App() {
   return (
@@ -87,7 +89,7 @@ function App() {
               </ProfileCompletionGuard>
             }
           />
-<Route
+          <Route
             path="/wallet"
             element={
               <ProfileCompletionGuard>
@@ -126,6 +128,23 @@ function App() {
             element={
               <ProfileCompletionGuard>
                 <CreateProduct />
+              </ProfileCompletionGuard>
+            }
+          />
+
+          <Route
+            path="/seller/products/edit/:id"
+            element={
+              <ProfileCompletionGuard>
+                <EditProduct />
+              </ProfileCompletionGuard>
+            }
+          />
+          <Route
+            path="/seller/products/view/:id"
+            element={
+              <ProfileCompletionGuard>
+                <ViewProduct />
               </ProfileCompletionGuard>
             }
           />

@@ -53,8 +53,14 @@ export default function WonAuctions() {
       await confirmReceipt(saleId);
       toast.success("Receipt confirmed. Funds released to seller.");
       fetchWonAuctions();
-    } catch {
-      toast.error("Failed to confirm receipt.");
+    } catch (err) {
+      const serverMsg = err.response?.data?.message;
+      const validationErrors = err.response?.data?.errors;
+      let detail = serverMsg || "Failed to confirm receipt.";
+      if (validationErrors) {
+        detail = Object.values(validationErrors).flat().join(" ");
+      }
+      toast.error(detail);
     }
   };
 

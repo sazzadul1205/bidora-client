@@ -9,7 +9,7 @@ export default function MyBids() {
 
   useEffect(() => {
     let mounted = true;
-    const fetchBids = async () => {
+    (async () => {
       try {
         const res = await getMyBids();
         if (mounted) setBids(res.data.data || []);
@@ -18,8 +18,7 @@ export default function MyBids() {
       } finally {
         if (mounted) setLoading(false);
       }
-    };
-    fetchBids();
+    })();
     return () => {
       mounted = false;
     };
