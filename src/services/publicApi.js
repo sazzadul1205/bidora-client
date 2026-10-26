@@ -23,6 +23,11 @@ export const getProductById = (id) => {
   return publicApi.get(`/product/${id}`)
 }
 
+// View details of one auction by ID
+export const getAuctionById = (id) => {
+  return publicApi.get(`/auction/${id}`)
+}
+
 // View all auctions
 export const getAuctions = () => {
   return publicApi.get('/auction')

@@ -65,6 +65,14 @@ export default function Auctions() {
     };
   }, []);
 
+  // Compute the minimum selectable datetime (now) as YYYY-MM-DDTHH:MM
+  // Used for both start and end time inputs so past dates are disabled.
+  const minStartDateTime = (() => {
+    const d = new Date();
+    d.setSeconds(0, 0);
+    return d.toISOString().slice(0, 16);
+  })();
+
   const openModal = (auction, type) => {
     setSelected(auction);
     setAction(type);
@@ -72,6 +80,22 @@ export default function Auctions() {
   };
 
   const onSubmit = async (data) => {
+    // Client-side validation: end time must be at least 3 days after start time
+    if (action === "configure") {
+      const startMs = new Date(data.startTime).getTime();
+      const endMs = new Date(data.endTime).getTime();
+      const diffMs = endMs - startMs;
+      const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
+      if (diffMs < threeDaysMs) {
+        toast.error("End time must be at least 3 days after the start time.");
+        return;
+      }
+      if (endMs <= startMs) {
+        toast.error("End time must be after the start time.");
+        return;
+      }
+    }
+
     try {
       if (action === "configure") {
         await configureAuction(selected.auctionId, {
@@ -388,6 +412,7 @@ export default function Auctions() {
                     </label>
                     <input
                       type="datetime-local"
+                      min={minStartDateTime}
                       {...register("startTime", {
                         required: "Start time is required",
                       })}
@@ -401,10 +426,14 @@ export default function Auctions() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      End Time (Local)
+                      End Time (Local) <span className="text-red-500">*</span>
                     </label>
+                    <p className="text-xs text-amber-600 mb-1 font-medium">
+                      Must be at least 3 days after the start time.
+                    </p>
                     <input
                       type="datetime-local"
+                      min={minStartDateTime}
                       {...register("endTime", {
                         required: "End time is required",
                       })}

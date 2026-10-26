@@ -3,7 +3,7 @@ import PublicLayout from "./Layouts/PublicLayout/PublicLayout";
 import AuthenticatedLayout from "./Layouts/AuthenticatedLayout/AuthenticatedLayout";
 import Login from "./pages/Auth/Login/Login";
 import Register from "./pages/Auth/Register/Register";
-import Products from "./pages/Products";
+import Products from "./pages/Products/Products";
 import Dashboard from "./pages/Dashboard";
 import SellerDashboard from "./pages/SellerDashboard";
 import BuyerDashboard from "./pages/buyer/Dashboard/BuyerDashboard";
@@ -13,6 +13,8 @@ import MyProducts from "./pages/seller/MyProducts/MyProducts";
 import CreateProduct from "./pages/seller/CreateProduct/CreateProduct";
 import SellerSales from "./pages/seller/Sales/SellerSales";
 import Settings from "./pages/Auth/Settings/Settings";
+import Auctions from "./pages/Auctions/Auctions";
+import AuctionDetails from "./pages/AuctionDetails/AuctionDetails";
 
 import ProfileCompletionGuard from "./components/Auth/ProfileCompletionGuard";
 import ProfilePending from "./pages/ProfilePending/ProfilePending";
@@ -24,11 +26,11 @@ import Users from "./pages/admin/Users/Users";
 import AdminProducts from "./pages/admin/Products/AdminProducts";
 import Deposits from "./pages/admin/Deposits/Deposits";
 import Verifications from "./pages/admin/Verifications/Verifications";
-import Auctions from "./pages/admin/Auctions/Auctions";
 import Disputes from "./pages/admin/Disputes/Disputes";
 import Categories from "./pages/admin/Categories/Categories";
 import EditProduct from "./pages/seller/EditProduct/EditProduct";
 import ViewProduct from "./pages/seller/ViewProduct/ViewProduct";
+import AdminAuction from "./pages/admin/Auctions/Auctions";
 
 function App() {
   return (
@@ -37,6 +39,8 @@ function App() {
         {/* Public Routes */}
         <Route element={<PublicLayout />}>
           <Route path="/" element={<Products />} />
+          <Route path="/auctions" element={<Auctions />} />
+          <Route path="/auction/:id" element={<AuctionDetails />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
         </Route>
@@ -52,7 +56,7 @@ function App() {
           <Route path="/admin/products" element={<AdminProducts />} />
           <Route path="/admin/deposits" element={<Deposits />} />
           <Route path="/admin/verifications" element={<Verifications />} />
-          <Route path="/admin/auctions" element={<Auctions />} />
+          <Route path="/admin/auctions" element={<AdminAuction />} />
           <Route path="/admin/disputes" element={<Disputes />} />
           <Route path="/admin/categories" element={<Categories />} />
 
