@@ -3,6 +3,8 @@ import {
   getWonAuctions,
   payForSale,
   confirmReceipt,
+  createDispute,
+  getMyDisputes,
 } from "../../../services/buyerApi";
 import {
   CreditCard,
@@ -12,6 +14,10 @@ import {
   Package,
   AlertCircle,
   Clock,
+  Scale,
+  Truck,
+  X,
+  Link as LinkIcon,
 } from "lucide-react";
 import { toast, confirmDialog } from "../../../utils/toast";
 import { SkeletonRow, Skeleton } from "../../../components/Skeleton";
@@ -22,6 +28,10 @@ export default function WonAuctions() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
+  const [disputeTarget, setDisputeTarget] = useState(null);
+  const [complaint, setComplaint] = useState("");
+  const [evidenceUrl, setEvidenceUrl] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fetchWonAuctions = async () => {
     try {
@@ -93,6 +103,38 @@ export default function WonAuctions() {
     }
   };
 
+  // Raise a dispute for a won auction. Only available once the buyer has paid
+  // (Paid / PaymentSubmitted / Completed) — the backend rejects disputes for
+  // AwaitingPayment sales.
+  const handleRaiseDispute = async (saleId) => {
+    if (!complaint.trim()) {
+      toast.error("Please describe the issue.");
+      return;
+    }
+    if (complaint.trim().length < 20) {
+      toast.error("Please provide more detail (at least 20 characters).");
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      await createDispute({
+        saleId,
+        complaint: complaint.trim(),
+        evidenceUrl: evidenceUrl.trim() || null,
+      });
+      toast.success("Dispute submitted. Awaiting admin review.");
+      setDisputeTarget(null);
+      setComplaint("");
+      setEvidenceUrl("");
+      fetchWonAuctions();
+    } catch (err) {
+      const serverMsg = err.response?.data?.message;
+      toast.error(serverMsg || "Failed to submit dispute.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   // --- STATS CALCULATION ---
   const pendingPaymentCount = auctions.filter(
     (a) =>
@@ -122,7 +164,10 @@ export default function WonAuctions() {
         a.paymentStatus === "PaymentOverdue"
       );
     }
+    if (filterStatus === "Dispatched") return a.paymentStatus === "Dispatched";
+    if (filterStatus === "PaymentSubmitted") return a.paymentStatus === "PaymentSubmitted";
     if (filterStatus === "Paid") return a.paymentStatus === "Paid";
+    if (filterStatus === "Disputed") return a.paymentStatus === "Disputed";
     if (filterStatus === "Completed") return a.paymentStatus === "Completed";
     return true;
   });
@@ -222,7 +267,7 @@ export default function WonAuctions() {
         {/* Toolbar */}
         <div className="p-4 border-b border-gray-200 bg-gray-50/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
-            {["All", "AwaitingPayment", "Paid", "Completed"].map((tab) => (
+            {["All", "AwaitingPayment", "Dispatched", "PaymentSubmitted", "Paid", "Completed", "Disputed"].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setFilterStatus(tab)}
@@ -319,6 +364,11 @@ export default function WonAuctions() {
 
                     {/* Status Badge */}
                     <td className="px-6 py-4">
+                      {a.paymentStatus === "Dispatched" && (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-orange-50 text-orange-700 border border-orange-200">
+                          <Truck className="w-3.5 h-3.5" /> Dispatched
+                        </span>
+                      )}
                       {a.paymentStatus === "AwaitingPayment" && (
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-orange-50 text-orange-700 border border-orange-200">
                           <Clock className="w-3.5 h-3.5" /> Awaiting Payment
@@ -330,6 +380,11 @@ export default function WonAuctions() {
                           Overdue
                         </span>
                       )}
+                      {a.paymentStatus === "PaymentSubmitted" && (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                          <Clock className="w-3.5 h-3.5" /> Awaiting Confirmation
+                        </span>
+                      )}
                       {a.paymentStatus === "Paid" && (
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
                           <CreditCard className="w-3.5 h-3.5" /> Paid (In
@@ -339,6 +394,16 @@ export default function WonAuctions() {
                       {a.paymentStatus === "Completed" && (
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-green-50 text-green-700 border border-green-200">
                           <CheckCircle className="w-3.5 h-3.5" /> Completed
+                        </span>
+                      )}
+                      {a.paymentStatus === "Disputed" && (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-red-50 text-red-700 border border-red-200">
+                          <AlertCircle className="w-3.5 h-3.5" /> Disputed
+                        </span>
+                      )}
+                      {!a.paymentStatus && (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-gray-100 text-gray-600 border border-gray-200">
+                          <Clock className="w-3.5 h-3.5" /> Unknown
                         </span>
                       )}
                     </td>
@@ -353,6 +418,15 @@ export default function WonAuctions() {
                             className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm"
                           >
                             <CreditCard className="w-4 h-4" /> Pay Now
+                          </button>
+                        )}
+
+                        {a.paymentStatus === "Dispatched" && (
+                          <button
+                            onClick={() => handleConfirmReceipt(a.saleId)}
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm"
+                          >
+                            <CheckCircle className="w-4 h-4" /> Confirm Receipt
                           </button>
                         )}
 
@@ -371,6 +445,12 @@ export default function WonAuctions() {
                             All done
                           </span>
                         )}
+
+                        {a.paymentStatus === "Disputed" && (
+                          <span className="text-xs font-medium text-red-600 flex items-center gap-1 bg-red-50 px-3 py-1.5 rounded-lg">
+                            <AlertCircle className="w-4 h-4" /> Under Review
+                          </span>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -380,6 +460,100 @@ export default function WonAuctions() {
           </table>
         </div>
       </div>
+
+      {/* ========================================================= */}
+      {/* RAISE DISPUTE MODAL (Buyer side) */}
+      {/* ========================================================= */}
+      {disputeTarget && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm"
+          onClick={() => setDisputeTarget(null)}
+        >
+          <div
+            className="bg-white rounded-2xl w-full max-w-lg shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-red-50/50">
+              <div>
+                <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                  <Scale className="w-5 h-5 text-red-600" /> Raise Dispute
+                </h2>
+                <p className="text-xs text-gray-500 mt-0.5 truncate max-w-70">
+                  {disputeTarget.productTitle}
+                </p>
+              </div>
+              <button
+                onClick={() => setDisputeTarget(null)}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div className="bg-red-50 text-red-800 p-3 rounded-lg border border-red-100 text-sm flex items-start gap-2">
+                <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                <p>
+                  Disputes can only be raised for sales that have been paid.
+                  Once submitted, an admin will review your complaint and may
+                  apply a penalty to the responsible party.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Describe the issue <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  value={complaint}
+                  onChange={(e) => setComplaint(e.target.value)}
+                  rows={4}
+                  placeholder="e.g. The item arrived damaged, the seller never dispatched it, or the tracking number is invalid..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 outline-none resize-none"
+                />
+                <p className="text-[11px] text-gray-400 mt-1">
+                  Minimum 20 characters.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Evidence URL (optional)
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <LinkIcon className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <input
+                    type="url"
+                    value={evidenceUrl}
+                    onChange={(e) => setEvidenceUrl(e.target.value)}
+                    placeholder="https://example.com/evidence"
+                    className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+                <button
+                  onClick={() => setDisputeTarget(null)}
+                  disabled={isSubmitting}
+                  className="px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleRaiseDispute(disputeTarget.saleId)}
+                  disabled={isSubmitting}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-50"
+                >
+                  <Scale className="w-4 h-4" /> Submit Dispute
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

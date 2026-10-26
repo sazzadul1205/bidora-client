@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { getMySales, dispatchSale } from "../../../services/sellerApi";
+import { getMySales, dispatchSale, createDispute } from "../../../services/sellerApi";
 import {
   Truck,
   ShoppingCart,
@@ -12,6 +12,7 @@ import {
   DollarSign,
   Link as LinkIcon,
   X,
+  Scale,
 } from "lucide-react";
 import { toast } from "../../../utils/toast";
 import { imageUrl, handleImageError } from "../../../utils/image";
@@ -23,6 +24,10 @@ export default function SellerSales() {
   const [selected, setSelected] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
+  const [disputeTarget, setDisputeTarget] = useState(null);
+  const [complaint, setComplaint] = useState("");
+  const [evidenceUrl, setEvidenceUrl] = useState("");
+  const [isSubmittingDispute, setIsSubmittingDispute] = useState(false);
 
   const {
     register,
@@ -75,6 +80,37 @@ export default function SellerSales() {
     }
   };
 
+  // Raise a dispute for a paid/dispatched sale. The backend rejects
+  // disputes for AwaitingPayment sales and duplicate disputes.
+  const handleRaiseDispute = async (saleId) => {
+    if (!complaint.trim()) {
+      toast.error("Please describe the issue.");
+      return;
+    }
+    if (complaint.trim().length < 20) {
+      toast.error("Please provide more detail (at least 20 characters).");
+      return;
+    }
+    setIsSubmittingDispute(true);
+    try {
+      await createDispute({
+        saleId,
+        complaint: complaint.trim(),
+        evidenceUrl: evidenceUrl.trim() || null,
+      });
+      toast.success("Dispute submitted. Awaiting admin review.");
+      setDisputeTarget(null);
+      setComplaint("");
+      setEvidenceUrl("");
+      fetchSales();
+    } catch (err) {
+      const serverMsg = err.response?.data?.message;
+      toast.error(serverMsg || "Failed to submit dispute.");
+    } finally {
+      setIsSubmittingDispute(false);
+    }
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
     return new Date(dateString).toLocaleDateString("en-GB", {
@@ -105,7 +141,8 @@ export default function SellerSales() {
       filterStatus === "All" ||
       (filterStatus === "Awaiting Dispatch" && s.status === "Paid") ||
       (filterStatus === "Dispatched" && s.status === "Dispatched") ||
-      (filterStatus === "Completed" && s.status === "Completed");
+      (filterStatus === "Completed" && s.status === "Completed") ||
+      (filterStatus === "Disputed" && s.status === "Disputed");
 
     return matchesSearch && matchesStatus;
   });
@@ -339,7 +376,7 @@ export default function SellerSales() {
 
                     {/* Actions */}
                     <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end">
+<div className="flex items-center justify-end gap-2">
                         {s.status === "Paid" && (
                           <button
                             onClick={() => {
@@ -360,6 +397,27 @@ export default function SellerSales() {
                           <span className="text-xs font-medium text-green-600 flex items-center gap-1 bg-green-50 px-3 py-1.5 rounded-lg">
                             <CheckCircle className="w-4 h-4" /> Funds Released
                           </span>
+                        )}
+                        {s.status === "Disputed" && (
+                          <span className="text-xs font-medium text-red-600 flex items-center gap-1 bg-red-50 px-3 py-1.5 rounded-lg">
+                            <AlertCircle className="w-4 h-4" /> Under Review
+                          </span>
+                        )}
+                        {/* Raise Dispute — only for Paid / Dispatched sales.
+                            The backend rejects disputes for AwaitingPayment,
+                            Completed, and duplicate disputes. Sellers can
+                            only dispute after the payment window has ended. */}
+                        {(s.status === "Paid" || s.status === "Dispatched") && (
+                          <button
+                            onClick={() => {
+                              setDisputeTarget(s);
+                              setComplaint("");
+                              setEvidenceUrl("");
+                            }}
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm"
+                          >
+                            <Scale className="w-4 h-4" /> Raise Dispute
+                          </button>
                         )}
                       </div>
                     </td>
@@ -472,6 +530,100 @@ export default function SellerSales() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* RAISE DISPUTE MODAL (Seller side) */}
+      {/* ========================================================= */}
+      {disputeTarget && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm"
+          onClick={() => setDisputeTarget(null)}
+        >
+          <div
+            className="bg-white rounded-2xl w-full max-w-lg shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-red-50/50">
+              <div>
+                <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                  <Scale className="w-5 h-5 text-red-600" /> Raise Dispute
+                </h2>
+                <p className="text-xs text-gray-500 mt-0.5 truncate max-w-70">
+                  {disputeTarget.productTitle}
+                </p>
+              </div>
+              <button
+                onClick={() => setDisputeTarget(null)}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div className="bg-red-50 text-red-800 p-3 rounded-lg border border-red-100 text-sm flex items-start gap-2">
+                <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                <p>
+                  Disputes can only be raised for sales that have been paid.
+                  Once submitted, an admin will review your complaint and may
+                  apply a penalty to the responsible party.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Describe the issue <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  value={complaint}
+                  onChange={(e) => setComplaint(e.target.value)}
+                  rows={4}
+                  placeholder="e.g. The buyer never confirmed receipt, the item was returned damaged..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 outline-none resize-none"
+                />
+                <p className="text-[11px] text-gray-400 mt-1">
+                  Minimum 20 characters.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Evidence URL (optional)
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <LinkIcon className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <input
+                    type="url"
+                    value={evidenceUrl}
+                    onChange={(e) => setEvidenceUrl(e.target.value)}
+                    placeholder="https://example.com/evidence"
+                    className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+                <button
+                  onClick={() => setDisputeTarget(null)}
+                  disabled={isSubmittingDispute}
+                  className="px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleRaiseDispute(disputeTarget.id)}
+                  disabled={isSubmittingDispute}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-50"
+                >
+                  <Scale className="w-4 h-4" /> Submit Dispute
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
