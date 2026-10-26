@@ -77,6 +77,9 @@ export const getPenalties = () => authApi.get("/admin/penalties", getAuthConfig(
 export const getMyProfile = () => authApi.get("/auth/me", getAuthConfig())
 export const updateMyProfile = (data) => authApi.put("/auth/me", data, getAuthConfig())
 
+// Platform system account wallet
+export const getPlatformWallet = () => authApi.get("/admin/platform-wallet", getAuthConfig())
+
 export default {
   getUsers,
   lockUser,
@@ -102,6 +105,5 @@ export default {
   startDisputeReview,
   resolveDispute,
   getPenalties,
-  getMyProfile,
-  updateMyProfile,
+  getPlatformWallet,
 };

@@ -196,9 +196,12 @@ function AuthenticatedLayout() {
                         <NavLink to="/admin/disputes" className={navLinkClass}>
                           <Scale className="w-4 h-4" /> Disputes
                         </NavLink>
-                        <NavLink to="/admin/categories" className={navLinkClass}>
-                          <LayoutDashboard className="w-4 h-4" /> Categories
-                        </NavLink>
+<NavLink to="/admin/categories" className={navLinkClass}>
+  <LayoutDashboard className="w-4 h-4" /> Categories
+</NavLink>
+<NavLink to="/admin/wallet" className={navLinkClass}>
+  <Wallet className="w-4 h-4" /> Platform Wallet
+</NavLink>
                       </nav>
                     </div>
                   </>

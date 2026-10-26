@@ -302,16 +302,15 @@ export default function Disputes() {
                       <p className="text-xs text-gray-700 line-clamp-2 leading-relaxed">
                         "{d.complaint}"
                       </p>
-                      {d.evidenceUrl && (
-                        <a
-                          href={d.evidenceUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-[11px] text-blue-600 hover:text-blue-800 mt-1 font-medium"
-                        >
-                          <LinkIcon className="w-3 h-3" /> View Evidence
-                        </a>
-                      )}
+{d.evidenceUrl && (
+  <button
+    type="button"
+    onClick={() => window.open(d.evidenceUrl, "_blank")}
+    className="inline-flex items-center gap-1 text-[11px] text-blue-600 hover:text-blue-800 mt-1 font-medium"
+  >
+    <LinkIcon className="w-3 h-3" /> View Evidence
+  </button>
+)}
                     </td>
 
                     {/* Status */}

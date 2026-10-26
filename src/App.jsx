@@ -32,6 +32,7 @@ import Categories from "./pages/admin/Categories/Categories";
 import EditProduct from "./pages/seller/EditProduct/EditProduct";
 import ViewProduct from "./pages/seller/ViewProduct/ViewProduct";
 import AdminAuction from "./pages/admin/Auctions/Auctions";
+import PlatformWallet from "./pages/admin/Wallet/PlatformWallet";
 
 function App() {
   return (
@@ -60,6 +61,7 @@ function App() {
           <Route path="/admin/auctions" element={<AdminAuction />} />
           <Route path="/admin/disputes" element={<Disputes />} />
           <Route path="/admin/categories" element={<Categories />} />
+<Route path="/admin/wallet" element={<PlatformWallet />} />
 
           {/* BUYER ROUTES */}
           <Route
