@@ -1,22 +1,10 @@
 import { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
-import { getUsers, lockUser } from "../../../services/adminApi";
+import { getUsers, lockUser, createAdmin } from "../../../services/adminApi";
 import {
-  Lock,
-  Search,
-  Users as UsersIcon,
-  Shield,
-  Store,
-  ShoppingBag,
-  MapPin,
-  CheckCircle2,
-  XCircle,
-  AlertTriangle,
-  Unlock,
-  Clock,
-  X,
-  Loader2,
-  Mail,
+  Lock, Search, Users as UsersIcon, Shield, Store, ShoppingBag,
+  MapPin, CheckCircle2, XCircle, AlertTriangle, Unlock, Clock,
+  X, Loader2, Mail, UserPlus
 } from "lucide-react";
 import { toast } from "../../../utils/toast";
 import { SkeletonRow, Skeleton } from "../../../components/Skeleton";
@@ -29,15 +17,17 @@ export default function Users() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const { register, handleSubmit, reset, control } = useForm({
-    defaultValues: {
-      action: "unlock",
-      isPermanent: false,
-      durationMinutes: "",
-    },
-  });
+  // NEW: State for Create Admin modal
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
+  // Form for locking users
+  const { register, handleSubmit, reset, control } = useForm({
+    defaultValues: { action: "unlock", isPermanent: false, durationMinutes: "" },
+  });
   const lockAction = useWatch({ control, name: "action" });
+
+  // NEW: Form for creating admins
+  const { register: registerAdmin, handleSubmit: handleAdminSubmit, reset: resetAdmin, formState: { errors: adminErrors, isSubmitting: isAdminSubmitting } } = useForm();
 
   const fetchUsers = async () => {
     try {
@@ -73,8 +63,7 @@ export default function Users() {
     const term = e.target.value.toLowerCase();
     setSearchTerm(term);
     const filtered = users.filter(
-      (u) =>
-        u.email?.toLowerCase().includes(term) ||
+      (u) => u.email?.toLowerCase().includes(term) ||
         u.profile?.fullName?.toLowerCase().includes(term) ||
         u.userId?.toLowerCase().includes(term)
     );
@@ -104,19 +93,30 @@ export default function Users() {
     }
   };
 
+  // NEW: Handle Admin Creation
+  const onCreateAdminSubmit = async (data) => {
+    try {
+      await createAdmin(data);
+      toast.success("Admin account created successfully!");
+      setShowCreateModal(false);
+      resetAdmin();
+      fetchUsers(); // Refresh the list to show the new admin
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to create admin.");
+    }
+  };
+
   // --- STATS ---
   const totalUsers = users.length;
   const adminCount = users.filter((u) => u.roles?.[0] === "Admin").length;
   const sellerCount = users.filter((u) => u.roles?.[0] === "Seller").length;
   const buyerCount = users.filter((u) => u.roles?.[0] === "Buyer" || !u.roles?.[0]).length;
 
-  // Helper to get initials for avatar
   const getInitials = (name) => {
     if (!name) return "?";
     return name.split(" ").map((n) => n[0]).join("").substring(0, 2).toUpperCase();
   };
 
-  // --- LOADING STATE ---
   if (loading) {
     return (
       <div className="max-w-7xl mx-auto">
@@ -163,20 +163,30 @@ export default function Users() {
           </p>
         </div>
 
-        <div className="relative w-full sm:w-72">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search by name, email, or ID..."
-            value={searchTerm}
-            onChange={handleSearch}
-            className="w-full pl-9 pr-4 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-          />
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+          <div className="relative w-full sm:w-72">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search by name, email, or ID..."
+              value={searchTerm}
+              onChange={handleSearch}
+              className="w-full pl-9 pr-4 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+            />
+          </div>
+          {/* NEW: Create Admin Button */}
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="inline-flex items-center justify-center gap-2 bg-gray-900 hover:bg-black text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors shadow-sm shrink-0 w-full sm:w-auto"
+          >
+            <UserPlus className="w-4 h-4" /> Add Admin
+          </button>
         </div>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        {/* ... [Keep existing stats cards] ... */}
         <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
           <div className="p-3 bg-blue-50 text-blue-600 rounded-lg shrink-0">
             <UsersIcon className="w-6 h-6" />
@@ -219,6 +229,7 @@ export default function Users() {
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm text-gray-600 min-w-225">
+            {/* ... [Keep existing table headers] ... */}
             <thead className="bg-gray-50 border-b border-gray-200 text-gray-900">
               <tr>
                 <th className="px-6 py-4 font-medium w-[30%]">User</th>
@@ -229,21 +240,17 @@ export default function Users() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
+              {/* ... [Keep existing row mapping] ... */}
               {filteredUsers.length === 0 ? (
                 <tr>
                   <td colSpan="5" className="text-center py-16">
                     <UsersIcon className="w-12 h-12 text-gray-300 mx-auto mb-3" />
                     <p className="text-gray-500 font-medium">No users found.</p>
-                    <p className="text-gray-400 text-xs mt-1">
-                      {searchTerm ? "Try adjusting your search term." : "There are no users in the system."}
-                    </p>
                   </td>
                 </tr>
               ) : (
                 filteredUsers.map((u) => (
                   <tr key={u.userId} className="hover:bg-gray-50/80 transition-colors">
-
-                    {/* User Info */}
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-linear-to-br from-blue-100 to-blue-200 flex items-center justify-center shrink-0 text-blue-700 font-bold text-xs shadow-sm border border-blue-200">
@@ -257,13 +264,9 @@ export default function Users() {
                         </div>
                       </div>
                     </td>
-
-                    {/* Role */}
                     <td className="px-6 py-4">
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold border ${u.roles?.[0] === "Admin"
-                          ? "bg-purple-50 text-purple-700 border-purple-200"
-                          : u.roles?.[0] === "Seller"
-                            ? "bg-orange-50 text-orange-700 border-orange-200"
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold border ${u.roles?.[0] === "Admin" ? "bg-purple-50 text-purple-700 border-purple-200"
+                          : u.roles?.[0] === "Seller" ? "bg-orange-50 text-orange-700 border-orange-200"
                             : "bg-blue-50 text-blue-700 border-blue-200"
                         }`}>
                         {u.roles?.[0] === "Admin" && <Shield className="w-3.5 h-3.5" />}
@@ -272,8 +275,6 @@ export default function Users() {
                         {u.roles?.[0] || "Buyer"}
                       </span>
                     </td>
-
-                    {/* Verification Status */}
                     <td className="px-6 py-4">
                       {u.roles?.[0] === "Admin" ? (
                         <span className="text-xs text-gray-400 italic">N/A</span>
@@ -295,16 +296,12 @@ export default function Users() {
                         </span>
                       )}
                     </td>
-
-                    {/* Location */}
                     <td className="px-6 py-4">
                       <span className="text-sm text-gray-700 flex items-center gap-1.5">
                         <MapPin className="w-3.5 h-3.5 text-gray-400" />
                         {u.profile?.city || "—"}
                       </span>
                     </td>
-
-                    {/* Actions */}
                     <td className="px-6 py-4 text-right">
                       <button
                         onClick={() => {
@@ -325,33 +322,25 @@ export default function Users() {
       </div>
 
       {/* ========================================================= */}
-      {/* MANAGE LOCK MODAL */}
+      {/* MANAGE LOCK MODAL (Keep existing) */}
       {/* ========================================================= */}
       {selectedUser && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
+          {/* ... [Keep entire existing modal] ... */}
           <div className="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden animate-in fade-in zoom-in-95">
-
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
               <div>
                 <h2 className="text-lg font-bold text-gray-900">Manage Access</h2>
                 <p className="text-xs text-gray-500 mt-0.5 truncate max-w-70">{selectedUser.email}</p>
               </div>
-              <button
-                onClick={() => setSelectedUser(null)}
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
-              >
+              <button onClick={() => setSelectedUser(null)} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
-
             <form onSubmit={handleSubmit(onLockSubmit)} className="p-6 space-y-5">
-
-              {/* Action Selection */}
               <div>
                 <label className="block text-sm font-bold text-gray-900 mb-2">Account Status</label>
                 <div className="grid grid-cols-1 gap-2">
-
-                  {/* Unlock Option */}
                   <label className={`cursor-pointer border-2 rounded-xl p-3 flex items-center gap-3 transition ${lockAction === "unlock" ? "border-green-500 bg-green-50" : "border-gray-200 hover:border-gray-300"}`}>
                     <input type="radio" value="unlock" {...register("action")} className="hidden" />
                     <div className={`p-2 rounded-lg ${lockAction === "unlock" ? "bg-green-100 text-green-600" : "bg-gray-100 text-gray-400"}`}>
@@ -362,8 +351,6 @@ export default function Users() {
                       <p className="text-xs text-gray-500">Restore normal access immediately.</p>
                     </div>
                   </label>
-
-                  {/* Temporary Lock Option */}
                   <label className={`cursor-pointer border-2 rounded-xl p-3 flex items-center gap-3 transition ${lockAction === "temporary" ? "border-orange-500 bg-orange-50" : "border-gray-200 hover:border-gray-300"}`}>
                     <input type="radio" value="temporary" {...register("action")} className="hidden" />
                     <div className={`p-2 rounded-lg ${lockAction === "temporary" ? "bg-orange-100 text-orange-600" : "bg-gray-100 text-gray-400"}`}>
@@ -374,8 +361,6 @@ export default function Users() {
                       <p className="text-xs text-gray-500">Suspend access for a specific duration.</p>
                     </div>
                   </label>
-
-                  {/* Permanent Lock Option */}
                   <label className={`cursor-pointer border-2 rounded-xl p-3 flex items-center gap-3 transition ${lockAction === "permanent" ? "border-red-500 bg-red-50" : "border-gray-200 hover:border-gray-300"}`}>
                     <input type="radio" value="permanent" {...register("action")} className="hidden" />
                     <div className={`p-2 rounded-lg ${lockAction === "permanent" ? "bg-red-100 text-red-600" : "bg-gray-100 text-gray-400"}`}>
@@ -388,49 +373,21 @@ export default function Users() {
                   </label>
                 </div>
               </div>
-
-              {/* Conditional Duration Input */}
               {lockAction === "temporary" && (
                 <div className="animate-in fade-in slide-in-from-top-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Duration (Minutes)</label>
-                  <input
-                    type="number"
-                    {...register("durationMinutes", { required: lockAction === "temporary" })}
-                    className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none text-sm"
-                    placeholder="e.g. 60 for 1 hour, 1440 for 1 day"
-                  />
+                  <input type="number" {...register("durationMinutes", { required: lockAction === "temporary" })} className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none text-sm" placeholder="e.g. 60 for 1 hour" />
                 </div>
               )}
-
-              {/* Warning Banner */}
               {lockAction !== "unlock" && (
                 <div className="bg-red-50 border border-red-200 text-red-800 p-3 rounded-lg text-xs flex items-start gap-2 animate-in fade-in">
                   <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
-                  <p>
-                    The user will be immediately logged out and unable to sign in until the lock is lifted.
-                  </p>
+                  <p>The user will be immediately logged out and unable to sign in until the lock is lifted.</p>
                 </div>
               )}
-
-              {/* Footer Buttons */}
               <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
-                <button
-                  type="button"
-                  onClick={() => setSelectedUser(null)}
-                  className="px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className={`inline-flex items-center gap-2 px-5 py-2.5 text-white text-sm font-bold rounded-lg transition-all disabled:opacity-50 ${lockAction === "unlock"
-                      ? "bg-green-600 hover:bg-green-700 shadow-md shadow-green-600/20"
-                      : lockAction === "permanent"
-                        ? "bg-red-600 hover:bg-red-700 shadow-md shadow-red-600/20"
-                        : "bg-orange-600 hover:bg-orange-700 shadow-md shadow-orange-600/20"
-                    }`}
-                >
+                <button type="button" onClick={() => setSelectedUser(null)} className="px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">Cancel</button>
+                <button type="submit" disabled={submitting} className={`inline-flex items-center gap-2 px-5 py-2.5 text-white text-sm font-bold rounded-lg transition-all disabled:opacity-50 ${lockAction === "unlock" ? "bg-green-600 hover:bg-green-700" : lockAction === "permanent" ? "bg-red-600 hover:bg-red-700" : "bg-orange-600 hover:bg-orange-700"}`}>
                   {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
                   {submitting ? "Applying..." : lockAction === "unlock" ? "Confirm Unlock" : "Apply Lock"}
                 </button>
@@ -439,6 +396,73 @@ export default function Users() {
           </div>
         </div>
       )}
+
+      {/* ========================================================= */}
+      {/* NEW: CREATE ADMIN MODAL */}
+      {/* ========================================================= */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden animate-in fade-in zoom-in-95">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+              <div>
+                <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                  <Shield className="w-5 h-5 text-gray-700" /> Create Admin Account
+                </h2>
+                <p className="text-xs text-gray-500 mt-0.5">Grant full platform access to a new user.</p>
+              </div>
+              <button onClick={() => setShowCreateModal(false)} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleAdminSubmit(onCreateAdminSubmit)} className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                <input
+                  type="text"
+                  {...registerAdmin("fullName", { required: "Name is required" })}
+                  className={`w-full border p-2.5 rounded-lg focus:ring-2 focus:ring-gray-500 outline-none text-sm ${adminErrors.fullName ? "border-red-500" : "border-gray-300"}`}
+                  placeholder="John Doe"
+                />
+                {adminErrors.fullName && <p className="text-xs text-red-600 mt-1">{adminErrors.fullName.message}</p>}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                <input
+                  type="email"
+                  {...registerAdmin("email", { required: "Email is required" })}
+                  className={`w-full border p-2.5 rounded-lg focus:ring-2 focus:ring-gray-500 outline-none text-sm ${adminErrors.email ? "border-red-500" : "border-gray-300"}`}
+                  placeholder="admin@bidora.com"
+                />
+                {adminErrors.email && <p className="text-xs text-red-600 mt-1">{adminErrors.email.message}</p>}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                <input
+                  type="password"
+                  {...registerAdmin("password", { required: "Password is required", minLength: { value: 6, message: "Min 6 characters" } })}
+                  className={`w-full border p-2.5 rounded-lg focus:ring-2 focus:ring-gray-500 outline-none text-sm ${adminErrors.password ? "border-red-500" : "border-gray-300"}`}
+                  placeholder="••••••••"
+                />
+                {adminErrors.password && <p className="text-xs text-red-600 mt-1">{adminErrors.password.message}</p>}
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 mt-6">
+                <button type="button" onClick={() => setShowCreateModal(false)} className="px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+                  Cancel
+                </button>
+                <button type="submit" disabled={isAdminSubmitting} className="inline-flex items-center gap-2 px-5 py-2.5 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-50 bg-gray-900 hover:bg-black shadow-md">
+                  {isAdminSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
+                  {isAdminSubmitting ? "Creating..." : "Create Admin"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

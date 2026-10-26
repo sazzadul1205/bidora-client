@@ -24,11 +24,11 @@ function Navbar() {
 
   // Determine dashboard path based on user role
   const getDashboardPath = () => {
-    if (!user) return "/login"
-    const role = user?.account?.roles?.[0]
-    if (role === "Admin") return "/admin"
-    if (role === "Seller") return "/seller-dashboard"
-    return "/dashboard"
+    if (!user) return "/login";
+    const role = user?.account?.roles?.[0];
+    if (role === "Admin") return "/admin/dashboard";
+    if (role === "Seller") return "/seller/dashboard";
+    return "/buyer/dashboard";
   }
 
   const dashboardPath = getDashboardPath()

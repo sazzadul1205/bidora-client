@@ -4,22 +4,8 @@ import AuthenticatedLayout from "./Layouts/AuthenticatedLayout/AuthenticatedLayo
 import Login from "./pages/Auth/Login/Login";
 import Register from "./pages/Auth/Register/Register";
 import Products from "./pages/Products/Products";
-import Dashboard from "./pages/Dashboard";
-import SellerDashboard from "./pages/SellerDashboard";
-import BuyerDashboard from "./pages/buyer/Dashboard/BuyerDashboard";
-import MyBids from "./pages/buyer/MyBids/MyBids";
-import WonAuctions from "./pages/buyer/WonAuctions/WonAuctions";
-import MyProducts from "./pages/seller/MyProducts/MyProducts";
-import SellerAuctionView from "./pages/seller/SellerAuctionView/SellerAuctionView";
-import CreateProduct from "./pages/seller/CreateProduct/CreateProduct";
-import SellerSales from "./pages/seller/Sales/SellerSales";
-import Settings from "./pages/Auth/Settings/Settings";
 import Auctions from "./pages/Auctions/Auctions";
 import AuctionDetails from "./pages/AuctionDetails/AuctionDetails";
-
-import ProfileCompletionGuard from "./components/Auth/ProfileCompletionGuard";
-import ProfilePending from "./pages/ProfilePending/ProfilePending";
-import Wallet from "./pages/Wallet/Wallet";
 
 // Admin Pages
 import AdminDashboard from "./pages/admin/Dashboard/AdminDashboard";
@@ -34,6 +20,24 @@ import ViewProduct from "./pages/seller/ViewProduct/ViewProduct";
 import AdminAuction from "./pages/admin/Auctions/Auctions";
 import PlatformWallet from "./pages/admin/Wallet/PlatformWallet";
 
+// Buyer Pages
+import BuyerDashboard from "./pages/buyer/Dashboard/BuyerDashboard";
+import MyBids from "./pages/buyer/MyBids/MyBids";
+import WonAuctions from "./pages/buyer/WonAuctions/WonAuctions";
+
+// Seller Pages
+import SellerDashboard from "./pages/seller/Dashboard/SellerDashboard";
+import MyProducts from "./pages/seller/MyProducts/MyProducts";
+import SellerAuctionView from "./pages/seller/SellerAuctionView/SellerAuctionView";
+import CreateProduct from "./pages/seller/CreateProduct/CreateProduct";
+import SellerSales from "./pages/seller/Sales/SellerSales";
+
+// Shared / Guards / Layouts
+import ProfileCompletionGuard from "./components/Auth/ProfileCompletionGuard";
+import ProfilePending from "./pages/ProfilePending/ProfilePending";
+import Wallet from "./pages/Wallet/Wallet";
+import Settings from "./pages/Auth/Settings/Settings";
+
 function App() {
   return (
     <BrowserRouter>
@@ -47,13 +51,14 @@ function App() {
           <Route path="/register" element={<Register />} />
         </Route>
 
-        {/* Profile Pending Route */}
+        {/* Profile Pending Route (Outside Auth Layout) */}
         <Route path="/profile-pending" element={<ProfilePending />} />
 
         {/* Authenticated Routes */}
         <Route element={<AuthenticatedLayout />}>
-          {/* ADMIN ROUTES */}
-          <Route path="/admin" element={<AdminDashboard />} />
+
+          {/* ================= ADMIN ROUTES ================= */}
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/admin/users" element={<Users />} />
           <Route path="/admin/products" element={<AdminProducts />} />
           <Route path="/admin/deposits" element={<Deposits />} />
@@ -61,11 +66,11 @@ function App() {
           <Route path="/admin/auctions" element={<AdminAuction />} />
           <Route path="/admin/disputes" element={<Disputes />} />
           <Route path="/admin/categories" element={<Categories />} />
-<Route path="/admin/wallet" element={<PlatformWallet />} />
+          <Route path="/admin/wallet" element={<PlatformWallet />} />
 
-          {/* BUYER ROUTES */}
+          {/* ================= BUYER ROUTES ================= */}
           <Route
-            path="/buyer"
+            path="/buyer/dashboard"
             element={
               <ProfileCompletionGuard>
                 <BuyerDashboard />
@@ -88,34 +93,10 @@ function App() {
               </ProfileCompletionGuard>
             }
           />
-          <Route
-            path="/dashboard"
-            element={
-              <ProfileCompletionGuard>
-                <Dashboard />
-              </ProfileCompletionGuard>
-            }
-          />
-          <Route
-            path="/wallet"
-            element={
-              <ProfileCompletionGuard>
-                <Wallet />
-              </ProfileCompletionGuard>
-            }
-          />
 
-          {/* SELLER ROUTES */}
+          {/* ================= SELLER ROUTES ================= */}
           <Route
-            path="/seller"
-            element={
-              <ProfileCompletionGuard>
-                <SellerDashboard />
-              </ProfileCompletionGuard>
-            }
-          />
-          <Route
-            path="/seller-dashboard"
+            path="/seller/dashboard"
             element={
               <ProfileCompletionGuard>
                 <SellerDashboard />
@@ -138,7 +119,6 @@ function App() {
               </ProfileCompletionGuard>
             }
           />
-
           <Route
             path="/seller/products/edit/:id"
             element={
@@ -172,8 +152,17 @@ function App() {
             }
           />
 
-          {/* Account Settings */}
+          {/* ================= SHARED ROUTES ================= */}
+          <Route
+            path="/wallet"
+            element={
+              <ProfileCompletionGuard>
+                <Wallet />
+              </ProfileCompletionGuard>
+            }
+          />
           <Route path="/settings" element={<Settings />} />
+
         </Route>
       </Routes>
     </BrowserRouter>

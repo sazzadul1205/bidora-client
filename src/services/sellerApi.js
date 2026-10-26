@@ -18,6 +18,9 @@ export {
   getUpcomingAuctions,
 };
 
+export const getSellerDashboard = () =>
+  authApi.get("/seller/dashboard", getAuthConfig());
+
 // Protected Product Management
 export const getMyProducts = () =>
   authApi.get("/product/my-products", getAuthConfig());
@@ -40,7 +43,7 @@ export const updateProduct = (id, formData) =>
       ...getAuthConfig().headers,
       "Content-Type": "multipart/form-data",
     },
-  })
+  });
 
 export const getMyProductById = (id) =>
   authApi.get(`/product/my-products/${id}`, getAuthConfig());
@@ -139,6 +142,7 @@ export const submitProfileVerification = () =>
 export { changePassword } from "./authApi";
 
 export default {
+  getSellerDashboard,
   getCategories,
   getProducts,
   getProductById,
@@ -160,7 +164,7 @@ export default {
   requestDeposit,
   getWalletTransactions,
   getWalletReservations,
-getMySales,
+  getMySales,
   getSaleById,
   dispatchSale,
   reportNonDelivery,

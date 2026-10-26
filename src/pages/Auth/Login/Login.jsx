@@ -8,7 +8,7 @@ import {
   Info,
   CheckCircle2,
 } from "lucide-react";
-import { login, getCurrentUser } from "../../../services/authApi"; 
+import { login, getCurrentUser } from "../../../services/authApi";
 
 function Login() {
   const navigate = useNavigate();
@@ -36,19 +36,19 @@ function Login() {
 
       // 3. Redirect based on role
       if (role === "Admin") {
-        navigate("/admin");
+        navigate("/admin/dashboard");
       } else if (role === "Seller") {
-        navigate("/seller-dashboard");
+        navigate("/seller/dashboard");
       } else if (role === "Buyer") {
-        navigate("/dashboard");
+        navigate("/buyer/dashboard");
       } else {
         navigate("/");
       }
     } catch (err) {
       setServerError(
         err.response?.data?.message ||
-          err.response?.data ||
-          "Invalid email or password. Please try again.",
+        err.response?.data ||
+        "Invalid email or password. Please try again.",
       );
     }
   };
@@ -143,9 +143,8 @@ function Login() {
                 <input
                   type="email"
                   placeholder="nadia.rahman@email.com"
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${
-                    errors.email ? "border-red-500" : "border-gray-300"
-                  }`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${errors.email ? "border-red-500" : "border-gray-300"
+                    }`}
                   {...register("email", {
                     required: "Email is required",
                     pattern: {
@@ -168,9 +167,8 @@ function Login() {
                 <input
                   type="password"
                   placeholder="••••••••••••"
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${
-                    errors.password ? "border-red-500" : "border-gray-300"
-                  }`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${errors.password ? "border-red-500" : "border-gray-300"
+                    }`}
                   {...register("password", {
                     required: "Password is required",
                   })}
