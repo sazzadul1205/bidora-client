@@ -50,6 +50,10 @@ export const cancelAuction = (id, data) =>
 // Protected Wallet
 export const getMyWallet = () => authApi.get('/wallet/me', getAuthConfig())
 
+// Fetch the logged-in user's own deposit requests (approved, rejected, pending).
+export const getMyDepositRequests = () =>
+  authApi.get('/wallet/deposit-requests', getAuthConfig())
+
 // Submit a deposit request (FormData). Backend binds with [FromForm],
 // so we must force multipart/form-data instead of the instance default.
 export const requestDeposit = (formData) =>
