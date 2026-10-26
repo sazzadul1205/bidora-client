@@ -3,6 +3,7 @@ import { useForm, useWatch } from "react-hook-form";
 import { getPendingDepositRequests, reviewDepositRequest } from "../../../services/adminApi";
 import { CheckCircle } from "lucide-react";
 import { toast } from "../../../utils/toast";
+import { imageUrl, handleImageError } from "../../../utils/image";
 import { SkeletonRow, Skeleton } from "../../../components/Skeleton";
 
 export default function Deposits() {
@@ -24,7 +25,7 @@ export default function Deposits() {
 
   useEffect(() => {
     let mounted = true;
-    const load = async () => {
+    (async () => {
       try {
         const res = await getPendingDepositRequests();
         if (mounted) setRequests(res.data.data);
@@ -33,8 +34,7 @@ export default function Deposits() {
       } finally {
         if (mounted) setLoading(false);
       }
-    };
-    load();
+    })();
     return () => { mounted = false; };
   }, []);
 
@@ -134,7 +134,7 @@ const onSubmit = async (data) => {
             {selected.receiptImageUrl && (
               <div className="mb-4">
                 <p className="text-sm font-medium text-gray-700 mb-2">Receipt Image</p>
-                <img src={`${import.meta.env.VITE_API_BASE_URL.replace('/api', '')}${selected.receiptImageUrl}`} alt="Receipt" className="w-full h-48 object-contain bg-gray-100 rounded-lg border" />
+                <img src={imageUrl(selected.receiptImageUrl)} alt="Receipt" onError={handleImageError} className="w-full h-48 object-contain bg-gray-100 rounded-lg border" />
               </div>
             )}
 

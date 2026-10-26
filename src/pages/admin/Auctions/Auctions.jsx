@@ -25,7 +25,7 @@ export default function Auctions() {
 
   useEffect(() => {
     let mounted = true;
-    const load = async () => {
+    (async () => {
       try {
         const res = await getAllAuctions();
         if (mounted) setAuctions(res.data.data);
@@ -34,8 +34,7 @@ export default function Auctions() {
       } finally {
         if (mounted) setLoading(false);
       }
-    };
-    load();
+    })();
     return () => { mounted = false; };
   }, []);
 

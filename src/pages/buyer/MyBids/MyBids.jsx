@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { getMyBids } from "../../../services/buyerApi";
-import { Loader2, Gavel } from "lucide-react";
+import { Gavel } from "lucide-react";
 import { SkeletonRow, Skeleton } from "../../../components/Skeleton";
 
 export default function MyBids() {

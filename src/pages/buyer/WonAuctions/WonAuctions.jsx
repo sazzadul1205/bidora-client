@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { getWonAuctions, payForSale, confirmReceipt } from "../../../services/buyerApi";
-import { Loader2, CreditCard, CheckCircle, Trophy } from "lucide-react";
+import { CreditCard, CheckCircle, Trophy } from "lucide-react";
 import { toast } from "../../../utils/toast";
 import { SkeletonRow, Skeleton } from "../../../components/Skeleton";
 
@@ -12,8 +12,8 @@ export default function WonAuctions() {
     try {
       const res = await getWonAuctions();
       setAuctions(res.data.data || []);
-    } catch (err) {
-      console.error(err);
+    } catch {
+      toast.error("Failed to load won auctions.");
     } finally {
       setLoading(false);
     }
@@ -21,24 +21,23 @@ export default function WonAuctions() {
 
   useEffect(() => {
     let mounted = true;
-    const fetch = async () => {
+    (async () => {
       try {
         const res = await getWonAuctions();
         if (mounted) setAuctions(res.data.data || []);
-      } catch (err) {
-        console.error(err);
+      } catch {
+        toast.error("Failed to load won auctions.");
       } finally {
         if (mounted) setLoading(false);
       }
-    };
-    fetch();
+    })();
     return () => {
       mounted = false;
     };
   }, []);
 
   const handlePay = async (saleId) => {
-    if (!window.confirm("Confirm payment from your wallet?")) return;
+    if (!(await toast.confirm("Confirm payment?", "This will deduct the amount from your wallet."))) return;
     try {
       await payForSale(saleId);
       toast.success("Payment successful!");
@@ -49,12 +48,12 @@ export default function WonAuctions() {
   };
 
   const handleConfirmReceipt = async (saleId) => {
-    if (!window.confirm("Confirm you have received the item?")) return;
+    if (!(await toast.confirm("Confirm receipt?", "Funds will be released to the seller."))) return;
     try {
       await confirmReceipt(saleId);
       toast.success("Receipt confirmed. Funds released to seller.");
       fetchWonAuctions();
-    } catch (err) {
+    } catch {
       toast.error("Failed to confirm receipt.");
     }
   };

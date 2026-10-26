@@ -3,7 +3,7 @@ import { memo } from "react"
 // Base skeleton block with shimmer animation
 export const Skeleton = memo(({ className = "", height = "h-4", width = "w-full" }) => (
   <div
-    className={`rounded bg-gray-200 ${height} ${width} shimmer-bg`}
+    className={`rounded bg-gray-200 ${className} ${height} ${width} shimmer-bg`}
     style={{
       background: "linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%)",
       backgroundSize: "200% 100%",

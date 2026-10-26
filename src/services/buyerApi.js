@@ -40,9 +40,15 @@ export const getWonAuctions = () => authApi.get("/buyer/won-auctions", getAuthCo
 export const getMyWallet = () => authApi.get("/wallet/me", getAuthConfig());
 
 // Submit a deposit request. Backend expects a FormData object (Method, Amount, TransactionReference, ReceiptImage)
+// and binds it with [FromForm], so we MUST override the Content-Type header to multipart/form-data.
 // Note: Axios automatically sets the multipart/form-data header when you pass a FormData object. We only need to add the Auth header.
 export const requestDeposit = (formData) =>
-  authApi.post("/wallet/deposit-request", formData, getAuthConfig());
+  authApi.post("/wallet/deposit-request", formData, {
+    headers: {
+      ...getAuthConfig().headers,
+      "Content-Type": "multipart/form-data",
+    },
+  });
 
 export const getWalletTransactions = () => authApi.get("/wallet/transactions", getAuthConfig());
 export const getWalletReservations = () => authApi.get("/wallet/reservations", getAuthConfig());

@@ -50,9 +50,15 @@ export const cancelAuction = (id, data) =>
 // Protected Wallet
 export const getMyWallet = () => authApi.get('/wallet/me', getAuthConfig())
 
-// Submit a deposit request (FormData)
+// Submit a deposit request (FormData). Backend binds with [FromForm],
+// so we must force multipart/form-data instead of the instance default.
 export const requestDeposit = (formData) =>
-  authApi.post('/wallet/deposit-request', formData, getAuthConfig())
+  authApi.post('/wallet/deposit-request', formData, {
+    headers: {
+      ...getAuthConfig().headers,
+      "Content-Type": "multipart/form-data",
+    },
+  })
 
 export const getWalletTransactions = () => authApi.get('/wallet/transactions', getAuthConfig())
 export const getWalletReservations = () => authApi.get('/wallet/reservations', getAuthConfig())

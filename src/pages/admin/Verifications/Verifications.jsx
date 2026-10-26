@@ -16,6 +16,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { toast } from "../../../utils/toast";
+import { imageUrl, handleImageError } from "../../../utils/image";
 import { SkeletonRow, Skeleton } from "../../../components/Skeleton";
 
 export default function Verifications() {
@@ -45,7 +46,7 @@ export default function Verifications() {
 
   useEffect(() => {
     let mounted = true;
-    const load = async () => {
+    (async () => {
       try {
         const res = await getPendingVerifications();
         if (mounted) setProfiles(res.data.data);
@@ -54,8 +55,7 @@ export default function Verifications() {
       } finally {
         if (mounted) setLoading(false);
       }
-    };
-    load();
+    })();
     return () => {
       mounted = false;
     };
@@ -122,6 +122,7 @@ export default function Verifications() {
             <thead className="bg-gray-50 border-b border-gray-200 text-gray-900">
               <tr>
                 <th className="px-6 py-4 font-medium">Applicant</th>
+                <th className="px-6 py-4 font-medium">Role</th>
                 <th className="px-6 py-4 font-medium">Contact</th>
                 <th className="px-6 py-4 font-medium">Submission Date</th>
                 <th className="px-6 py-4 font-medium text-right">Actions</th>
@@ -160,32 +161,44 @@ export default function Verifications() {
           <thead className="bg-gray-50 border-b border-gray-200 text-gray-900">
             <tr>
               <th className="px-6 py-4 font-medium">Applicant</th>
+              <th className="px-6 py-4 font-medium">Role</th>
               <th className="px-6 py-4 font-medium">Contact</th>
               <th className="px-6 py-4 font-medium">Submission Date</th>
               <th className="px-6 py-4 font-medium text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
-            {profiles.length === 0 ? (
-              <tr>
-                <td colSpan="4" className="text-center py-12">
-                  <ShieldCheck className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-500 font-medium">All caught up!</p>
-                  <p className="text-gray-400 text-xs mt-1">
-                    No pending verifications at the moment.
-                  </p>
-                </td>
-              </tr>
-            ) : (
-              profiles.map((p) => (
-                <tr key={p.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="font-medium text-gray-900">
-                      {p.fullName}
-                    </div>
-                    <div className="text-xs text-gray-500">ID: #{p.id}</div>
+            <tbody className="divide-y divide-gray-200">
+              {profiles.length === 0 ? (
+                <tr>
+                  <td colSpan="5" className="text-center py-12">
+                    <ShieldCheck className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                    <p className="text-gray-500 font-medium">All caught up!</p>
+                    <p className="text-gray-400 text-xs mt-1">
+                      No pending verifications at the moment.
+                    </p>
                   </td>
-                  <td className="px-6 py-4">
+                </tr>
+              ) : (
+                profiles.map((p) => (
+                  <tr key={p.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4">
+                      <div className="font-medium text-gray-900">
+                        {p.fullName}
+                      </div>
+                      <div className="text-xs text-gray-500">ID: #{p.id}</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                          p.role === "Seller"
+                            ? "bg-purple-50 text-purple-700"
+                            : "bg-indigo-50 text-indigo-700"
+                        }`}
+                      >
+                        {p.role || "N/A"}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
                     <div className="flex items-center gap-1.5 text-gray-700">
                       <Phone className="w-3.5 h-3.5 text-gray-400" />
                       <span>{p.phoneNumber || "No phone"}</span>
@@ -215,7 +228,7 @@ export default function Verifications() {
       {/* REVIEW MODAL */}
       {/* ========================================================= */}
       {selected && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
           <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[92vh] overflow-y-auto shadow-2xl flex flex-col">
             {/* Modal Header */}
             <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
@@ -251,6 +264,20 @@ export default function Verifications() {
                       </span>
                       <span className="font-medium text-gray-900">
                         {selected.fullName}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500 block text-xs">
+                        Role
+                      </span>
+                      <span
+                        className={`font-medium inline-block px-2 py-0.5 rounded-full text-xs ${
+                          selected.role === "Seller"
+                            ? "bg-purple-50 text-purple-700"
+                            : "bg-indigo-50 text-indigo-700"
+                        }`}
+                      >
+                        {selected.role || "N/A"}
                       </span>
                     </div>
                     <div>
@@ -317,12 +344,11 @@ export default function Verifications() {
                     </p>
                     {selected.nationalIdFrontImageUrl ? (
                       <img
-                        src={`${import.meta.env.VITE_API_BASE_URL.replace("/api", "")}${selected.nationalIdFrontImageUrl}`}
+                        src={imageUrl(selected.nationalIdFrontImageUrl)}
                         alt="Front ID"
+                        onError={handleImageError}
                         onClick={() =>
-                          setZoomImage(
-                            `${import.meta.env.VITE_API_BASE_URL.replace("/api", "")}${selected.nationalIdFrontImageUrl}`,
-                          )
+                          setZoomImage(imageUrl(selected.nationalIdFrontImageUrl))
                         }
                         className="w-full h-48 object-contain bg-gray-100 rounded-lg border border-gray-200 cursor-zoom-in hover:opacity-90 transition"
                       />
@@ -338,12 +364,11 @@ export default function Verifications() {
                     </p>
                     {selected.nationalIdBackImageUrl ? (
                       <img
-                        src={`${import.meta.env.VITE_API_BASE_URL.replace("/api", "")}${selected.nationalIdBackImageUrl}`}
+                        src={imageUrl(selected.nationalIdBackImageUrl)}
                         alt="Back ID"
+                        onError={handleImageError}
                         onClick={() =>
-                          setZoomImage(
-                            `${import.meta.env.VITE_API_BASE_URL.replace("/api", "")}${selected.nationalIdBackImageUrl}`,
-                          )
+                          setZoomImage(imageUrl(selected.nationalIdBackImageUrl))
                         }
                         className="w-full h-48 object-contain bg-gray-100 rounded-lg border border-gray-200 cursor-zoom-in hover:opacity-90 transition"
                       />
@@ -466,6 +491,7 @@ export default function Verifications() {
           <img
             src={zoomImage}
             alt="Zoomed ID"
+            onError={handleImageError}
             className="max-w-full max-h-full object-contain rounded-lg"
           />
         </div>

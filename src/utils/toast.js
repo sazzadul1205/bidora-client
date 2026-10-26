@@ -84,6 +84,26 @@ export const confirmDialog = async (title, text, confirmText = 'Yes', cancelText
   return result.isConfirmed
 }
 
+// Quick yes/no confirmation with a sensible default.
+// Usage: if (await toast.confirm('Delete?', 'This cannot be undone.')) { ... }
+export const confirm = async (title, text = '', confirmText = 'Yes', cancelText = 'Cancel') => {
+  const result = await Swal.fire({
+    title,
+    text,
+    icon: 'question',
+    showConfirmButton: true,
+    showDenyButton: true,
+    confirmButtonText: confirmText,
+    denyButtonText: cancelText,
+    customClass: {
+      confirmButton: 'bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg',
+      denyButton: 'bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg',
+    },
+    buttonsStyling: false,
+  })
+  return result.isConfirmed
+}
+
 // Modal alert (blocking)
 export const modalAlert = async (title, text, icon = 'info') => {
   await Swal.fire({

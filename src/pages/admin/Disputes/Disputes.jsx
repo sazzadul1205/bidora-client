@@ -24,7 +24,7 @@ export default function Disputes() {
 
   useEffect(() => {
     let mounted = true;
-    const load = async () => {
+    (async () => {
       try {
         const res = await getAllDisputes();
         if (mounted) setDisputes(res.data.data);
@@ -33,8 +33,7 @@ export default function Disputes() {
       } finally {
         if (mounted) setLoading(false);
       }
-    };
-    load();
+    })();
     return () => { mounted = false; };
   }, []);
 

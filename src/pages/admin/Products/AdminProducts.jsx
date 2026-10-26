@@ -3,6 +3,7 @@ import { useForm, useWatch } from "react-hook-form";
 import { getPendingProducts, getPendingProductById, reviewProduct } from "../../../services/adminApi";
 import { Eye } from "lucide-react";
 import { toast } from "../../../utils/toast";
+import { imageUrl, handleImageError } from "../../../utils/image";
 import { SkeletonRow, Skeleton } from "../../../components/Skeleton";
 
 export default function AdminProducts() {
@@ -24,7 +25,7 @@ export default function AdminProducts() {
 
   useEffect(() => {
     let mounted = true;
-    const load = async () => {
+    (async () => {
       try {
         const res = await getPendingProducts();
         if (mounted) setProducts(res.data.data);
@@ -33,8 +34,7 @@ export default function AdminProducts() {
       } finally {
         if (mounted) setLoading(false);
       }
-    };
-    load();
+    })();
     return () => { mounted = false; };
   }, []);
 
@@ -151,7 +151,7 @@ export default function AdminProducts() {
             {selectedProduct.images?.length > 0 && (
               <div className="flex gap-4 overflow-x-auto mb-6">
                 {selectedProduct.images.map(img => (
-                  <img key={img.id} src={`${import.meta.env.VITE_API_BASE_URL.replace('/api', '')}${img.imageUrl}`} alt="Product" className="w-32 h-32 object-cover rounded-lg border" />
+                  <img key={img.id} src={imageUrl(img.imageUrl)} alt="Product" onError={handleImageError} className="w-32 h-32 object-cover rounded-lg border" />
                 ))}
               </div>
             )}

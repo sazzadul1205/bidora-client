@@ -27,7 +27,7 @@ export default function Users() {
 
   useEffect(() => {
     let mounted = true;
-    const load = async () => {
+    (async () => {
       try {
         const res = await getUsers();
         if (mounted) {
@@ -39,8 +39,7 @@ export default function Users() {
       } finally {
         if (mounted) setLoading(false);
       }
-    };
-    load();
+    })();
     return () => { mounted = false; };
   }, []);
 

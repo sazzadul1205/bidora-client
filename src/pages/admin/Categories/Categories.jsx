@@ -24,7 +24,7 @@ export default function Categories() {
 
   useEffect(() => {
     let mounted = true;
-    const load = async () => {
+    (async () => {
       try {
         const res = await getCategories();
         if (mounted) setCategories(res.data.data);
@@ -33,8 +33,7 @@ export default function Categories() {
       } finally {
         if (mounted) setLoading(false);
       }
-    };
-    load();
+    })();
     return () => { mounted = false; };
   }, []);
 

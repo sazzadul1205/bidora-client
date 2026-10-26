@@ -38,7 +38,7 @@ function AuthenticatedLayout() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchData = async () => {
+    (async () => {
       try {
         const userRes = await getCurrentUser();
         setUserData(userRes.data);
@@ -64,9 +64,7 @@ function AuthenticatedLayout() {
       } finally {
         setLoading(false);
       }
-    };
-
-    fetchData();
+    })();
   }, [navigate]);
 
   const handleLogout = () => {

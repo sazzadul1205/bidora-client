@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { createProduct } from "../../../services/sellerApi";
 import { getCategories } from "../../../services/publicApi";
 import { useEffect } from "react";
-import { Loader2 } from "lucide-react";
 
 export default function CreateProduct() {
   const navigate = useNavigate();
@@ -13,7 +12,7 @@ export default function CreateProduct() {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { isSubmitting },
   } = useForm();
 
   useEffect(() => {

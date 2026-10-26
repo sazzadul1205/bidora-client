@@ -16,6 +16,7 @@ import Settings from "./pages/Auth/Settings/Settings";
 
 import ProfileCompletionGuard from "./components/Auth/ProfileCompletionGuard";
 import ProfilePending from "./pages/ProfilePending/ProfilePending";
+import Wallet from "./pages/Wallet/Wallet";
 
 // Admin Pages
 import AdminDashboard from "./pages/admin/Dashboard/AdminDashboard";
@@ -86,11 +87,11 @@ function App() {
               </ProfileCompletionGuard>
             }
           />
-          <Route
+<Route
             path="/wallet"
             element={
               <ProfileCompletionGuard>
-                <div>Wallet</div>
+                <Wallet />
               </ProfileCompletionGuard>
             }
           />

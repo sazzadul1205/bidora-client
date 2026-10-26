@@ -13,8 +13,8 @@ export default function MyProducts() {
     try {
       const res = await getMyProducts();
       setProducts(res.data.data || []);
-    } catch (err) {
-      console.error(err);
+    } catch {
+      toast.error("Failed to load products.");
     } finally {
       setLoading(false);
     }
@@ -22,24 +22,23 @@ export default function MyProducts() {
 
   useEffect(() => {
     let mounted = true;
-    const load = async () => {
+    (async () => {
       try {
         const res = await getMyProducts();
         if (mounted) setProducts(res.data.data || []);
-      } catch (err) {
-        console.error(err);
+      } catch {
+        toast.error("Failed to load products.");
       } finally {
         if (mounted) setLoading(false);
       }
-    };
-    load();
+    })();
     return () => {
       mounted = false;
     };
   }, []);
 
   const handleSubmit = async (id) => {
-    if (!window.confirm("Submit this product for admin approval? A 25% deposit will be reserved.")) return;
+    if (!(await toast.confirm("Submit for approval?", "A 25% deposit will be reserved."))) return;
     try {
       await submitProductForApproval(id);
       toast.success("Product submitted for approval");
@@ -50,23 +49,23 @@ export default function MyProducts() {
   };
 
   const handleWithdraw = async (id) => {
-    if (!window.confirm("Withdraw this product back to draft?")) return;
+    if (!(await toast.confirm("Withdraw submission?", "Product will return to draft."))) return;
     try {
       await withdrawProductSubmission(id);
       toast.success("Product withdrawn");
       fetchProducts();
-    } catch (err) {
+    } catch {
       toast.error("Withdrawal failed.");
     }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Delete this draft product permanently?")) return;
+    if (!(await toast.confirm("Delete draft?", "This cannot be undone."))) return;
     try {
       await deleteProduct(id);
       toast.success("Product deleted");
       fetchProducts();
-    } catch (err) {
+    } catch {
       toast.error("Deletion failed.");
     }
   };

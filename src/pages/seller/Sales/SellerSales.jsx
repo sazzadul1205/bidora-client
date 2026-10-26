@@ -24,7 +24,7 @@ export default function SellerSales() {
 
   useEffect(() => {
     let mounted = true;
-    const load = async () => {
+    (async () => {
       try {
         const res = await getMySales();
         if (mounted) setSales(res.data.data || []);
@@ -33,8 +33,7 @@ export default function SellerSales() {
       } finally {
         if (mounted) setLoading(false);
       }
-    };
-    load();
+    })();
     return () => {
       mounted = false;
     };
