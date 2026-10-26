@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import {
   getMySales,
   dispatchSale,
   createDispute,
+  createDisputeImage,
   reportNonDelivery,
 } from "../../../services/sellerApi";
 import {
@@ -15,9 +16,9 @@ import {
   CheckCircle,
   Clock,
   DollarSign,
-  Link as LinkIcon,
   X,
   Scale,
+  ImagePlus,
 } from "lucide-react";
 import { toast, confirmDialog } from "../../../utils/toast";
 import { imageUrl, handleImageError } from "../../../utils/image";
@@ -31,8 +32,10 @@ export default function SellerSales() {
   const [filterStatus, setFilterStatus] = useState("All");
   const [disputeTarget, setDisputeTarget] = useState(null);
   const [complaint, setComplaint] = useState("");
-  const [evidenceUrl, setEvidenceUrl] = useState("");
+  const [evidenceImage, setEvidenceImage] = useState(null);
+  const [evidenceImagePreview, setEvidenceImagePreview] = useState(null);
   const [isSubmittingDispute, setIsSubmittingDispute] = useState(false);
+  const fileInputRef = useRef(null);
 
   const {
     register,
@@ -98,15 +101,18 @@ export default function SellerSales() {
     }
     setIsSubmittingDispute(true);
     try {
-      await createDispute({
-        saleId,
-        complaint: complaint.trim(),
-        evidenceUrl: evidenceUrl.trim() || null,
-      });
+      // Evidence is image-only. Send as multipart/form-data so the
+      // backend uploads the photo to the shared image store.
+      const formData = new FormData();
+      formData.append("SaleId", saleId);
+      formData.append("Complaint", complaint.trim());
+      if (evidenceImage) formData.append("EvidenceImage", evidenceImage);
+      await createDisputeImage(formData);
       toast.success("Dispute submitted. Awaiting admin review.");
       setDisputeTarget(null);
       setComplaint("");
-      setEvidenceUrl("");
+      setEvidenceImage(null);
+      setEvidenceImagePreview(null);
       fetchSales();
     } catch (err) {
       const serverMsg = err.response?.data?.message;
@@ -628,21 +634,57 @@ export default function SellerSales() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Evidence URL (optional)
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <LinkIcon className="h-4 w-4 text-gray-400" />
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Upload Photo (optional)
+                  </label>
+                  <div
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      const file = e.dataTransfer.files?.[0];
+                      if (!file) return;
+                      setEvidenceImage(file);
+                      setEvidenceImagePreview(URL.createObjectURL(file));
+                    }}
+                    className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-red-400 hover:bg-red-50/30 transition-colors cursor-pointer"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <ImagePlus className="w-8 h-8 text-gray-400 mx-auto mb-1" />
+                    <p className="text-xs text-gray-500">
+                      Drop a photo here or click to browse
+                    </p>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        setEvidenceImage(file);
+                        setEvidenceImagePreview(URL.createObjectURL(file));
+                      }}
+                    />
                   </div>
-                  <input
-                    type="url"
-                    value={evidenceUrl}
-                    onChange={(e) => setEvidenceUrl(e.target.value)}
-                    placeholder="https://example.com/evidence"
-                    className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 outline-none"
-                  />
-                </div>
+                {evidenceImagePreview && (
+                  <div className="relative mt-3">
+                    <img
+                      src={evidenceImagePreview}
+                      alt="preview"
+                      className="w-24 h-24 rounded-lg object-cover border border-gray-200 shadow-sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEvidenceImage(null);
+                        setEvidenceImagePreview(null);
+                      }}
+                      className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-700"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">

@@ -77,6 +77,16 @@ export const getDisputeById = (id) => authApi.get(`/dispute/${id}`, getAuthConfi
 // Create a dispute. Backend expects { saleId, complaint, evidenceUrl (optional) }
 export const createDispute = (data) => authApi.post("/dispute", data, getAuthConfig());
 
+// Create a dispute with an optional photo. Backend binds with [FromForm],
+// so we MUST force multipart/form-data instead of application/json.
+export const createDisputeImage = (formData) =>
+  authApi.post("/dispute", formData, {
+    headers: {
+      ...getAuthConfig().headers,
+      "Content-Type": "multipart/form-data",
+    },
+  });
+
 // Protected Profile
 export const getMyProfile = () => authApi.get("/auth/me", getAuthConfig());
 export const updateMyProfile = (data) => authApi.put("/auth/me", data, getAuthConfig());

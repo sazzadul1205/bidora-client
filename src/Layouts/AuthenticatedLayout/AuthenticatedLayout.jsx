@@ -4,7 +4,6 @@ import {
   NavLink,
   Link,
   useNavigate,
-  useLocation,
 } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -13,8 +12,6 @@ import {
   Settings,
   ArrowLeft,
   LogOut,
-  Bell,
-  Settings2,
   Package,
   Users,
   ShieldCheck,
@@ -32,7 +29,6 @@ import authApi, {
 
 function AuthenticatedLayout() {
   const navigate = useNavigate();
-  const location = useLocation();
   const [userData, setUserData] = useState(null);
   const [balance, setBalance] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -99,24 +95,6 @@ function AuthenticatedLayout() {
 
   // Determine the path for the main dashboard link based on role
   const dashboardLink = role === "Admin" ? "/admin" : "/dashboard";
-
-  // Generate a human-readable label for the current page
-  const getBreadcrumbLabel = () => {
-    const path = location.pathname;
-    const labels = {
-      "/dashboard": "Buyer Dashboard",
-      "/seller-dashboard": "Seller Dashboard",
-      "/admin": "Admin Dashboard",
-      "/admin/users": "User Management",
-      "/admin/products": "Product Moderation",
-      "/admin/deposits": "Deposit Requests",
-      "/admin/verifications": "Profile Verifications",
-      "/admin/auctions": "Auctions",
-      "/admin/disputes": "Disputes",
-      "/admin/categories": "Categories",
-    };
-    return labels[path] || (role === "Admin" ? "Admin account" : "Dashboard");
-  };
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
@@ -271,24 +249,24 @@ function AuthenticatedLayout() {
         {/* HEADER */}
         <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-8 shrink-0 z-5">
           <div className="flex items-center text-sm text-gray-500">
-            <span className="hover:text-gray-900 cursor-pointer">
+            {/* <span className="hover:text-gray-900 cursor-pointer">
               Marketplace
             </span>
             <span className="mx-2">/</span>
             <span className="font-medium text-gray-900">
               {getBreadcrumbLabel()}
-            </span>
+            </span> */}
           </div>
 
           <div className="flex items-center gap-4">
             <span className="text-xs text-gray-400">{currentDate}</span>
 
-            <button className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100">
+            {/* <button className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100">
               <Bell className="w-4 h-4" />
             </button>
             <button className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100">
               <Settings2 className="w-4 h-4" />
-            </button>
+            </button> */}
 
             {/* LIVE WALLET BALANCE WIDGET (Hidden for Admins) */}
             {role !== "Admin" && (

@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { Link } from "react-router-dom";
 import {
   getWonAuctions,
   payForSale,
   confirmReceipt,
-  createDispute,
-  getMyDisputes,
+  createDisputeImage,
 } from "../../../services/buyerApi";
 import {
   CreditCard,
@@ -18,6 +18,8 @@ import {
   Truck,
   X,
   Link as LinkIcon,
+  ImagePlus,
+  ArrowRight,
 } from "lucide-react";
 import { toast, confirmDialog } from "../../../utils/toast";
 import { SkeletonRow, Skeleton } from "../../../components/Skeleton";
@@ -28,11 +30,17 @@ export default function WonAuctions() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
+
+  // Modal States
   const [disputeTarget, setDisputeTarget] = useState(null);
-  const [complaint, setComplaint] = useState("");
-  const [evidenceUrl, setEvidenceUrl] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirmingTarget, setConfirmingTarget] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const fileInputRef = useRef(null);
+
+  // Form States
+  const [complaint, setComplaint] = useState("");
+  const [evidenceImage, setEvidenceImage] = useState(null);
+  const [evidenceImagePreview, setEvidenceImagePreview] = useState(null);
   const [receiptProof, setReceiptProof] = useState("");
   const [receiptNotes, setReceiptNotes] = useState("");
 
@@ -83,42 +91,60 @@ export default function WonAuctions() {
     }
   };
 
-  const handleConfirmReceipt = (sale) => {
-    setConfirmingTarget(sale);
-    setReceiptProof("");
-    setReceiptNotes("");
-  };
-
   const handleRaiseDispute = async (saleId) => {
-    if (!complaint.trim()) {
-      toast.error("Please describe the issue.");
-      return;
-    }
-    if (complaint.trim().length < 20) {
-      toast.error("Please provide more detail (at least 20 characters).");
-      return;
-    }
+    if (!complaint.trim()) return toast.error("Please describe the issue.");
+    if (complaint.trim().length < 20)
+      return toast.error(
+        "Please provide more detail (at least 20 characters).",
+      );
+
     setIsSubmitting(true);
     try {
-      await createDispute({
-        saleId,
-        complaint: complaint.trim(),
-        evidenceUrl: evidenceUrl.trim() || null,
-      });
+      // Evidence is image-only. Send as multipart/form-data so the
+      // backend uploads the photo to the shared image store.
+      const formData = new FormData();
+      formData.append("SaleId", saleId);
+      formData.append("Complaint", complaint.trim());
+      if (evidenceImage) formData.append("EvidenceImage", evidenceImage);
+      await createDisputeImage(formData);
       toast.success("Dispute submitted. Awaiting admin review.");
       setDisputeTarget(null);
       setComplaint("");
-      setEvidenceUrl("");
+      setEvidenceImage(null);
+      setEvidenceImagePreview(null);
       fetchWonAuctions();
     } catch (err) {
-      const serverMsg = err.response?.data?.message;
-      toast.error(serverMsg || "Failed to submit dispute.");
+      toast.error(err.response?.data?.message || "Failed to submit dispute.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // --- STATS CALCULATION ---
+  const handleConfirmReceipt = async () => {
+    if (!receiptProof.trim())
+      return toast.error("Proof of receipt is required.");
+
+    setIsSubmitting(true);
+    try {
+      await confirmReceipt(confirmingTarget.saleId, {
+        receiptProofUrl: receiptProof.trim(),
+        receiptNotes: receiptNotes.trim() || null,
+      });
+      toast.success("Receipt confirmed. Funds released to seller.");
+      setConfirmingTarget(null);
+      setReceiptProof("");
+      setReceiptNotes("");
+      fetchWonAuctions();
+    } catch (err) {
+      const detail =
+        err.response?.data?.message || "Failed to confirm receipt.";
+      toast.error(detail);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // --- STATS ---
   const pendingPaymentCount = auctions.filter(
     (a) =>
       a.paymentStatus === "AwaitingPayment" ||
@@ -131,31 +157,26 @@ export default function WonAuctions() {
     )
     .reduce((sum, a) => sum + (a.winningAmount || 0), 0);
 
-  // --- FILTERING LOGIC ---
+  // --- FILTERING ---
   const filteredAuctions = auctions.filter((a) => {
-    // 1. Search
     if (
       searchTerm &&
       !a.productTitle.toLowerCase().includes(searchTerm.toLowerCase())
-    ) {
+    )
       return false;
-    }
-    // 2. Tabs
-    if (filterStatus === "AwaitingPayment") {
+
+    if (filterStatus === "AwaitingPayment")
       return (
         a.paymentStatus === "AwaitingPayment" ||
         a.paymentStatus === "PaymentOverdue"
       );
-    }
-    if (filterStatus === "Dispatched") return a.paymentStatus === "Dispatched";
-    if (filterStatus === "PaymentSubmitted") return a.paymentStatus === "PaymentSubmitted";
-    if (filterStatus === "Paid") return a.paymentStatus === "Paid";
-    if (filterStatus === "Disputed") return a.paymentStatus === "Disputed";
+    if (filterStatus === "Action Required")
+      return a.paymentStatus === "Dispatched" || a.paymentStatus === "Paid";
     if (filterStatus === "Completed") return a.paymentStatus === "Completed";
+    if (filterStatus === "Disputed") return a.paymentStatus === "Disputed";
     return true;
   });
 
-  // --- LOADING STATE ---
   if (loading) {
     return (
       <div className="max-w-7xl mx-auto">
@@ -198,9 +219,15 @@ export default function WonAuctions() {
             <Trophy className="w-6 h-6 text-yellow-500" /> Won Auctions
           </h1>
           <p className="text-sm text-gray-500 mt-1">
-            Complete payments and confirm receipt of your winning items.
+            Complete payments, confirm receipt, and manage disputes.
           </p>
         </div>
+        <Link
+          to="/auctions"
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm"
+        >
+          Browse Auctions <ArrowRight className="w-4 h-4" />
+        </Link>
       </div>
 
       {/* Stats Row */}
@@ -216,6 +243,7 @@ export default function WonAuctions() {
             </p>
           </div>
         </div>
+
         <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
           <div
             className={`p-3 rounded-lg shrink-0 ${pendingPaymentCount > 0 ? "bg-orange-50 text-orange-600" : "bg-gray-50 text-gray-400"}`}
@@ -231,6 +259,7 @@ export default function WonAuctions() {
             </p>
           </div>
         </div>
+
         <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
           <div className="p-3 bg-green-50 text-green-600 rounded-lg shrink-0">
             <CreditCard className="w-6 h-6" />
@@ -250,7 +279,13 @@ export default function WonAuctions() {
         {/* Toolbar */}
         <div className="p-4 border-b border-gray-200 bg-gray-50/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
-            {["All", "AwaitingPayment", "Dispatched", "PaymentSubmitted", "Paid", "Completed", "Disputed"].map((tab) => (
+            {[
+              "All",
+              "AwaitingPayment",
+              "Action Required",
+              "Completed",
+              "Disputed",
+            ].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setFilterStatus(tab)}
@@ -282,7 +317,7 @@ export default function WonAuctions() {
           <table className="w-full text-left text-sm text-gray-600 min-w-200">
             <thead className="bg-gray-50 border-b border-gray-200 text-gray-900">
               <tr>
-                <th className="px-6 py-4 font-medium w-[40%]">Product</th>
+                <th className="px-6 py-4 font-medium w-[35%]">Product</th>
                 <th className="px-6 py-4 font-medium">Winning Amount</th>
                 <th className="px-6 py-4 font-medium">Status</th>
                 <th className="px-6 py-4 font-medium text-right">Actions</th>
@@ -347,11 +382,6 @@ export default function WonAuctions() {
 
                     {/* Status Badge */}
                     <td className="px-6 py-4">
-                      {a.paymentStatus === "Dispatched" && (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-orange-50 text-orange-700 border border-orange-200">
-                          <Truck className="w-3.5 h-3.5" /> Dispatched
-                        </span>
-                      )}
                       {a.paymentStatus === "AwaitingPayment" && (
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-orange-50 text-orange-700 border border-orange-200">
                           <Clock className="w-3.5 h-3.5" /> Awaiting Payment
@@ -363,15 +393,15 @@ export default function WonAuctions() {
                           Overdue
                         </span>
                       )}
-                      {a.paymentStatus === "PaymentSubmitted" && (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                          <Clock className="w-3.5 h-3.5" /> Awaiting Confirmation
-                        </span>
-                      )}
                       {a.paymentStatus === "Paid" && (
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
                           <CreditCard className="w-3.5 h-3.5" /> Paid (In
                           Escrow)
+                        </span>
+                      )}
+                      {a.paymentStatus === "Dispatched" && (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                          <Truck className="w-3.5 h-3.5" /> Dispatched
                         </span>
                       )}
                       {a.paymentStatus === "Completed" && (
@@ -381,58 +411,61 @@ export default function WonAuctions() {
                       )}
                       {a.paymentStatus === "Disputed" && (
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-red-50 text-red-700 border border-red-200">
-                          <AlertCircle className="w-3.5 h-3.5" /> Disputed
-                        </span>
-                      )}
-                      {!a.paymentStatus && (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-gray-100 text-gray-600 border border-gray-200">
-                          <Clock className="w-3.5 h-3.5" /> Unknown
+                          <Scale className="w-3.5 h-3.5" /> Under Dispute
                         </span>
                       )}
                     </td>
 
                     {/* Actions */}
                     <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end">
+                      <div className="flex flex-col items-end gap-2">
+                        {/* Primary Action */}
                         {(a.paymentStatus === "AwaitingPayment" ||
                           a.paymentStatus === "PaymentOverdue") && (
                           <button
                             onClick={() => handlePay(a.saleId)}
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm"
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm w-full justify-center"
                           >
                             <CreditCard className="w-4 h-4" /> Pay Now
                           </button>
                         )}
 
-                        {a.paymentStatus === "Dispatched" && (
+                        {(a.paymentStatus === "Dispatched" ||
+                          a.paymentStatus === "Paid") && (
                           <button
-                            onClick={() => handleConfirmReceipt(a)}
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm"
+                            onClick={() => {
+                              setConfirmingTarget(a);
+                              setReceiptProof("");
+                              setReceiptNotes("");
+                            }}
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm w-full justify-center"
                           >
                             <CheckCircle className="w-4 h-4" /> Confirm Receipt
                           </button>
                         )}
 
-                        {a.paymentStatus === "Paid" && (
-                          <button
-                            onClick={() => handleConfirmReceipt(a.saleId)}
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm"
-                          >
-                            <CheckCircle className="w-4 h-4" /> Confirm Receipt
-                          </button>
-                        )}
-
-                        {a.paymentStatus === "Completed" && (
-                          <span className="text-xs font-medium text-gray-400 flex items-center gap-1">
+                        {(a.paymentStatus === "Completed" ||
+                          a.paymentStatus === "Disputed") && (
+                          <span className="text-xs font-medium text-gray-400 flex items-center gap-1 justify-end">
                             <CheckCircle className="w-4 h-4 text-green-500" />{" "}
                             All done
                           </span>
                         )}
 
-                        {a.paymentStatus === "Disputed" && (
-                          <span className="text-xs font-medium text-red-600 flex items-center gap-1 bg-red-50 px-3 py-1.5 rounded-lg">
-                            <AlertCircle className="w-4 h-4" /> Under Review
-                          </span>
+                        {/* Secondary Action (Dispute) */}
+                        {(a.paymentStatus === "Paid" ||
+                          a.paymentStatus === "Dispatched") && (
+                          <button
+                            onClick={() => {
+                              setDisputeTarget(a);
+                              setComplaint("");
+                              setEvidenceImage(null);
+                              setEvidenceImagePreview(null);
+                            }}
+                            className="inline-flex items-center gap-1.5 text-xs font-semibold text-red-600 hover:text-red-800 transition-colors mt-1"
+                          >
+                            <Scale className="w-3.5 h-3.5" /> Raise Dispute
+                          </button>
                         )}
                       </div>
                     </td>
@@ -445,7 +478,7 @@ export default function WonAuctions() {
       </div>
 
       {/* ========================================================= */}
-      {/* RAISE DISPUTE MODAL (Buyer side) */}
+      {/* RAISE DISPUTE MODAL */}
       {/* ========================================================= */}
       {disputeTarget && (
         <div
@@ -453,7 +486,7 @@ export default function WonAuctions() {
           onClick={() => setDisputeTarget(null)}
         >
           <div
-            className="bg-white rounded-2xl w-full max-w-lg shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+            className="bg-white rounded-2xl w-full max-w-lg shadow-xl overflow-hidden animate-in fade-in zoom-in-95"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-red-50/50">
@@ -467,7 +500,7 @@ export default function WonAuctions() {
               </div>
               <button
                 onClick={() => setDisputeTarget(null)}
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-lg"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -477,9 +510,8 @@ export default function WonAuctions() {
               <div className="bg-red-50 text-red-800 p-3 rounded-lg border border-red-100 text-sm flex items-start gap-2">
                 <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
                 <p>
-                  Disputes can only be raised for sales that have been paid.
-                  Once submitted, an admin will review your complaint and may
-                  apply a penalty to the responsible party.
+                  Disputes are reviewed by an admin. Provide clear evidence.
+                  False claims may result in penalties.
                 </p>
               </div>
 
@@ -491,46 +523,78 @@ export default function WonAuctions() {
                   value={complaint}
                   onChange={(e) => setComplaint(e.target.value)}
                   rows={4}
-                  placeholder="e.g. The item arrived damaged, the seller never dispatched it, or the tracking number is invalid..."
+                  placeholder="e.g. The item arrived damaged, or the seller never dispatched it..."
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 outline-none resize-none"
                 />
-                <p className="text-[11px] text-gray-400 mt-1">
-                  Minimum 20 characters.
-                </p>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Evidence URL (optional)
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <LinkIcon className="h-4 w-4 text-gray-400" />
+<div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Upload Photo (optional)
+                  </label>
+                  <div
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      const file = e.dataTransfer.files?.[0];
+                      if (!file) return;
+                      setEvidenceImage(file);
+                      setEvidenceImagePreview(URL.createObjectURL(file));
+                    }}
+                    className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-red-400 hover:bg-red-50/30 transition-colors cursor-pointer"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <ImagePlus className="w-8 h-8 text-gray-400 mx-auto mb-1" />
+                    <p className="text-xs text-gray-500">
+                      Drop a photo here or click to browse
+                    </p>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        setEvidenceImage(file);
+                        setEvidenceImagePreview(URL.createObjectURL(file));
+                      }}
+                    />
                   </div>
-                  <input
-                    type="url"
-                    value={evidenceUrl}
-                    onChange={(e) => setEvidenceUrl(e.target.value)}
-                    placeholder="https://example.com/evidence"
-                    className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 outline-none"
-                  />
+                  {evidenceImagePreview && (
+                    <div className="relative mt-3">
+                      <img
+                        src={evidenceImagePreview}
+                        alt="preview"
+                        className="w-24 h-24 rounded-lg object-cover border border-gray-200 shadow-sm"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEvidenceImage(null);
+                          setEvidenceImagePreview(null);
+                        }}
+                        className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-700"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  )}
                 </div>
-              </div>
 
               <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
                 <button
                   onClick={() => setDisputeTarget(null)}
-                  disabled={isSubmitting}
-                  className="px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+                  className="px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={() => handleRaiseDispute(disputeTarget.saleId)}
-                  disabled={isSubmitting}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-50"
+                  disabled={isSubmitting || complaint.trim().length < 20}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg disabled:opacity-50"
                 >
-                  <Scale className="w-4 h-4" /> Submit Dispute
+                  Submit Dispute
                 </button>
               </div>
             </div>
@@ -539,7 +603,7 @@ export default function WonAuctions() {
       )}
 
       {/* ========================================================= */}
-      {/* CONFIRM RECEIPT MODAL (Buyer side) — requires proof */}
+      {/* CONFIRM RECEIPT MODAL */}
       {/* ========================================================= */}
       {confirmingTarget && (
         <div
@@ -547,13 +611,14 @@ export default function WonAuctions() {
           onClick={() => setConfirmingTarget(null)}
         >
           <div
-            className="bg-white rounded-2xl w-full max-w-lg shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+            className="bg-white rounded-2xl w-full max-w-lg shadow-xl overflow-hidden animate-in fade-in zoom-in-95"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-green-50/50">
               <div>
                 <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-600" /> Confirm Receipt
+                  <CheckCircle className="w-5 h-5 text-green-600" /> Confirm
+                  Receipt
                 </h2>
                 <p className="text-xs text-gray-500 mt-0.5 truncate max-w-70">
                   {confirmingTarget.productTitle}
@@ -561,7 +626,7 @@ export default function WonAuctions() {
               </div>
               <button
                 onClick={() => setConfirmingTarget(null)}
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-lg"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -571,25 +636,22 @@ export default function WonAuctions() {
               <div className="bg-green-50 text-green-800 p-3 rounded-lg border border-green-100 text-sm flex items-start gap-2">
                 <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
                 <p>
-                  Confirming receipt will release the escrow funds to the
-                  seller. You MUST provide proof (a photo of the delivered
-                  package, a tracking screenshot, or a URL).
+                  Confirming receipt releases the escrow funds to the seller.
+                  You must provide proof of delivery.
                 </p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Proof of Receipt <span className="text-red-500">*</span>
+                  Proof of Receipt URL <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <LinkIcon className="h-4 w-4 text-gray-400" />
-                  </div>
+                  <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <input
                     type="url"
                     value={receiptProof}
                     onChange={(e) => setReceiptProof(e.target.value)}
-                    placeholder="https://example.com/receipt-proof"
+                    placeholder="https://example.com/proof"
                     className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 outline-none"
                   />
                 </div>
@@ -611,49 +673,16 @@ export default function WonAuctions() {
               <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
                 <button
                   onClick={() => setConfirmingTarget(null)}
-                  disabled={isSubmitting}
-                  className="px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+                  className="px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg"
                 >
                   Cancel
                 </button>
                 <button
-                  onClick={async () => {
-                    if (!receiptProof.trim()) {
-                      toast.error("Proof of receipt is required.");
-                      return;
-                    }
-                    setIsSubmitting(true);
-                    try {
-                      await confirmReceipt(
-                        confirmingTarget.saleId,
-                        {
-                          receiptProofUrl: receiptProof.trim(),
-                          receiptNotes: receiptNotes.trim() || null,
-                        },
-                      );
-                      toast.success(
-                        "Receipt confirmed. Funds released to seller.",
-                      );
-                      setConfirmingTarget(null);
-                      setReceiptProof("");
-                      setReceiptNotes("");
-                      fetchWonAuctions();
-                    } catch (err) {
-                      const serverMsg = err.response?.data?.message;
-                      const validationErrors = err.response?.data?.errors;
-                      let detail = serverMsg || "Failed to confirm receipt.";
-                      if (validationErrors) {
-                        detail = Object.values(validationErrors).flat().join(" ");
-                      }
-                      toast.error(detail);
-                    } finally {
-                      setIsSubmitting(false);
-                    }
-                  }}
-                  disabled={isSubmitting}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-50"
+                  onClick={handleConfirmReceipt}
+                  disabled={isSubmitting || !receiptProof.trim()}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg disabled:opacity-50"
                 >
-                  <CheckCircle className="w-4 h-4" /> Confirm & Release
+                  Confirm & Release Funds
                 </button>
               </div>
             </div>
