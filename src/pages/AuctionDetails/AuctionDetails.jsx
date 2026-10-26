@@ -126,7 +126,19 @@ export default function AuctionDetails() {
       setBidAmount("");
       fetchData(); // Refresh bids and current price
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to place bid.");
+      const status = err.response?.status;
+      const serverMsg = err.response?.data?.message;
+      if (status === 403) {
+        toast.error(
+          serverMsg ||
+            "You are not authorized to bid. Please log in as a Buyer."
+        );
+      } else if (status === 401) {
+        toast.error("Please log in to place a bid.");
+        return navigate("/login");
+      } else {
+        toast.error(serverMsg || "Failed to place bid.");
+      }
     } finally {
       setIsBidding(false);
     }
@@ -137,8 +149,13 @@ export default function AuctionDetails() {
       toast.error("Please log in to buy out.");
       return navigate("/login");
     }
-    if (!window.confirm("Are you sure you want to buy this item immediately?"))
-      return;
+    if (
+        !(await toast.confirm(
+          "Buy this item now?",
+          "You will be charged the buyout price immediately and become the winner of this auction."
+        ))
+      )
+        return;
 
     try {
       await buyoutAuction(id);
@@ -147,7 +164,19 @@ export default function AuctionDetails() {
       );
       navigate("/buyer/won");
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to buyout auction.");
+      const status = err.response?.status;
+      const serverMsg = err.response?.data?.message;
+      if (status === 403) {
+        toast.error(
+          serverMsg ||
+            "You are not authorized to buy out. Please log in as a Buyer."
+        );
+      } else if (status === 401) {
+        toast.error("Please log in to buy out.");
+        return navigate("/login");
+      } else {
+        toast.error(serverMsg || "Failed to buyout auction.");
+      }
     }
   };
 

@@ -56,11 +56,29 @@ export const toast = {
       showConfirmButton: false,
       timer: 3000,
       timerProgressBar: true,
-      didOpen: (toast) => {
+didOpen: (toast) => {
         toast.addEventListener('mouseenter', Swal.stopTimer)
         toast.addEventListener('mouseleave', Swal.resumeTimer)
       },
     })
+  },
+  // Modal confirmation dialog. Returns true when confirmed.
+  confirm: async (title, text = '', confirmText = 'Yes', cancelText = 'Cancel') => {
+    const result = await Swal.fire({
+      title,
+      text,
+      icon: 'question',
+      showConfirmButton: true,
+      showDenyButton: true,
+      confirmButtonText: confirmText,
+      denyButtonText: cancelText,
+      customClass: {
+        confirmButton: 'bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg',
+        denyButton: 'bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg',
+      },
+      buttonsStyling: false,
+    })
+    return result.isConfirmed
   },
 }
 

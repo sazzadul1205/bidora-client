@@ -16,6 +16,10 @@ import {
   AlertCircle,
   Edit2,
   Eye,
+  Gavel,
+  XCircle,
+  CheckCircle,
+  Clock,
 } from "lucide-react";
 import { toast, confirmDialog } from "../../../utils/toast"; // Changed to use confirmDialog
 import { imageUrl, handleImageError } from "../../../utils/image";
@@ -234,31 +238,92 @@ export default function MyProducts() {
 
                   {/* Status Badge */}
                   <td className="px-6 py-4">
-                    <span
-                      className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
-                        p.approvalStatus === "Approved"
-                          ? "bg-green-100 text-green-700"
-                          : p.approvalStatus === "PendingApproval"
-                            ? "bg-orange-100 text-orange-700"
-                            : p.approvalStatus === "Rejected"
-                              ? "bg-red-100 text-red-700"
-                              : "bg-gray-100 text-gray-700"
-                      }`}
-                    >
-                      {p.approvalStatus}
-                    </span>
+                    <div className="space-y-2">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                          p.approvalStatus === "Approved"
+                            ? "bg-green-100 text-green-700"
+                            : p.approvalStatus === "PendingApproval"
+                              ? "bg-orange-100 text-orange-700"
+                              : p.approvalStatus === "Rejected"
+                                ? "bg-red-100 text-red-700"
+                                : "bg-gray-100 text-gray-700"
+                        }`}
+                      >
+                        {p.approvalStatus}
+                      </span>
 
-                    {/* Show Rejection Reason if it exists (Backend DTO needs updating to send this) */}
-                    {p.approvalStatus === "Rejected" && p.rejectionReason && (
-                      <div className="mt-2 text-xs text-red-600 bg-red-50 p-2 rounded-md border border-red-100 max-w-xs">
-                        <div className="flex items-start gap-1">
-                          <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-                          <span className="line-clamp-2">
-                            {p.rejectionReason}
-                          </span>
+                      {/* Show Rejection Reason if it exists */}
+                      {p.approvalStatus === "Rejected" && p.rejectionReason && (
+                        <div className="text-xs text-red-600 bg-red-50 p-2 rounded-md border border-red-100 max-w-xs">
+                          <div className="flex items-start gap-1">
+                            <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                            <span className="line-clamp-2">
+                              {p.rejectionReason}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
+
+                      {/* Auction status — shows seller whether their auction is live, cancelled, completed, etc. */}
+                      {p.auctionStatus && (
+                        <div className="space-y-1">
+                          <span
+                            className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                              p.auctionStatus === "Active"
+                                ? "bg-green-100 text-green-700"
+                                : p.auctionStatus === "Upcoming"
+                                  ? "bg-yellow-100 text-yellow-700"
+                                  : p.auctionStatus === "Completed"
+                                    ? "bg-blue-100 text-blue-700"
+                                    : p.auctionStatus === "Cancelled"
+                                      ? "bg-red-100 text-red-700"
+                                      : "bg-gray-100 text-gray-700"
+                            }`}
+                          >
+                            {p.auctionStatus === "Active" && (
+                              <span className="w-1.5 h-1.5 bg-green-600 rounded-full mr-1.5 animate-pulse" />
+                            )}
+                            Auction: {p.auctionStatus}
+                          </span>
+                          {p.auctionStatus === "Cancelled" &&
+                            p.auctionCancellationReason && (
+                              <div className="text-xs text-red-600 bg-red-50 p-2 rounded-md border border-red-100 max-w-xs">
+                                <div className="flex items-start gap-1">
+                                  <XCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                                  <span className="line-clamp-2">
+                                    {p.auctionCancellationReason}
+                                  </span>
+                                </div>
+                              </div>
+                            )}
+                          {p.auctionStatus === "Active" &&
+                            p.auctionBidCount != null &&
+                            p.auctionBidCount > 0 && (
+                              <p className="text-[11px] text-gray-500 flex items-center gap-1">
+                                <Gavel className="w-3 h-3" />
+                                {p.auctionBidCount} bid
+                                {p.auctionBidCount > 1 ? "s" : ""} ·{" "}
+                                {p.auctionCurrentHighestBid != null
+                                  ? `$${p.auctionCurrentHighestBid.toLocaleString()}`
+                                  : "no highest yet"}
+                              </p>
+                            )}
+                          {p.auctionStatus === "Completed" && (
+                            <p className="text-[11px] text-gray-500 flex items-center gap-1">
+                              <CheckCircle className="w-3 h-3" />
+                              Ended
+                            </p>
+                          )}
+                          {p.auctionStatus === "Upcoming" && p.auctionStartTime && (
+                            <p className="text-[11px] text-gray-500 flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              Starts {formatDate(p.auctionStartTime)}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </td>
 
                   {/* Actions */}
@@ -296,6 +361,15 @@ export default function MyProducts() {
                         >
                           <RotateCcw className="w-4 h-4" /> Withdraw
                         </button>
+                      )}
+                      {/* View Auction — jump to the public auction page to see live bids */}
+                      {p.auctionId && (
+                        <Link
+                          to={`/auction/${p.auctionId}`}
+                          className="inline-flex items-center gap-1.5 text-purple-600 hover:text-purple-800 font-medium bg-purple-50 hover:bg-purple-100 px-3 py-1.5 rounded-lg transition-colors"
+                        >
+                          <Gavel className="w-4 h-4" /> View Auction
+                        </Link>
                       )}
                       {(p.approvalStatus === "Draft" ||
                         p.approvalStatus === "Rejected") && (

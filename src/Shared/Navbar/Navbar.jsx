@@ -55,9 +55,6 @@ function Navbar() {
           <NavLink to="/auctions" className="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors">
             Browse auctions
           </NavLink>
-          <NavLink to="/sell" className="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors">
-            Sell an item
-          </NavLink>
         </nav>
 
         {/* Right Side Auth */}

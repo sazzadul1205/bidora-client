@@ -198,7 +198,7 @@ export default function Auctions() {
                         src={imageUrl(auction.mainImageUrl)}
                         alt={auction.productTitle}
                         onError={handleImageError}
-                        className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ${isEnded ? "grayscale opacity-60" : ""}`}
+                        className={`w-full h-full object-contain bg-gray-100 ${isEnded ? "grayscale opacity-60" : ""}`}
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-gray-300">

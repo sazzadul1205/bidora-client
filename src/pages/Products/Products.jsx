@@ -113,10 +113,10 @@ export default function Home() {
   // Hero logic (prefer active, fallback to upcoming)
   const heroAuction = filteredActive[0] || filteredUpcoming[0];
 
-  // Grid logic (exclude the hero)
-  const activeGrid = filteredActive
-    .filter((a) => a.id !== heroAuction?.id)
-    .slice(0, 3);
+  // Grid logic — show all active auctions in the grid. We intentionally do
+  // NOT exclude the hero here so the grid is never empty when there are
+  // auctions to display (a single live auction still appears in the grid).
+  const activeGrid = filteredActive.slice(0, 3);
   const upcomingGrid = filteredUpcoming
     .filter((a) => a.id !== heroAuction?.id)
     .slice(0, 3);
@@ -209,30 +209,29 @@ export default function Home() {
                     src={imageUrl(heroAuction.mainImageUrl)}
                     alt={heroAuction.productTitle}
                     onError={handleImageError}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain bg-gray-100"
                   />
                 </div>
-<div className="flex justify-between items-center">
-                    <div>
-                      <h3 className="font-bold text-gray-900 line-clamp-1">
-                        {heroAuction.productTitle}
-                      </h3>
-                      <p className="text-xs text-gray-500">
-                        {heroAuction.status === "Active"
-                          ? "Current bid"
-                          : "Starting price"}
-                      </p>
-                    </div>
-                    <p className="text-xl font-bold text-blue-600">
-                      $
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h3 className="font-bold text-gray-900 line-clamp-1">
+                      {heroAuction.productTitle}
+                    </h3>
+                    <p className="text-xs text-gray-500">
                       {heroAuction.status === "Active"
-                        ? heroAuction.currentHighestBid?.toLocaleString() ||
-                          heroAuction.startingPrice?.toLocaleString() ||
-                          "0.00"
-                        : heroAuction.startingPrice?.toLocaleString() ||
-                          "0.00"}
+                        ? "Current bid"
+                        : "Starting price"}
                     </p>
                   </div>
+                  <p className="text-xl font-bold text-blue-600">
+                    $
+                    {heroAuction.status === "Active"
+                      ? heroAuction.currentHighestBid?.toLocaleString() ||
+                        heroAuction.startingPrice?.toLocaleString() ||
+                        "0.00"
+                      : heroAuction.startingPrice?.toLocaleString() || "0.00"}
+                  </p>
+                </div>
               </Link>
             </div>
             <div className="absolute top-0 right-0 w-150 h-150 bg-blue-100 rounded-full blur-3xl opacity-50 -translate-y-1/2 translate-x-1/3"></div>
@@ -289,7 +288,7 @@ export default function Home() {
               No active auctions found.
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               {activeGrid.map((auction) => (
                 <Link
                   to={`/auction/${auction.id}`}
@@ -301,7 +300,7 @@ export default function Home() {
                       src={imageUrl(auction.mainImageUrl)}
                       alt={auction.productTitle}
                       onError={handleImageError}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      className="w-full h-full object-contain bg-gray-100"
                     />
                   </div>
                   <div className="p-5">
@@ -309,7 +308,7 @@ export default function Home() {
                     <h3 className="font-bold text-gray-900 text-lg line-clamp-1 mb-3">
                       {auction.productTitle}
                     </h3>
-                    <div className="flex justify-between items-end mt-4 pt-4 border-t border-gray-100">
+                    <div className="flex justify-between items-end mt-4 ">
                       <div>
                         <p className="text-xs text-gray-500 mb-1">
                           Current bid
@@ -358,7 +357,7 @@ export default function Home() {
               No upcoming auctions scheduled.
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               {upcomingGrid.map((auction) => (
                 <Link
                   to={`/auction/${auction.id}`}
@@ -370,7 +369,7 @@ export default function Home() {
                       src={imageUrl(auction.mainImageUrl)}
                       alt={auction.productTitle}
                       onError={handleImageError}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90"
+                      className="w-full h-full object-contain bg-gray-100 opacity-90"
                     />
                     <span className="absolute top-3 left-3 bg-white/90 backdrop-blur text-gray-800 text-xs font-bold px-2.5 py-1 rounded-md shadow-sm">
                       Coming Soon
@@ -383,15 +382,13 @@ export default function Home() {
                     <h3 className="font-bold text-gray-900 text-lg line-clamp-1 mb-3">
                       {auction.productTitle}
                     </h3>
-                    <div className="flex justify-between items-end mt-4 pt-4 border-t border-gray-100">
+                    <div className="flex justify-between items-end mt-4 ">
                       <div>
                         <p className="text-xs text-gray-500 mb-1">
                           Starting Price
                         </p>
                         <p className="text-lg font-bold text-gray-900">
-                          $
-                          {auction.startingPrice?.toLocaleString() ||
-                            "0.00"}
+                          ${auction.startingPrice?.toLocaleString() || "0.00"}
                         </p>
                       </div>
                       <div className="text-right">

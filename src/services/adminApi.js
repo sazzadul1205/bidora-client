@@ -26,6 +26,11 @@ export const deleteCategory = (id) => authApi.delete(`/category/${id}`, getAuthC
 export const getAllAuctions = () => authApi.get("/admin/auctions", getAuthConfig())
 export const getAuctionResults = () => authApi.get("/admin/auction-results", getAuthConfig())
 
+// Admin-only view of every bid placed on a single auction, including
+// bidder email, amount, timestamp, buyout flag, and whether it's the current highest.
+export const getAuctionBidsForAdmin = (auctionId) =>
+  authApi.get(`/bid/auction/${auctionId}/bids/admin`, getAuthConfig())
+
 // Configure an upcoming auction. Backend expects { startTime, endTime }
 export const configureAuction = (id, data) =>
   authApi.put(`/auction/${id}/configure`, data, getAuthConfig())
