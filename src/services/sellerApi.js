@@ -105,6 +105,11 @@ export const getSaleById = (id) => authApi.get(`/sale/${id}`, getAuthConfig());
 export const dispatchSale = (id, data) =>
   authApi.post(`/sale/${id}/dispatch`, data, getAuthConfig());
 
+// Seller reports that the buyer never picked up the item after dispatch.
+// Allowed only after the 10-day pickup window has passed.
+export const reportNonDelivery = (id) =>
+  authApi.post(`/sale/${id}/report-non-delivery`, {}, getAuthConfig());
+
 // Protected Disputes
 export const getMyDisputes = () =>
   authApi.get("/dispute/my-disputes", getAuthConfig());
@@ -148,6 +153,7 @@ export default {
   getMySales,
   getSaleById,
   dispatchSale,
+  reportNonDelivery,
   getMyDisputes,
   getDisputeById,
   createDispute,

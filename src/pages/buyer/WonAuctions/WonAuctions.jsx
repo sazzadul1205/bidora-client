@@ -32,6 +32,9 @@ export default function WonAuctions() {
   const [complaint, setComplaint] = useState("");
   const [evidenceUrl, setEvidenceUrl] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [confirmingTarget, setConfirmingTarget] = useState(null);
+  const [receiptProof, setReceiptProof] = useState("");
+  const [receiptNotes, setReceiptNotes] = useState("");
 
   const fetchWonAuctions = async () => {
     try {
@@ -80,32 +83,12 @@ export default function WonAuctions() {
     }
   };
 
-  const handleConfirmReceipt = async (saleId) => {
-    const confirmed = await confirmDialog(
-      "Confirm Receipt?",
-      "Only confirm if you have received the item. This will release the funds to the seller.",
-      "Confirm Receipt",
-    );
-    if (!confirmed) return;
-
-    try {
-      await confirmReceipt(saleId);
-      toast.success("Receipt confirmed. Funds released to seller.");
-      fetchWonAuctions();
-    } catch (err) {
-      const serverMsg = err.response?.data?.message;
-      const validationErrors = err.response?.data?.errors;
-      let detail = serverMsg || "Failed to confirm receipt.";
-      if (validationErrors) {
-        detail = Object.values(validationErrors).flat().join(" ");
-      }
-      toast.error(detail);
-    }
+  const handleConfirmReceipt = (sale) => {
+    setConfirmingTarget(sale);
+    setReceiptProof("");
+    setReceiptNotes("");
   };
 
-  // Raise a dispute for a won auction. Only available once the buyer has paid
-  // (Paid / PaymentSubmitted / Completed) — the backend rejects disputes for
-  // AwaitingPayment sales.
   const handleRaiseDispute = async (saleId) => {
     if (!complaint.trim()) {
       toast.error("Please describe the issue.");
@@ -423,7 +406,7 @@ export default function WonAuctions() {
 
                         {a.paymentStatus === "Dispatched" && (
                           <button
-                            onClick={() => handleConfirmReceipt(a.saleId)}
+                            onClick={() => handleConfirmReceipt(a)}
                             className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm"
                           >
                             <CheckCircle className="w-4 h-4" /> Confirm Receipt
@@ -548,6 +531,129 @@ export default function WonAuctions() {
                   className="inline-flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-50"
                 >
                   <Scale className="w-4 h-4" /> Submit Dispute
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* CONFIRM RECEIPT MODAL (Buyer side) — requires proof */}
+      {/* ========================================================= */}
+      {confirmingTarget && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm"
+          onClick={() => setConfirmingTarget(null)}
+        >
+          <div
+            className="bg-white rounded-2xl w-full max-w-lg shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-green-50/50">
+              <div>
+                <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                  <CheckCircle className="w-5 h-5 text-green-600" /> Confirm Receipt
+                </h2>
+                <p className="text-xs text-gray-500 mt-0.5 truncate max-w-70">
+                  {confirmingTarget.productTitle}
+                </p>
+              </div>
+              <button
+                onClick={() => setConfirmingTarget(null)}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div className="bg-green-50 text-green-800 p-3 rounded-lg border border-green-100 text-sm flex items-start gap-2">
+                <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                <p>
+                  Confirming receipt will release the escrow funds to the
+                  seller. You MUST provide proof (a photo of the delivered
+                  package, a tracking screenshot, or a URL).
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Proof of Receipt <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <LinkIcon className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <input
+                    type="url"
+                    value={receiptProof}
+                    onChange={(e) => setReceiptProof(e.target.value)}
+                    placeholder="https://example.com/receipt-proof"
+                    className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Notes (optional)
+                </label>
+                <textarea
+                  value={receiptNotes}
+                  onChange={(e) => setReceiptNotes(e.target.value)}
+                  rows={3}
+                  placeholder="e.g. Item received in good condition..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 outline-none resize-none"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+                <button
+                  onClick={() => setConfirmingTarget(null)}
+                  disabled={isSubmitting}
+                  className="px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={async () => {
+                    if (!receiptProof.trim()) {
+                      toast.error("Proof of receipt is required.");
+                      return;
+                    }
+                    setIsSubmitting(true);
+                    try {
+                      await confirmReceipt(
+                        confirmingTarget.saleId,
+                        {
+                          receiptProofUrl: receiptProof.trim(),
+                          receiptNotes: receiptNotes.trim() || null,
+                        },
+                      );
+                      toast.success(
+                        "Receipt confirmed. Funds released to seller.",
+                      );
+                      setConfirmingTarget(null);
+                      setReceiptProof("");
+                      setReceiptNotes("");
+                      fetchWonAuctions();
+                    } catch (err) {
+                      const serverMsg = err.response?.data?.message;
+                      const validationErrors = err.response?.data?.errors;
+                      let detail = serverMsg || "Failed to confirm receipt.";
+                      if (validationErrors) {
+                        detail = Object.values(validationErrors).flat().join(" ");
+                      }
+                      toast.error(detail);
+                    } finally {
+                      setIsSubmitting(false);
+                    }
+                  }}
+                  disabled={isSubmitting}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-50"
+                >
+                  <CheckCircle className="w-4 h-4" /> Confirm & Release
                 </button>
               </div>
             </div>

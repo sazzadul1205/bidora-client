@@ -64,9 +64,11 @@ export const getSaleById = (id) => authApi.get(`/sale/${id}`, getAuthConfig());
 // Pay for a won auction. The backend deducts funds from the wallet and holds them in escrow.
 export const payForSale = (id) => authApi.post(`/sale/${id}/pay`, {}, getAuthConfig());
 
-// Confirm receipt of a dispatched item. This releases escrow funds to the seller.
-export const confirmReceipt = (id) =>
-  authApi.post(`/sale/${id}/confirm-receipt`, {}, getAuthConfig());
+// Confirm receipt of a dispatched item. The buyer MUST supply proof
+// (a photo, tracking screenshot, or URL) so the seller has evidence
+// the item was received. This releases escrow funds to the seller.
+export const confirmReceipt = (id, data) =>
+  authApi.post(`/sale/${id}/confirm-receipt`, data, getAuthConfig());
 
 // Protected Disputes
 export const getMyDisputes = () => authApi.get("/dispute/my-disputes", getAuthConfig());

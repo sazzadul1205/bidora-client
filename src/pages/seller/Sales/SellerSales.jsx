@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { getMySales, dispatchSale, createDispute } from "../../../services/sellerApi";
+import {
+  getMySales,
+  dispatchSale,
+  createDispute,
+  reportNonDelivery,
+} from "../../../services/sellerApi";
 import {
   Truck,
   ShoppingCart,
@@ -14,7 +19,7 @@ import {
   X,
   Scale,
 } from "lucide-react";
-import { toast } from "../../../utils/toast";
+import { toast, confirmDialog } from "../../../utils/toast";
 import { imageUrl, handleImageError } from "../../../utils/image";
 import { SkeletonRow, Skeleton } from "../../../components/Skeleton";
 
@@ -376,7 +381,7 @@ export default function SellerSales() {
 
                     {/* Actions */}
                     <td className="px-6 py-4 text-right">
-<div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-end gap-2">
                         {s.status === "Paid" && (
                           <button
                             onClick={() => {
@@ -392,6 +397,39 @@ export default function SellerSales() {
                           <span className="text-xs font-medium text-gray-400 flex items-center gap-1">
                             Waiting for buyer to confirm receipt
                           </span>
+                        )}
+
+                        {/* Report Non-Delivery — seller can accuse the buyer
+                            of abandoning the item only after the 10-day
+                            pickup window has passed. The backend enforces
+                            this rule. */}
+                        {s.status === "Dispatched" && (
+                          <button
+                            onClick={async () => {
+                              const confirmed = await confirmDialog(
+                                "Report Non-Delivery?",
+                                "The buyer will be notified. You must wait the full 10-day pickup window before this is allowed.",
+                                "Report",
+                              );
+                              if (!confirmed) return;
+                              try {
+                                await reportNonDelivery(s.id);
+                                toast.success(
+                                  "Non-delivery reported. Awaiting admin review.",
+                                );
+                                fetchSales();
+                              } catch (err) {
+                                toast.error(
+                                  err.response?.data?.message ||
+                                    "Failed to report non-delivery.",
+                                );
+                              }
+                            }}
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm"
+                          >
+                            <AlertCircle className="w-4 h-4" /> Report
+                            Non-Delivery
+                          </button>
                         )}
                         {s.status === "Completed" && (
                           <span className="text-xs font-medium text-green-600 flex items-center gap-1 bg-green-50 px-3 py-1.5 rounded-lg">
