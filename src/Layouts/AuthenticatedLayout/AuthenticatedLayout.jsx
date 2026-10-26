@@ -187,27 +187,42 @@ function AuthenticatedLayout() {
                 )}
                 {role === "Admin" && (
                   <>
-                    <NavLink to="/admin/users" className={navLinkClass}>
-                      <Users className="w-4 h-4" /> User Management
-                    </NavLink>
-                    <NavLink to="/admin/products" className={navLinkClass}>
-                      <ShieldCheck className="w-4 h-4" /> Product Moderation
-                    </NavLink>
-                    <NavLink to="/admin/deposits" className={navLinkClass}>
-                      <CreditCard className="w-4 h-4" /> Deposit Requests
-                    </NavLink>
-                    <NavLink to="/admin/verifications" className={navLinkClass}>
-                      <CheckCircle className="w-4 h-4" /> Profile Verifications
-                    </NavLink>
-                    <NavLink to="/admin/auctions" className={navLinkClass}>
-                      <Gavel className="w-4 h-4" /> Auctions
-                    </NavLink>
-                    <NavLink to="/admin/disputes" className={navLinkClass}>
-                      <Scale className="w-4 h-4" /> Disputes
-                    </NavLink>
-                    <NavLink to="/admin/categories" className={navLinkClass}>
-                      <LayoutDashboard className="w-4 h-4" /> Categories
-                    </NavLink>
+                    <div className="mt-3">
+                      <p className="px-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
+                        Validation & Moderation
+                      </p>
+                      <nav className="space-y-1">
+                        <NavLink to="/admin/verifications" className={navLinkClass}>
+                          <CheckCircle className="w-4 h-4" /> Profile Verifications
+                        </NavLink>
+                        <NavLink to="/admin/deposits" className={navLinkClass}>
+                          <CreditCard className="w-4 h-4" /> Deposit Requests
+                        </NavLink>
+                        <NavLink to="/admin/products" className={navLinkClass}>
+                          <ShieldCheck className="w-4 h-4" /> Product Moderation
+                        </NavLink>
+                      </nav>
+                    </div>
+
+                    <div className="mt-4">
+                      <p className="px-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
+                        Management
+                      </p>
+                      <nav className="space-y-1">
+                        <NavLink to="/admin/users" className={navLinkClass}>
+                          <Users className="w-4 h-4" /> User Management
+                        </NavLink>
+                        <NavLink to="/admin/auctions" className={navLinkClass}>
+                          <Gavel className="w-4 h-4" /> Auctions
+                        </NavLink>
+                        <NavLink to="/admin/disputes" className={navLinkClass}>
+                          <Scale className="w-4 h-4" /> Disputes
+                        </NavLink>
+                        <NavLink to="/admin/categories" className={navLinkClass}>
+                          <LayoutDashboard className="w-4 h-4" /> Categories
+                        </NavLink>
+                      </nav>
+                    </div>
                   </>
                 )}
               </nav>

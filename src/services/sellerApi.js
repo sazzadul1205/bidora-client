@@ -62,6 +62,8 @@ export const getMyAuctions = () =>
   authApi.get("/auction/my-auctions", getAuthConfig());
 export const getAuctionById = (id) =>
   authApi.get(`/auction/${id}`, getAuthConfig());
+export const getAuctionByIdForSeller = (id) =>
+  authApi.get(`/auction/${id}/seller`, getAuthConfig());
 export const getAuctionsByProduct = (productId) =>
   authApi.get(`/auction/product/${productId}`, getAuthConfig());
 

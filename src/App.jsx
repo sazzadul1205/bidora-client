@@ -10,6 +10,7 @@ import BuyerDashboard from "./pages/buyer/Dashboard/BuyerDashboard";
 import MyBids from "./pages/buyer/MyBids/MyBids";
 import WonAuctions from "./pages/buyer/WonAuctions/WonAuctions";
 import MyProducts from "./pages/seller/MyProducts/MyProducts";
+import SellerAuctionView from "./pages/seller/SellerAuctionView/SellerAuctionView";
 import CreateProduct from "./pages/seller/CreateProduct/CreateProduct";
 import SellerSales from "./pages/seller/Sales/SellerSales";
 import Settings from "./pages/Auth/Settings/Settings";
@@ -157,6 +158,14 @@ function App() {
             element={
               <ProfileCompletionGuard>
                 <SellerSales />
+              </ProfileCompletionGuard>
+            }
+          />
+          <Route
+            path="/seller/auctions/:id"
+            element={
+              <ProfileCompletionGuard>
+                <SellerAuctionView />
               </ProfileCompletionGuard>
             }
           />

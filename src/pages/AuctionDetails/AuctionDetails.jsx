@@ -16,6 +16,8 @@ import {
   ArrowLeft,
   Tag,
   Loader2,
+  CheckCircle,
+  XCircle,
 } from "lucide-react";
 
 export default function AuctionDetails() {
@@ -367,11 +369,37 @@ export default function AuctionDetails() {
                   </div>
                 )}
                 {isEnded && (
-                  <div className="inline-block bg-gray-100 text-gray-700 px-4 py-2 rounded-lg font-medium">
-                    Auction Ended
-                  </div>
+                  auction.status === "Completed" ? (
+                    <div className="inline-flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-lg font-medium">
+                      <CheckCircle className="w-4 h-4" /> Auction Completed
+                    </div>
+                  ) : (
+                    <div className="inline-flex items-center gap-2 bg-red-50 text-red-700 px-4 py-2 rounded-lg font-medium">
+                      <XCircle className="w-4 h-4" /> Auction Cancelled
+                    </div>
+                  )
                 )}
               </div>
+
+              {/* Ended auction summary */}
+              {isEnded && (
+                <div className="mt-4 text-center text-sm">
+                  {auction.status === "Completed" && auction.result ? (
+                    <p className="text-green-700 font-medium">
+                      Winner: {auction.result} · Final bid $
+                      {auction.currentHighestBid?.toLocaleString() || "0.00"}
+                    </p>
+                  ) : auction.status === "Completed" ? (
+                    <p className="text-gray-600">
+                      No winner — no bids were placed.
+                    </p>
+                  ) : (
+                    <p className="text-red-600">
+                      This auction was cancelled by the seller.
+                    </p>
+                  )}
+                </div>
+              )}
 
               {/* Bidding Form */}
               {isLive && (

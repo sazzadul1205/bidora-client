@@ -1,13 +1,27 @@
 import { useEffect, useState } from "react";
-import { getWonAuctions, payForSale, confirmReceipt } from "../../../services/buyerApi";
-import { CreditCard, CheckCircle, Trophy } from "lucide-react";
-import { toast } from "../../../utils/toast";
+import {
+  getWonAuctions,
+  payForSale,
+  confirmReceipt,
+} from "../../../services/buyerApi";
+import {
+  CreditCard,
+  CheckCircle,
+  Trophy,
+  Search,
+  Package,
+  AlertCircle,
+  Clock,
+} from "lucide-react";
+import { toast, confirmDialog } from "../../../utils/toast";
 import { SkeletonRow, Skeleton } from "../../../components/Skeleton";
 import { imageUrl, handleImageError } from "../../../utils/image";
 
 export default function WonAuctions() {
   const [auctions, setAuctions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("All");
 
   const fetchWonAuctions = async () => {
     try {
@@ -38,18 +52,32 @@ export default function WonAuctions() {
   }, []);
 
   const handlePay = async (saleId) => {
-    if (!(await toast.confirm("Confirm payment?", "This will deduct the amount from your wallet."))) return;
+    const confirmed = await confirmDialog(
+      "Confirm Payment?",
+      "This will deduct the winning amount from your wallet and hold it in escrow.",
+      "Pay Now",
+    );
+    if (!confirmed) return;
+
     try {
       await payForSale(saleId);
-      toast.success("Payment successful!");
+      toast.success("Payment successful! Funds are now in escrow.");
       fetchWonAuctions();
     } catch (err) {
-      toast.error("Payment failed: " + (err.response?.data?.message || err.message));
+      toast.error(
+        "Payment failed: " + (err.response?.data?.message || err.message),
+      );
     }
   };
 
   const handleConfirmReceipt = async (saleId) => {
-    if (!(await toast.confirm("Confirm receipt?", "Funds will be released to the seller."))) return;
+    const confirmed = await confirmDialog(
+      "Confirm Receipt?",
+      "Only confirm if you have received the item. This will release the funds to the seller.",
+      "Confirm Receipt",
+    );
+    if (!confirmed) return;
+
     try {
       await confirmReceipt(saleId);
       toast.success("Receipt confirmed. Funds released to seller.");
@@ -65,11 +93,52 @@ export default function WonAuctions() {
     }
   };
 
-  if (loading)
+  // --- STATS CALCULATION ---
+  const pendingPaymentCount = auctions.filter(
+    (a) =>
+      a.paymentStatus === "AwaitingPayment" ||
+      a.paymentStatus === "PaymentOverdue",
+  ).length;
+
+  const totalSpent = auctions
+    .filter(
+      (a) => a.paymentStatus === "Paid" || a.paymentStatus === "Completed",
+    )
+    .reduce((sum, a) => sum + (a.winningAmount || 0), 0);
+
+  // --- FILTERING LOGIC ---
+  const filteredAuctions = auctions.filter((a) => {
+    // 1. Search
+    if (
+      searchTerm &&
+      !a.productTitle.toLowerCase().includes(searchTerm.toLowerCase())
+    ) {
+      return false;
+    }
+    // 2. Tabs
+    if (filterStatus === "AwaitingPayment") {
+      return (
+        a.paymentStatus === "AwaitingPayment" ||
+        a.paymentStatus === "PaymentOverdue"
+      );
+    }
+    if (filterStatus === "Paid") return a.paymentStatus === "Paid";
+    if (filterStatus === "Completed") return a.paymentStatus === "Completed";
+    return true;
+  });
+
+  // --- LOADING STATE ---
+  if (loading) {
     return (
-      <div>
+      <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-6">
-          <Skeleton className="h-7 w-40" />
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-10 w-64 rounded-lg" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <Skeleton className="h-24 rounded-xl" />
+          <Skeleton className="h-24 rounded-xl" />
+          <Skeleton className="h-24 rounded-xl" />
         </div>
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
           <table className="w-full text-left text-sm text-gray-600">
@@ -85,95 +154,231 @@ export default function WonAuctions() {
               <SkeletonRow cols={4} />
               <SkeletonRow cols={4} />
               <SkeletonRow cols={4} />
-              <SkeletonRow cols={4} />
             </tbody>
           </table>
         </div>
       </div>
     );
+  }
 
   return (
-    <div>
-      <div className="flex items-center gap-2 mb-6">
-        <Trophy className="w-6 h-6 text-yellow-600" />
-        <h1 className="text-2xl font-bold text-gray-900">Won Auctions</h1>
+    <div className="max-w-7xl mx-auto">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <Trophy className="w-6 h-6 text-yellow-500" /> Won Auctions
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Complete payments and confirm receipt of your winning items.
+          </p>
+        </div>
       </div>
+
+      {/* Stats Row */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
+          <div className="p-3 bg-yellow-50 text-yellow-600 rounded-lg shrink-0">
+            <Trophy className="w-6 h-6" />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-gray-500">Total Won</p>
+            <p className="text-2xl font-bold text-gray-900">
+              {auctions.length}
+            </p>
+          </div>
+        </div>
+        <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
+          <div
+            className={`p-3 rounded-lg shrink-0 ${pendingPaymentCount > 0 ? "bg-orange-50 text-orange-600" : "bg-gray-50 text-gray-400"}`}
+          >
+            <Clock className="w-6 h-6" />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-gray-500">
+              Awaiting Payment
+            </p>
+            <p className="text-2xl font-bold text-gray-900">
+              {pendingPaymentCount}
+            </p>
+          </div>
+        </div>
+        <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
+          <div className="p-3 bg-green-50 text-green-600 rounded-lg shrink-0">
+            <CreditCard className="w-6 h-6" />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-gray-500">Total Spent</p>
+            <p className="text-2xl font-bold text-gray-900">
+              $
+              {totalSpent.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Filters & Table Container */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <table className="w-full text-left text-sm text-gray-600">
-          <thead className="bg-gray-50 border-b border-gray-200 text-gray-900">
-            <tr>
-              <th className="px-6 py-4 font-medium">Product</th>
-              <th className="px-6 py-4 font-medium">Amount</th>
-              <th className="px-6 py-4 font-medium">Status</th>
-              <th className="px-6 py-4 font-medium text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {auctions.length === 0 ? (
+        {/* Toolbar */}
+        <div className="p-4 border-b border-gray-200 bg-gray-50/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
+            {["All", "AwaitingPayment", "Paid", "Completed"].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setFilterStatus(tab)}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition whitespace-nowrap ${
+                  filterStatus === tab
+                    ? "bg-blue-600 text-white shadow-sm"
+                    : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-100"
+                }`}
+              >
+                {tab === "AwaitingPayment" ? "Awaiting Payment" : tab}
+              </button>
+            ))}
+          </div>
+
+          <div className="relative w-full md:w-64">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search won items..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+            />
+          </div>
+        </div>
+
+        {/* Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm text-gray-600 min-w-200">
+            <thead className="bg-gray-50 border-b border-gray-200 text-gray-900">
               <tr>
-                <td colSpan="4" className="text-center py-8 text-gray-500">
-                  You haven't won any auctions yet.
-                </td>
+                <th className="px-6 py-4 font-medium w-[40%]">Product</th>
+                <th className="px-6 py-4 font-medium">Winning Amount</th>
+                <th className="px-6 py-4 font-medium">Status</th>
+                <th className="px-6 py-4 font-medium text-right">Actions</th>
               </tr>
-            ) : (
-              auctions.map((a) => (
-                <tr key={a.auctionId} className="hover:bg-gray-50">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-<div className="w-10 h-10 rounded-lg bg-gray-100 border border-gray-200 overflow-hidden shrink-0 flex items-center justify-center">
-                      {a.mainImageUrl ? (
-                        <img
-                          src={imageUrl(a.mainImageUrl)}
-                          alt={a.productTitle}
-                          onError={handleImageError}
-                          className="w-full h-full object-contain"
-                        />
-                      ) : (
-                        <Trophy className="w-5 h-5 text-gray-400" />
-                      )}
-                    </div>
-                      <span className="font-medium text-gray-900">{a.productTitle}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 font-bold text-green-600">
-                    ${a.winningAmount?.toLocaleString()}
-                  </td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        a.paymentStatus === "Paid" || a.paymentStatus === "Completed"
-                          ? "bg-blue-100 text-blue-700"
-                          : a.paymentStatus === "Completed"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-orange-100 text-orange-700"
-                      }`}
-                    >
-                      {a.paymentStatus}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right space-x-3">
-                    {a.paymentStatus === "AwaitingPayment" && (
-                      <button
-                        onClick={() => handlePay(a.saleId)}
-                        className="text-blue-600 hover:text-blue-800 font-medium inline-flex items-center gap-1"
-                      >
-                        <CreditCard className="w-4 h-4" /> Pay Now
-                      </button>
-                    )}
-                    {a.paymentStatus === "Paid" && (
-                      <button
-                        onClick={() => handleConfirmReceipt(a.saleId)}
-                        className="text-green-600 hover:text-green-800 font-medium inline-flex items-center gap-1"
-                      >
-                        <CheckCircle className="w-4 h-4" /> Confirm Receipt
-                      </button>
-                    )}
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {filteredAuctions.length === 0 ? (
+                <tr>
+                  <td colSpan="4" className="text-center py-16">
+                    <Trophy className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                    <p className="text-gray-500 font-medium">
+                      No auctions found.
+                    </p>
+                    <p className="text-gray-400 text-xs mt-1">
+                      {searchTerm || filterStatus !== "All"
+                        ? "Try adjusting your search or filters."
+                        : "You haven't won any auctions yet."}
+                    </p>
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                filteredAuctions.map((a) => (
+                  <tr
+                    key={a.auctionId}
+                    className="hover:bg-gray-50/80 transition-colors group"
+                  >
+                    {/* Product Info */}
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 rounded-lg bg-gray-100 border border-gray-200 overflow-hidden shrink-0 flex items-center justify-center group-hover:scale-105 transition-transform">
+                          {a.mainImageUrl ? (
+                            <img
+                              src={imageUrl(a.mainImageUrl)}
+                              alt={a.productTitle}
+                              onError={handleImageError}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <Package className="w-6 h-6 text-gray-400" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-gray-900 line-clamp-1 text-base">
+                            {a.productTitle}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-0.5">
+                            Auction #{a.auctionId}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* Amount */}
+                    <td className="px-6 py-4">
+                      <span className="font-bold text-gray-900 text-lg">
+                        $
+                        {a.winningAmount?.toLocaleString("en-US", {
+                          minimumFractionDigits: 2,
+                        })}
+                      </span>
+                    </td>
+
+                    {/* Status Badge */}
+                    <td className="px-6 py-4">
+                      {a.paymentStatus === "AwaitingPayment" && (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-orange-50 text-orange-700 border border-orange-200">
+                          <Clock className="w-3.5 h-3.5" /> Awaiting Payment
+                        </span>
+                      )}
+                      {a.paymentStatus === "PaymentOverdue" && (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-red-50 text-red-700 border border-red-200">
+                          <AlertCircle className="w-3.5 h-3.5" /> Payment
+                          Overdue
+                        </span>
+                      )}
+                      {a.paymentStatus === "Paid" && (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                          <CreditCard className="w-3.5 h-3.5" /> Paid (In
+                          Escrow)
+                        </span>
+                      )}
+                      {a.paymentStatus === "Completed" && (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-green-50 text-green-700 border border-green-200">
+                          <CheckCircle className="w-3.5 h-3.5" /> Completed
+                        </span>
+                      )}
+                    </td>
+
+                    {/* Actions */}
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end">
+                        {(a.paymentStatus === "AwaitingPayment" ||
+                          a.paymentStatus === "PaymentOverdue") && (
+                          <button
+                            onClick={() => handlePay(a.saleId)}
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm"
+                          >
+                            <CreditCard className="w-4 h-4" /> Pay Now
+                          </button>
+                        )}
+
+                        {a.paymentStatus === "Paid" && (
+                          <button
+                            onClick={() => handleConfirmReceipt(a.saleId)}
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm"
+                          >
+                            <CheckCircle className="w-4 h-4" /> Confirm Receipt
+                          </button>
+                        )}
+
+                        {a.paymentStatus === "Completed" && (
+                          <span className="text-xs font-medium text-gray-400 flex items-center gap-1">
+                            <CheckCircle className="w-4 h-4 text-green-500" />{" "}
+                            All done
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
