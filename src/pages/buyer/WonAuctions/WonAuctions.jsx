@@ -211,7 +211,7 @@ export default function WonAuctions() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4"><span className="font-bold text-gray-900 text-lg">${a.winningAmount?.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span></td>
+                    <td className="px-6 py-4"><span className="font-bold text-gray-900 text-lg">৳{a.winningAmount?.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span></td>
                     <td className="px-6 py-4">
                       {a.paymentStatus === "AwaitingPayment" && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-orange-50 text-orange-700 border border-orange-200"><Clock className="w-3.5 h-3.5" /> Awaiting Payment</span>}
                       {a.paymentStatus === "PaymentOverdue" && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-red-50 text-red-700 border border-red-200"><AlertCircle className="w-3.5 h-3.5" /> Payment Overdue</span>}

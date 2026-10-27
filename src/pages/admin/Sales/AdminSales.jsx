@@ -231,8 +231,8 @@ export default function AdminSales() {
 
                     {/* Amount */}
                     <td className="px-6 py-4">
-                      <p className="font-bold text-gray-900 text-base">${s.finalAmount?.toFixed(2)}</p>
-                      <p className="text-[11px] text-gray-400 mt-0.5">Comm: ${s.commissionAmount?.toFixed(2)}</p>
+                      <p className="font-bold text-gray-900 text-base">৳{s.finalAmount?.toFixed(2)}</p>
+                      <p className="text-[11px] text-gray-400 mt-0.5">Comm: ৳{s.commissionAmount?.toFixed(2)}</p>
                     </td>
 
                     {/* Payment Status */}

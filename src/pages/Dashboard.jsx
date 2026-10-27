@@ -94,7 +94,7 @@ function Dashboard() {
       <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 flex gap-3 items-start">
         <div className="mt-0.5 text-blue-500 font-bold text-sm">i</div>
         <p className="text-sm text-blue-800">
-          Your wallet balance is <strong>$1,250.00</strong>. Top up your wallet to bid above your current limit.
+          Your wallet balance is <strong>৳1,250.00</strong>. Top up your wallet to bid above your current limit.
         </p>
       </div>
 

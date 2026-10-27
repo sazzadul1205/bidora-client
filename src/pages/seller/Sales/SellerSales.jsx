@@ -224,8 +224,8 @@ export default function SellerSales() {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <p className="font-bold text-gray-900 text-base">${s.finalAmount?.toLocaleString("en-US", { minimumFractionDigits: 2 })}</p>
-                      {s.commissionAmount > 0 && <p className="text-[11px] text-gray-400 mt-0.5">Comm: -${s.commissionAmount?.toFixed(2)}</p>}
+                      <p className="font-bold text-gray-900 text-base">৳{s.finalAmount?.toLocaleString("en-US", { minimumFractionDigits: 2 })}</p>
+                      {s.commissionAmount > 0 && <p className="text-[11px] text-gray-400 mt-0.5">Comm: -৳{s.commissionAmount?.toFixed(2)}</p>}
                     </td>
                     <td className="px-6 py-4">
                       {s.status === "AwaitingPayment" && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-gray-100 text-gray-600 border border-gray-200"><Clock className="w-3.5 h-3.5" /> Awaiting Buyer</span>}

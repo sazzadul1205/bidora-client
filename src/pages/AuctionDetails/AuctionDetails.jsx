@@ -103,7 +103,7 @@ export default function AuctionDetails() {
     const calculatedMinBid = auction.currentHighestBid ? auction.currentHighestBid + currentIncrement : startingPrice;
 
     if (!bidAmount || Number(bidAmount) <= 0) return toast.error("Please enter a valid bid amount.");
-    if (Number(bidAmount) < calculatedMinBid) return toast.error(`Minimum bid is $${calculatedMinBid.toLocaleString()}`);
+    if (Number(bidAmount) < calculatedMinBid) return toast.error(`Minimum bid is ৳${calculatedMinBid.toLocaleString()}`);
 
     setIsBidding(true);
     try {
@@ -299,7 +299,7 @@ export default function AuctionDetails() {
                   <span className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1">
                     <TrendingUp className="w-3.5 h-3.5" /> Bid Increment Tiers
                   </span>
-                  <span className="text-xs font-semibold text-blue-600">Current Tier: ${currentIncrement}</span>
+                  <span className="text-xs font-semibold text-blue-600">Current Tier: ৳{currentIncrement}</span>
                 </div>
                 <div className="relative h-3 bg-gray-200 rounded-full overflow-hidden mb-2">
                   <div className="absolute top-0 left-0 h-full bg-blue-500 transition-all duration-500" style={{ width: `${progressPercentage}%` }} />
@@ -307,9 +307,9 @@ export default function AuctionDetails() {
                   <div className="absolute top-0 bottom-0 left-2/3 w-0.5 bg-white opacity-50"></div>
                 </div>
                 <div className="flex justify-between text-[10px] font-medium text-gray-400 uppercase">
-                  <span>Tier 1 (+$20)</span>
-                  <span>Tier 2 (+$50)</span>
-                  <span>Tier 3 (+$100)</span>
+                  <span>Tier 1 (+৳20)</span>
+                  <span>Tier 2 (+৳50)</span>
+                  <span>Tier 3 (+৳100)</span>
                 </div>
               </div>
 
@@ -320,11 +320,11 @@ export default function AuctionDetails() {
                     <label className="block text-sm font-medium text-gray-700 mb-1 justify-between items-end">
                       <span>Your Bid</span>
                       <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
-                        Min: ${calculatedMinBid.toLocaleString()}
+                        Min: ৳{calculatedMinBid.toLocaleString()}
                       </span>
                     </label>
                     <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">$</span>
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">৳</span>
                       <input
                         type="number"
                         value={bidAmount}
@@ -345,7 +345,7 @@ export default function AuctionDetails() {
 
                   {auction.buyoutPrice > 0 && (
                     <button onClick={handleBuyout} className="w-full bg-white border-2 border-gray-900 text-gray-900 hover:bg-gray-50 py-3 rounded-xl font-bold transition-colors">
-                      Buy It Now for ${auction.buyoutPrice.toLocaleString()}
+                      Buy It Now for ৳{auction.buyoutPrice.toLocaleString()}
                     </button>
                   )}
                 </div>
@@ -362,7 +362,7 @@ export default function AuctionDetails() {
                           {bid.bidderName}
                         </span>
                         <span className="font-bold text-gray-900">
-                          ${bid.amount.toLocaleString()}
+                          ৳{bid.amount.toLocaleString()}
                         </span>
                       </div>
                     ))}

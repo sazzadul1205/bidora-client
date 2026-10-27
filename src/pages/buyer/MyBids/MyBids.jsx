@@ -254,7 +254,7 @@ export default function MyBids() {
                   <td className="px-6 py-4">
                     <div className="flex flex-col">
                       <span className="font-bold text-blue-600">
-                        ${b.bidAmount?.toLocaleString()}
+                        ৳{b.bidAmount?.toLocaleString()}
                       </span>
                       {b.isHighest && (
                         <span className="mt-1 inline-flex items-center gap-1 text-xs font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded-full w-fit">

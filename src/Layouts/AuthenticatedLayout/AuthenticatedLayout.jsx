@@ -213,7 +213,7 @@ function AuthenticatedLayout() {
               <Link to="/wallet" className="flex items-center gap-2 bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition-colors cursor-pointer ml-2" title="Go to Wallet">
                 <Wallet className="w-4 h-4 text-blue-600" />
                 <span className="font-bold text-blue-800 text-sm">
-                  ${balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  ৳{balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
               </Link>
             )}

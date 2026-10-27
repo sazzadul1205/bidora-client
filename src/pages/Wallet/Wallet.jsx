@@ -241,7 +241,7 @@ export default function Wallet() {
   };
 
   const formatMoney = (num) =>
-    `$${Number(num || 0).toLocaleString("en-US", {
+    `৳${Number(num || 0).toLocaleString("en-US", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })}`;
@@ -495,7 +495,7 @@ export default function Wallet() {
                   min="1"
                   {...register("amount", {
                     required: "Amount is required",
-                    min: { value: 1, message: "Minimum $1" },
+                      min: { value: 1, message: "Minimum ৳1" },
                   })}
                   placeholder="100.00"
                   className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none"

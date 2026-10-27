@@ -37,7 +37,7 @@ export default function AdminTransactions() {
   }, []);
 
   const formatMoney = (num) =>
-    `$${Number(num || 0).toLocaleString("en-US", {
+    `৳${Number(num || 0).toLocaleString("en-US", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })}`;

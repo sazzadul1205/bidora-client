@@ -362,7 +362,7 @@ export default function Home() {
                           Current bid
                         </p>
                         <p className="text-lg font-bold text-blue-600">
-                          $
+                          ৳
                           {auction.currentHighestBid?.toLocaleString() ||
                             auction.startingPrice?.toLocaleString() ||
                             "0.00"}
@@ -438,7 +438,7 @@ export default function Home() {
                           Starting Price
                         </p>
                         <p className="text-lg font-bold text-gray-900">
-                          ${auction.startingPrice?.toLocaleString() || "0.00"}
+                          ৳{auction.startingPrice?.toLocaleString() || "0.00"}
                         </p>
                       </div>
                       <div className="text-right">
