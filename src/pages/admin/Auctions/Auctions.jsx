@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
 import {
   getAllAuctions,
   configureAuction,
@@ -15,32 +14,27 @@ import {
   Gavel,
   Package,
   Search,
-  Loader2,
-  X,
   Eye,
-    ArrowUp,
-  Users,
 } from "lucide-react";
 import { toast } from "../../../utils/toast";
 import { formatDateTime } from "../../../utils/date";
 import { SkeletonRow, Skeleton } from "../../../components/Skeleton";
 
+// Import the newly extracted modals
+import ActionModal from "./ActionModal/ActionModal";
+import BidsModal from "./BidsModal/BidsModal";
+
 export default function Auctions() {
   const [auctions, setAuctions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selected, setSelected] = useState(null);
-  const [action, setAction] = useState("");
   const [activeTab, setActiveTab] = useState("NeedsSchedule");
   const [searchTerm, setSearchTerm] = useState("");
+
+  // Modal States
+  const [selected, setSelected] = useState(null);
+  const [action, setAction] = useState("");
   const [bidsData, setBidsData] = useState(null);
   const [bidsLoading, setBidsLoading] = useState(false);
-
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors, isSubmitting },
-  } = useForm();
 
   const fetchAuctions = async () => {
     try {
@@ -54,9 +48,6 @@ export default function Auctions() {
     }
   };
 
-  // Admin-only: fetch every bid placed on a single auction, including
-  // bidder email, amount, timestamp, buyout flag, and whether it's the
-  // current highest bid.
   const fetchBids = async (auctionId) => {
     setBidsLoading(true);
     try {
@@ -69,11 +60,6 @@ export default function Auctions() {
     } finally {
       setBidsLoading(false);
     }
-  };
-
-  const openBidsModal = (auction) => {
-    setBidsData(null);
-    fetchBids(auction.auctionId);
   };
 
   useEffect(() => {
@@ -94,37 +80,17 @@ export default function Auctions() {
     };
   }, []);
 
-  // Compute the minimum selectable datetime (now) as YYYY-MM-DDTHH:MM
-  // Used for both start and end time inputs so past dates are disabled.
-  const minStartDateTime = (() => {
-    const d = new Date();
-    d.setSeconds(0, 0);
-    return d.toISOString().slice(0, 16);
-  })();
-
   const openModal = (auction, type) => {
     setSelected(auction);
     setAction(type);
-    reset();
   };
 
-  const onSubmit = async (data) => {
-    // Client-side validation: end time must be at least 3 days after start time
-    if (action === "configure") {
-      const startMs = new Date(data.startTime).getTime();
-      const endMs = new Date(data.endTime).getTime();
-      const diffMs = endMs - startMs;
-      const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
-      if (diffMs < threeDaysMs) {
-        toast.error("End time must be at least 3 days after the start time.");
-        return;
-      }
-      if (endMs <= startMs) {
-        toast.error("End time must be after the start time.");
-        return;
-      }
-    }
+  const openBidsModal = (auction) => {
+    setBidsData(null);
+    fetchBids(auction.auctionId);
+  };
 
+  const handleActionSubmit = async (data) => {
     try {
       if (action === "configure") {
         await configureAuction(selected.auctionId, {
@@ -150,16 +116,14 @@ export default function Auctions() {
     return formatDateTime(dateString);
   };
 
-  // --- FILTERING LOGIC ---
+  // FILTERING LOGIC
   const filteredAuctions = auctions.filter((a) => {
-    // 1. Search Filter
     if (
       searchTerm &&
       !a.productTitle.toLowerCase().includes(searchTerm.toLowerCase())
     ) {
       return false;
     }
-    // 2. Tab Filter
     if (activeTab === "NeedsSchedule")
       return a.status === "Upcoming" && !a.startTime;
     if (activeTab === "Scheduled")
@@ -174,7 +138,7 @@ export default function Auctions() {
     (a) => a.status === "Upcoming" && !a.startTime,
   ).length;
 
-  // --- LOADING STATE ---
+  // LOADING STATE
   if (loading)
     return (
       <div className="max-w-7xl mx-auto">
@@ -249,10 +213,11 @@ export default function Auctions() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-6 py-4 text-sm font-medium border-b-2 transition whitespace-nowrap ${activeTab === tab.id
-                  ? "border-blue-600 text-blue-600 bg-white"
-                  : "border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-                  }`}
+                className={`flex items-center gap-2 px-6 py-4 text-sm font-medium border-b-2 transition whitespace-nowrap ${
+                  activeTab === tab.id
+                    ? "border-blue-600 text-blue-600 bg-white"
+                    : "border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                }`}
               >
                 <tab.icon className="w-4 h-4" />
                 {tab.label}
@@ -326,14 +291,15 @@ export default function Auctions() {
                   {/* Status */}
                   <td className="px-6 py-4">
                     <span
-                      className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${a.status === "Active"
-                        ? "bg-green-100 text-green-700"
-                        : a.status === "Upcoming"
-                          ? "bg-yellow-100 text-yellow-700"
-                          : a.status === "Completed"
-                            ? "bg-blue-100 text-blue-700"
-                            : "bg-red-100 text-red-700"
-                        }`}
+                      className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                        a.status === "Active"
+                          ? "bg-green-100 text-green-700"
+                          : a.status === "Upcoming"
+                            ? "bg-yellow-100 text-yellow-700"
+                            : a.status === "Completed"
+                              ? "bg-blue-100 text-blue-700"
+                              : "bg-red-100 text-red-700"
+                      }`}
                     >
                       {a.status}
                     </span>
@@ -406,291 +372,19 @@ export default function Auctions() {
         </table>
       </div>
 
+      {/* EXTRACTED MODALS */}
+      <ActionModal
+        selected={selected}
+        action={action}
+        onClose={() => setSelected(null)}
+        onSubmit={handleActionSubmit}
+      />
 
-      {/* ACTION MODAL */}
-
-      {selected && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
-              <div>
-                <h2 className="text-lg font-bold text-gray-900">
-                  {action === "configure"
-                    ? "Schedule Auction"
-                    : "Cancel Auction"}
-                </h2>
-                <p className="text-xs text-gray-500 mt-0.5 truncate max-w-70">
-                  {selected.productTitle}
-                </p>
-              </div>
-              <button
-                onClick={() => setSelected(null)}
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
-              {action === "configure" ? (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Start Time (Local)
-                    </label>
-                    <input
-                      type="datetime-local"
-                      min={minStartDateTime}
-                      {...register("startTime", {
-                        required: "Start time is required",
-                      })}
-                      className={`w-full border p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none ${errors.startTime ? "border-red-500" : "border-gray-300"}`}
-                    />
-                    {errors.startTime && (
-                      <p className="text-xs text-red-600 mt-1">
-                        {errors.startTime.message}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      End Time (Local) <span className="text-red-500">*</span>
-                    </label>
-                    <p className="text-xs text-amber-600 mb-1 font-medium">
-                      Must be at least 3 days after the start time.
-                    </p>
-                    <input
-                      type="datetime-local"
-                      min={minStartDateTime}
-                      {...register("endTime", {
-                        required: "End time is required",
-                      })}
-                      className={`w-full border p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none ${errors.endTime ? "border-red-500" : "border-gray-300"}`}
-                    />
-                    {errors.endTime && (
-                      <p className="text-xs text-red-600 mt-1">
-                        {errors.endTime.message}
-                      </p>
-                    )}
-                  </div>
-                  <div className="bg-blue-50 text-blue-800 text-xs p-3 rounded-lg border border-blue-100">
-                    Note: The auction will automatically go live at the Start
-                    Time. Ensure the start time is in the future.
-                  </div>
-                </>
-              ) : (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Reason for Cancellation
-                  </label>
-                  <textarea
-                    {...register("reason", {
-                      required: "A reason is required to cancel.",
-                    })}
-                    className={`w-full border p-2.5 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none h-28 resize-none ${errors.reason ? "border-red-500" : "border-gray-300"}`}
-                    placeholder="E.g. Seller requested cancellation, product details were inaccurate, etc."
-                  />
-                  {errors.reason && (
-                    <p className="text-xs text-red-600 mt-1">
-                      {errors.reason.message}
-                    </p>
-                  )}
-                  <div className="bg-red-50 text-red-800 text-xs p-3 rounded-lg border border-red-100 mt-3">
-                    Warning: Cancelling this auction will release all buyer and
-                    seller reserved funds and notify participants.
-                  </div>
-                </div>
-              )}
-
-              <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
-                <button
-                  type="button"
-                  onClick={() => setSelected(null)}
-                  className="px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className={`inline-flex items-center gap-2 px-5 py-2.5 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-50 ${action === "configure"
-                    ? "bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-600/20"
-                    : "bg-red-600 hover:bg-red-700 shadow-md shadow-red-600/20"
-                    }`}
-                >
-                  {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                  {isSubmitting
-                    ? "Saving..."
-                    : action === "configure"
-                      ? "Save Schedule"
-                      : "Confirm Cancellation"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-
-      {/* BIDS MODAL (Admin-only) */}
-
-      {bidsData && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm"
-          onClick={() => setBidsData(null)}
-        >
-          <div
-            className="bg-white rounded-2xl w-full max-w-3xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
-              <div>
-                <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                  <Gavel className="w-5 h-5 text-purple-600" />
-                  Auction Bids
-                </h2>
-                <p className="text-xs text-gray-500 mt-0.5 truncate max-w-70">
-                  {bidsData.productTitle}
-                </p>
-              </div>
-              <button
-                onClick={() => setBidsData(null)}
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="px-6 py-4 bg-purple-50/50 border-b border-purple-100 grid grid-cols-3 gap-4 text-center">
-              <div>
-                <p className="text-xs text-gray-500">Status</p>
-                <p
-                  className={`text-sm font-bold ${bidsData.auctionStatus === "Active"
-                    ? "text-green-700"
-                    : "text-gray-700"
-                    }`}
-                >
-                  {bidsData.auctionStatus}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-500">Total Bids</p>
-                <p className="text-sm font-bold text-gray-900">
-                  {bidsData.bidCount}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-500">Current Highest</p>
-                <p className="text-sm font-bold text-green-700">
-                  {bidsData.currentHighestBid != null
-                    ? `$${bidsData.currentHighestBid.toLocaleString()}`
-                    : "None"}
-                </p>
-              </div>
-            </div>
-
-            <div className="overflow-y-auto flex-1">
-              {bidsLoading ? (
-                <div className="p-6 space-y-3">
-                  <SkeletonRow cols={3} />
-                  <SkeletonRow cols={3} />
-                  <SkeletonRow cols={3} />
-                </div>
-              ) : bidsData.bids && bidsData.bids.length > 0 ? (
-                <table className="w-full text-left text-sm text-gray-600">
-                  <thead className="bg-gray-50 border-b border-gray-200 text-gray-900 sticky top-0">
-                    <tr>
-                      <th className="px-6 py-3 font-medium">Bidder</th>
-                      <th className="px-6 py-3 font-medium text-right">
-                        Amount
-                      </th>
-                      <th className="px-6 py-3 font-medium">Placed At</th>
-                      <th className="px-6 py-3 font-medium text-center">
-                        Flag
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {bidsData.bids.map((b) => (
-                      <tr
-                        key={b.bidId}
-                        className={
-                          b.isHighest
-                            ? "bg-green-50 hover:bg-green-100"
-                            : "hover:bg-gray-50"
-                        }
-                      >
-                        <td className="px-6 py-3">
-                          <div className="flex items-center gap-2">
-                            <Users className="w-4 h-4 text-gray-400" />
-                            <div>
-                              <p className="font-bold text-gray-900 text-sm">
-                                {b.bidderName}
-                              </p>
-                              <p className="text-[11px] text-gray-500">
-                                {b.bidderEmail}
-                              </p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-3 text-right font-bold text-blue-600">
-                          ${b.amount?.toLocaleString()}
-                          {b.isBuyout && (
-                            <span className="ml-1 text-[10px] font-semibold text-purple-700">
-                              (buyout)
-                            </span>
-                          )}
-                        </td>
-                        <td className="px-6 py-3 text-xs text-gray-500">
-                          {new Date(b.placedAt).toLocaleString("en-GB", {
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </td>
-                        <td className="px-6 py-3 text-center">
-                          {b.isHighest ? (
-                            <span className="inline-flex items-center gap-1 text-xs font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
-                              <ArrowUp className="w-3 h-3" />
-                              Highest
-                            </span>
-                          ) : b.isBuyout ? (
-                            <span className="text-[10px] font-semibold text-purple-600">
-                              Buyout
-                            </span>
-                          ) : (
-                            <span className="text-[10px] text-gray-400">
-                              Outbid
-                            </span>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              ) : (
-                <div className="text-center py-16">
-                  <Gavel className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-500 font-medium">
-                    No bids have been placed yet.
-                  </p>
-                </div>
-              )}
-            </div>
-
-            <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3 bg-gray-50/50">
-              <button
-                onClick={() => setBidsData(null)}
-                className="px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <BidsModal
+        bidsData={bidsData}
+        bidsLoading={bidsLoading}
+        onClose={() => setBidsData(null)}
+      />
     </div>
   );
 }
