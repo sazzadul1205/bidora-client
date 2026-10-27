@@ -14,7 +14,6 @@ import {
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
-// Sub-component for the drag & drop area
 function NidDropzone({ label, file, existingUrl, onFileChange, disabled }) {
   const [dragActive, setDragActive] = useState(false);
   const [previewUrl, setPreviewUrl] = useState("");
@@ -73,8 +72,8 @@ function NidDropzone({ label, file, existingUrl, onFileChange, disabled }) {
   const displayImage = previewUrl || savedImageUrl;
 
   return (
-    <div className="min-w-0">
-      <div className="mb-2 flex items-center justify-between gap-3">
+    <div className="w-full min-w-0">
+      <div className="mb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <label className="text-sm font-semibold text-gray-800">{label}</label>
         {savedImageUrl && !file && (
           <span className="inline-flex items-center gap-1 text-xs font-medium text-green-700">
@@ -106,7 +105,7 @@ function NidDropzone({ label, file, existingUrl, onFileChange, disabled }) {
           setDragActive(false);
         }}
         onDrop={handleDrop}
-        className={`relative flex min-h-48 flex-col items-center justify-center rounded-xl border-2 border-dashed p-5 text-center transition ${
+        className={`w-full relative flex min-h-48 flex-col items-center justify-center rounded-xl border-2 border-dashed p-4 sm:p-5 text-center transition ${
           disabled
             ? "cursor-not-allowed bg-gray-100 opacity-80 border-gray-300"
             : dragActive
@@ -131,7 +130,7 @@ function NidDropzone({ label, file, existingUrl, onFileChange, disabled }) {
             <img
               src={displayImage}
               alt={`${label}`}
-              className="mx-auto max-h-40 max-w-full rounded-lg object-contain shadow-sm"
+              className="mx-auto max-h-32 sm:max-h-40 max-w-full rounded-lg object-contain shadow-sm"
             />
 
             {file ? (
@@ -162,7 +161,7 @@ function NidDropzone({ label, file, existingUrl, onFileChange, disabled }) {
           </div>
         ) : (
           <>
-            <UploadCloud className="mb-3 h-10 w-10 text-gray-400" />
+            <UploadCloud className="mb-3 h-8 w-8 sm:h-10 sm:w-10 text-gray-400" />
             <p className="text-sm font-semibold text-gray-800">
               {disabled
                 ? "Upload Locked"
@@ -188,7 +187,6 @@ export default function ProfileTab({ userData, refreshUser }) {
   const [backNidFile, setBackNidFile] = useState(null);
   const profile = userData?.profile || {};
 
-  // Determine role early
   const role = userData?.account?.roles?.[0];
   const isAdmin = role === "Admin";
 
@@ -232,10 +230,9 @@ export default function ProfileTab({ userData, refreshUser }) {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-7">
-      {/* REJECTED BANNER (Hidden for Admin) */}
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-7 w-full">
       {isRejected && !isAdmin && (
-        <div className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4">
+        <div className="flex flex-col sm:flex-row items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4">
           <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-600" />
           <div>
             <h3 className="text-sm font-semibold text-red-900">
@@ -253,9 +250,8 @@ export default function ProfileTab({ userData, refreshUser }) {
         </div>
       )}
 
-      {/* LOCKED BANNER (Hidden for Admin) */}
       {isLocked && !isAdmin && (
-        <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4">
+        <div className="flex flex-col sm:flex-row items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4">
           <Lock className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
           <div>
             <h3 className="text-sm font-semibold text-amber-900">
@@ -326,7 +322,6 @@ export default function ProfileTab({ userData, refreshUser }) {
             )}
           </div>
 
-          {/* HIDE FOR ADMIN: Phone Number */}
           {!isAdmin && (
             <div>
               <label className="mb-1.5 block text-sm font-medium text-gray-700">
@@ -341,7 +336,6 @@ export default function ProfileTab({ userData, refreshUser }) {
             </div>
           )}
 
-          {/* HIDE FOR ADMIN: National ID Number */}
           {!isAdmin && (
             <div>
               <label className="mb-1.5 block text-sm font-medium text-gray-700">
@@ -360,7 +354,6 @@ export default function ProfileTab({ userData, refreshUser }) {
             </div>
           )}
 
-          {/* HIDE FOR ADMIN: City */}
           {!isAdmin && (
             <div>
               <label className="mb-1.5 block text-sm font-medium text-gray-700">
@@ -375,7 +368,6 @@ export default function ProfileTab({ userData, refreshUser }) {
             </div>
           )}
 
-          {/* HIDE FOR ADMIN: Address */}
           {!isAdmin && (
             <div>
               <label className="mb-1.5 block text-sm font-medium text-gray-700">
@@ -392,7 +384,6 @@ export default function ProfileTab({ userData, refreshUser }) {
         </div>
       </div>
 
-      {/* HIDE FOR ADMIN: National ID Documents Section */}
       {!isAdmin && (
         <div className="border-t border-gray-200 pt-6">
           <div className="mb-5">
@@ -429,7 +420,7 @@ export default function ProfileTab({ userData, refreshUser }) {
         <button
           type="submit"
           disabled={isSubmitting || (isLocked && !isAdmin)}
-          className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isLocked && !isAdmin ? (
             <Lock className="h-4 w-4" />

@@ -109,7 +109,6 @@ export default function Home() {
     };
   }, []);
 
-  // Filter logic (Now works perfectly because categoryId is on the auction)
   const filterItems = (items) => {
     return items.filter((a) => {
       const matchesSearch = a.productTitle
@@ -136,7 +135,7 @@ export default function Home() {
       <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
         <Skeleton className="h-16 w-full rounded-xl" />
         <Skeleton className="h-100 w-full rounded-2xl" />
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Skeleton className="h-24 rounded-xl" />
           <Skeleton className="h-24 rounded-xl" />
           <Skeleton className="h-24 rounded-xl" />
@@ -164,7 +163,7 @@ export default function Home() {
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="px-4 py-3 bg-white border border-gray-200 rounded-lg text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-40"
+            className="px-4 py-3 bg-white border border-gray-200 rounded-lg text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-auto min-w-40"
           >
             <option value="">All Categories</option>
             {categories.map((c) => (
@@ -178,13 +177,13 @@ export default function Home() {
         {/* HERO BANNER SECTION */}
         {heroAuction && (
           <div className="relative bg-[#F0F4F8] rounded-3xl overflow-hidden mb-12 flex flex-col md:flex-row items-center">
-            <div className="p-10 md:p-16 md:w-1/2 relative z-10">
+            <div className="p-6 sm:p-10 md:p-16 md:w-1/2 relative z-10">
               <p className="text-blue-600 font-semibold text-sm mb-3">
                 {heroAuction.status === "Active"
                   ? "Live right now"
                   : "Coming soon"}
               </p>
-              <h1 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight mb-4">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 leading-tight mb-4">
                 Find something great.
                 <br />
                 Make your next bid.
@@ -193,22 +192,22 @@ export default function Home() {
                 Discover unique items, place your bids in real-time, and secure
                 your next treasure from trusted sellers.
               </p>
-              <div className="flex gap-3">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <Link
                   to="/auction"
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg text-sm font-semibold transition-colors"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg text-sm font-semibold transition-colors text-center"
                 >
                   Explore Auctions
                 </Link>
                 <Link
                   to="/register"
-                  className="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-6 py-3 rounded-lg text-sm font-semibold transition-colors"
+                  className="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-6 py-3 rounded-lg text-sm font-semibold transition-colors text-center"
                 >
                   Sell an item
                 </Link>
               </div>
             </div>
-            <div className="md:w-1/2 p-8 md:p-12 flex justify-center md:justify-end relative z-10">
+            <div className="md:w-1/2 p-4 sm:p-8 md:p-12 flex justify-center md:justify-end relative z-10 w-full">
               <Link
                 to={`/auction/${heroAuction.id}`}
                 className="bg-white p-4 rounded-2xl shadow-xl w-full max-w-sm block hover:-translate-y-1 transition-transform"
@@ -278,10 +277,18 @@ export default function Home() {
                     }`}
                   >
                     <div
-                      className={`w-10 h-10 rounded-lg flex items-center justify-center mb-3 pointer-events-none ${selectedCategory === c.id.toString() ? "bg-blue-600" : "bg-blue-50"}`}
+                      className={`w-10 h-10 rounded-lg flex items-center justify-center mb-3 pointer-events-none ${
+                        selectedCategory === c.id.toString()
+                          ? "bg-blue-600"
+                          : "bg-blue-50"
+                      }`}
                     >
                       <Icon
-                        className={`w-5 h-5 ${selectedCategory === c.id.toString() ? "text-white" : "text-blue-600"}`}
+                        className={`w-5 h-5 ${
+                          selectedCategory === c.id.toString()
+                            ? "text-white"
+                            : "text-blue-600"
+                        }`}
                       />
                     </div>
                     <p className="font-semibold text-gray-900 line-clamp-1 w-full pointer-events-none">
@@ -308,7 +315,7 @@ export default function Home() {
 
         {/* ACTIVE AUCTIONS SECTION */}
         <div className="mb-14">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
             <div>
               <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
                 <span className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse"></span>
@@ -320,7 +327,7 @@ export default function Home() {
             </div>
             <Link
               to="/auction"
-              className="text-sm font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1"
+              className="text-sm font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1 mt-2 sm:mt-0"
             >
               View all <ArrowRight className="w-4 h-4" />
             </Link>
@@ -331,12 +338,12 @@ export default function Home() {
               No active auctions found for this selection.
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {activeGrid.map((auction) => (
                 <Link
                   to={`/auction/${auction.id}`}
                   key={auction.id}
-                  className="group/card bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow"
+                  className="group/card bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow flex flex-col"
                 >
                   <div className="relative aspect-4/3 bg-gray-100 overflow-hidden">
                     <img
@@ -346,7 +353,7 @@ export default function Home() {
                       className="w-full h-full object-contain bg-gray-100"
                     />
                   </div>
-                  <div className="p-5">
+                  <div className="p-5 flex flex-col flex-1">
                     <p className="text-xs text-blue-600 font-medium mb-1 flex items-center gap-1">
                       <Tag className="w-3 h-3" />{" "}
                       {auction.categoryName || "Uncategorized"}
@@ -354,7 +361,7 @@ export default function Home() {
                     <h3 className="font-bold text-gray-900 text-lg line-clamp-1 mb-3">
                       {auction.productTitle}
                     </h3>
-                    <div className="flex justify-between items-end mt-4 ">
+                    <div className="flex justify-between items-end mt-auto pt-4 border-t border-gray-100">
                       <div>
                         <p className="text-xs text-gray-500 mb-1">
                           Current bid
@@ -388,7 +395,7 @@ export default function Home() {
 
         {/* UPCOMING AUCTIONS SECTION */}
         <div className="mb-14">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
             <div>
               <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
                 <span className="w-2.5 h-2.5 bg-orange-400 rounded-full"></span>
@@ -405,12 +412,12 @@ export default function Home() {
               No upcoming auctions scheduled for this selection.
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {upcomingGrid.map((auction) => (
                 <Link
                   to={`/auction/${auction.id}`}
                   key={auction.id}
-                  className="group/card bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow"
+                  className="group/card bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow flex flex-col"
                 >
                   <div className="relative aspect-4/3 bg-gray-100 overflow-hidden">
                     <img
@@ -423,7 +430,7 @@ export default function Home() {
                       Coming Soon
                     </span>
                   </div>
-                  <div className="p-5">
+                  <div className="p-5 flex flex-col flex-1">
                     <p className="text-xs text-orange-600 font-medium mb-1 flex items-center gap-1">
                       <Tag className="w-3 h-3" />{" "}
                       {auction.categoryName || "Uncategorized"}
@@ -431,7 +438,7 @@ export default function Home() {
                     <h3 className="font-bold text-gray-900 text-lg line-clamp-1 mb-3">
                       {auction.productTitle}
                     </h3>
-                    <div className="flex justify-between items-end mt-4 ">
+                    <div className="flex justify-between items-end mt-auto pt-4 border-t border-gray-100">
                       <div>
                         <p className="text-xs text-gray-500 mb-1">
                           Starting Price

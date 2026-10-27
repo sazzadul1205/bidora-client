@@ -43,12 +43,10 @@ export default function Auctions() {
   // Filter Logic
   const filteredAuctions = auctions
     .filter((a) => {
-      // 1. Search Filter
       const matchesSearch = a.productTitle
         ?.toLowerCase()
         .includes(searchTerm.toLowerCase());
 
-      // 2. Status Filter
       const matchesStatus =
         activeStatus === "All"
           ? true
@@ -58,7 +56,6 @@ export default function Auctions() {
               ? a.status === "Upcoming"
               : a.status === "Completed" || a.status === "Cancelled";
 
-      // 3. Category Filter (Now working!)
       const matchesCategory =
         activeCategory === "All" || a.categoryId?.toString() === activeCategory;
 
@@ -66,14 +63,13 @@ export default function Auctions() {
     })
     .sort((a, b) => {
       const getPriority = (status) => {
-        if (status === "Active") return 1; // Live first
-        if (status === "Upcoming") return 2; // Upcoming next
-        if (status === "Completed" || status === "Cancelled") return 3; // Ended last
+        if (status === "Active") return 1;
+        if (status === "Upcoming") return 2;
+        if (status === "Completed" || status === "Cancelled") return 3;
         return 4;
       };
       const priorityDiff = getPriority(a.status) - getPriority(b.status);
       if (priorityDiff !== 0) return priorityDiff;
-      // For same status, sort by end time/start time
       if (a.status === "Active" && b.status === "Active") {
         return new Date(a.endTime || 0) - new Date(b.endTime || 0);
       }
@@ -116,7 +112,6 @@ export default function Auctions() {
             </p>
           </div>
 
-          {/* Search Bar */}
           <div className="relative w-full md:w-96">
             <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
@@ -131,8 +126,7 @@ export default function Auctions() {
 
         {/* Filters Bar */}
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-8 bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
-          {/* Status Tabs */}
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
             {["All", "Live", "Upcoming", "Ended"].map((status) => (
               <button
                 key={status}
@@ -148,11 +142,10 @@ export default function Auctions() {
             ))}
           </div>
 
-          {/* Category Dropdown */}
           <select
             value={activeCategory}
             onChange={(e) => setActiveCategory(e.target.value)}
-            className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-45"
+            className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-auto sm:min-w-45"
           >
             <option value="All">All Categories</option>
             {categories.map((c) => (
@@ -190,7 +183,6 @@ export default function Auctions() {
                   key={auction.id}
                   className="group bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow flex flex-col"
                 >
-                  {/* Image Container */}
                   <div className="relative aspect-4/3 bg-gray-100 overflow-hidden">
                     {auction.mainImageUrl ? (
                       <img
@@ -205,7 +197,6 @@ export default function Auctions() {
                       </div>
                     )}
 
-                    {/* Status Badge */}
                     {isLive && (
                       <span className="absolute top-3 left-3 bg-red-600 text-white text-xs font-bold px-2.5 py-1 rounded-md shadow-sm flex items-center gap-1.5">
                         <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>{" "}
@@ -224,7 +215,6 @@ export default function Auctions() {
                     )}
                   </div>
 
-                  {/* Details Container */}
                   <div className="p-5 flex flex-col flex-1">
                     <p className="text-xs text-gray-500 mb-1">
                       {auction.status === "Cancelled"
@@ -244,7 +234,11 @@ export default function Auctions() {
                             </p>
                             <p className="text-lg font-bold text-blue-600">
                               ৳
-                              {(auction.currentHighestBid ?? auction.startingPrice ?? 0).toLocaleString()}
+                              {(
+                                auction.currentHighestBid ??
+                                auction.startingPrice ??
+                                0
+                              ).toLocaleString()}
                             </p>
                           </div>
                           <div className="text-right">
@@ -269,8 +263,7 @@ export default function Auctions() {
                               Start Price
                             </p>
                             <p className="text-lg font-bold text-gray-900">
-                              ৳
-                              {(auction.startingPrice ?? 0).toLocaleString()}
+                              ৳{(auction.startingPrice ?? 0).toLocaleString()}
                             </p>
                           </div>
                           <div className="text-right">

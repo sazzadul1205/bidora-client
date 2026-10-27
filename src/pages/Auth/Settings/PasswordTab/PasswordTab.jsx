@@ -1,4 +1,4 @@
-import { useForm, useWatch  } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { changePassword } from "../../../../services/authApi";
 import { toast } from "../../../../utils/toast";
 import { Lock } from "lucide-react";
@@ -31,7 +31,10 @@ export default function PasswordTab() {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="max-w-md space-y-5">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="max-w-md space-y-5 w-full"
+    >
       <div>
         <h2 className="text-lg font-semibold text-gray-900">Change Password</h2>
         <p className="mt-1 text-sm text-gray-500">
@@ -106,7 +109,7 @@ export default function PasswordTab() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
         >
           <Lock className="h-4 w-4" />
           {isSubmitting ? "Changing..." : "Change Password"}

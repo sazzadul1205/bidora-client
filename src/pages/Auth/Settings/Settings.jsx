@@ -3,7 +3,6 @@ import { getCurrentUser } from "../../../services/authApi";
 import { toast } from "../../../utils/toast";
 import { User, Lock, ShieldCheck } from "lucide-react";
 
-// Import Sub-components
 import ProfileTab from "./ProfileTab/ProfileTab";
 import PasswordTab from "./PasswordTab/PasswordTab";
 import VerificationTab from "./VerificationTab/VerificationTab";
@@ -44,7 +43,7 @@ export default function Settings() {
   if (loading) {
     return (
       <div className="mx-auto max-w-4xl">
-        <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
+        <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-8 shadow-sm">
           <div className="animate-pulse space-y-5">
             <div className="h-6 w-48 rounded bg-gray-200" />
             <div className="h-10 rounded bg-gray-200" />
@@ -57,7 +56,7 @@ export default function Settings() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div className="mx-auto max-w-5xl w-full">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Account Settings</h1>
         <p className="mt-1 text-gray-500">
@@ -65,14 +64,13 @@ export default function Settings() {
         </p>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-        {/* Tab Navigation */}
+      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm w-full">
         <div className="overflow-x-auto border-b border-gray-200">
           <nav className="flex min-w-max" aria-label="Account settings tabs">
             <button
               type="button"
               onClick={() => setActiveTab("profile")}
-              className={`flex items-center gap-2 border-b-2 px-5 py-4 text-sm font-medium transition ${
+              className={`flex items-center gap-2 border-b-2 px-4 sm:px-5 py-4 text-sm font-medium transition ${
                 activeTab === "profile"
                   ? "border-blue-600 text-blue-600"
                   : "border-transparent text-gray-600 hover:text-gray-900"
@@ -85,7 +83,7 @@ export default function Settings() {
             <button
               type="button"
               onClick={() => setActiveTab("password")}
-              className={`flex items-center gap-2 border-b-2 px-5 py-4 text-sm font-medium transition ${
+              className={`flex items-center gap-2 border-b-2 px-4 sm:px-5 py-4 text-sm font-medium transition ${
                 activeTab === "password"
                   ? "border-blue-600 text-blue-600"
                   : "border-transparent text-gray-600 hover:text-gray-900"
@@ -99,7 +97,7 @@ export default function Settings() {
               <button
                 type="button"
                 onClick={() => setActiveTab("verification")}
-                className={`flex items-center gap-2 border-b-2 px-5 py-4 text-sm font-medium transition ${
+                className={`flex items-center gap-2 border-b-2 px-4 sm:px-5 py-4 text-sm font-medium transition ${
                   activeTab === "verification"
                     ? "border-blue-600 text-blue-600"
                     : "border-transparent text-gray-600 hover:text-gray-900"
@@ -112,8 +110,7 @@ export default function Settings() {
           </nav>
         </div>
 
-        {/* Tab Content */}
-        <div className="p-5 sm:p-7">
+        <div className="p-4 sm:p-7 w-full">
           {activeTab === "profile" && (
             <ProfileTab userData={userData} refreshUser={refreshUser} />
           )}

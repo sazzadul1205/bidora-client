@@ -15,7 +15,6 @@ function Login() {
   const location = useLocation();
   const [serverError, setServerError] = useState("");
 
-  // Catch the success message passed from the Register page
   const successMessage = location.state?.message;
 
   const {
@@ -27,14 +26,10 @@ function Login() {
   const onSubmit = async (data) => {
     setServerError("");
     try {
-      // 1. Authenticate and save token to localStorage
       await login(data);
-
-      // 2. Fetch user details using the new token to get the exact role
       const userRes = await getCurrentUser();
       const role = userRes.data?.account?.roles?.[0];
 
-      // 3. Redirect based on role
       if (role === "Admin") {
         navigate("/admin/dashboard");
       } else if (role === "Seller") {
@@ -47,17 +42,17 @@ function Login() {
     } catch (err) {
       setServerError(
         err.response?.data?.message ||
-        err.response?.data ||
-        "Invalid email or password. Please try again.",
+          err.response?.data ||
+          "Invalid email or password. Please try again.",
       );
     }
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-5 md:py-10">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
-        {/* Left Column - Marketing */}
-        <div className="max-w-lg">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-8 md:py-12">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
+        {/* Left Column - Marketing (Hidden on Mobile) */}
+        <div className="hidden lg:block max-w-lg">
           <p className="text-blue-600 font-semibold text-sm tracking-wide mb-4">
             Your next great find awaits
           </p>
@@ -114,13 +109,12 @@ function Login() {
 
         {/* Right Column - Login Card */}
         <div className="w-full max-w-md mx-auto lg:ml-auto">
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
             <h2 className="text-2xl font-bold text-gray-900">Log in</h2>
             <p className="text-sm text-gray-500 mt-1 mb-6">
               Good to see you again.
             </p>
 
-            {/* Green Success Banner (from registration) */}
             {successMessage && (
               <div className="mb-4 p-3 bg-green-50 text-green-700 text-sm rounded-lg border border-green-200 flex items-start gap-2">
                 <CheckCircle2 className="w-5 h-5 shrink-0" />
@@ -128,7 +122,6 @@ function Login() {
               </div>
             )}
 
-            {/* Red Error Banner */}
             {serverError && (
               <div className="mb-4 p-3 bg-red-50 text-red-700 text-sm rounded-lg border border-red-100">
                 {serverError}
@@ -143,8 +136,7 @@ function Login() {
                 <input
                   type="email"
                   placeholder="nadia.rahman@email.com"
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${errors.email ? "border-red-500" : "border-gray-300"
-                    }`}
+                  className={`w-full px-3 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${errors.email ? "border-red-500" : "border-gray-300"}`}
                   {...register("email", {
                     required: "Email is required",
                     pattern: {
@@ -167,8 +159,7 @@ function Login() {
                 <input
                   type="password"
                   placeholder="••••••••••••"
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${errors.password ? "border-red-500" : "border-gray-300"
-                    }`}
+                  className={`w-full px-3 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm ${errors.password ? "border-red-500" : "border-gray-300"}`}
                   {...register("password", {
                     required: "Password is required",
                   })}
@@ -179,19 +170,6 @@ function Login() {
                   </p>
                 )}
               </div>
-
-              {/* <div className="flex items-center justify-between pt-1">
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-gray-600">Remember me</span>
-                </label>
-                <a href="#" className="text-sm text-blue-600 hover:underline">
-                  Forgot password?
-                </a>
-              </div> */}
 
               <button
                 type="submit"

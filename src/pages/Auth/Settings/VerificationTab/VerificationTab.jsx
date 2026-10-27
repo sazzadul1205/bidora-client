@@ -58,10 +58,9 @@ export default function VerificationTab({ userData, role, refreshUser }) {
   };
 
   return (
-    <div className="space-y-5">
-      {/* REJECTED BANNER */}
+    <div className="space-y-5 w-full">
       {isRejected && (
-        <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-5">
+        <div className="flex flex-col sm:flex-row items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 sm:p-5">
           <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-600" />
           <div>
             <h2 className="text-lg font-semibold text-red-950">
@@ -80,7 +79,7 @@ export default function VerificationTab({ userData, role, refreshUser }) {
         </div>
       )}
 
-      <div className="rounded-xl border border-blue-200 bg-blue-50 p-5">
+      <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 sm:p-5">
         <h2 className="text-lg font-semibold text-blue-950">
           Profile Verification
         </h2>
@@ -90,7 +89,7 @@ export default function VerificationTab({ userData, role, refreshUser }) {
         </p>
 
         <div className="mt-5 space-y-3 rounded-lg bg-white/70 p-4 text-sm">
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-3">
             <span className="text-gray-600">Profile information</span>
             <span
               className={
@@ -103,7 +102,7 @@ export default function VerificationTab({ userData, role, refreshUser }) {
             </span>
           </div>
 
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-3">
             <span className="text-gray-600">Front NID image</span>
             <span
               className={
@@ -116,7 +115,7 @@ export default function VerificationTab({ userData, role, refreshUser }) {
             </span>
           </div>
 
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-3">
             <span className="text-gray-600">Back NID image</span>
             <span
               className={
@@ -129,7 +128,7 @@ export default function VerificationTab({ userData, role, refreshUser }) {
             </span>
           </div>
 
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-3">
             <span className="text-gray-600">Verification status</span>
             <span
               className={
@@ -148,7 +147,6 @@ export default function VerificationTab({ userData, role, refreshUser }) {
         </div>
       </div>
 
-      {/* SUBMIT BUTTON (Shows for Rejected, Not Submitted, Incomplete) */}
       {!isVerified && !isPending && (
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-gray-500">
@@ -160,7 +158,7 @@ export default function VerificationTab({ userData, role, refreshUser }) {
             type="button"
             onClick={handleSubmitVerification}
             disabled={submitting}
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <ShieldCheck className="h-4 w-4" />
             {submitting
@@ -173,7 +171,7 @@ export default function VerificationTab({ userData, role, refreshUser }) {
       )}
 
       {isPending && (
-        <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4">
+        <div className="flex flex-col sm:flex-row items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4">
           <Lock className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
           <p className="text-sm text-amber-900">
             Your verification request is pending review. Your profile and
@@ -183,7 +181,7 @@ export default function VerificationTab({ userData, role, refreshUser }) {
       )}
 
       {isVerified && (
-        <div className="flex items-start gap-3 rounded-lg border border-green-200 bg-green-50 p-4">
+        <div className="flex flex-col sm:flex-row items-start gap-3 rounded-lg border border-green-200 bg-green-50 p-4">
           <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-green-600" />
           <p className="text-sm text-green-800">
             Your profile has been successfully verified. Your account is fully
