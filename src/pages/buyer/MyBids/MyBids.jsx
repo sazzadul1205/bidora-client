@@ -240,7 +240,12 @@ export default function MyBids() {
                         <div>
                           <p className="font-semibold text-gray-900 line-clamp-1 flex items-center gap-2">
                             {b.productTitle}
-                            {b.isHighest && (
+                            {b.isHighest && b.auctionStatus === "Active" && (
+                              <span className="text-[10px] font-bold text-green-700 bg-green-100 px-1.5 py-0.5 rounded shrink-0">
+                                WINNING
+                              </span>
+                            )}
+                            {b.isHighest && b.auctionStatus !== "Active" && (
                               <span className="text-[10px] font-bold text-green-700 bg-green-100 px-1.5 py-0.5 rounded shrink-0">
                                 WINNING
                               </span>
@@ -258,10 +263,20 @@ export default function MyBids() {
                         <span className="font-bold text-blue-600">
                           ৳{b.bidAmount?.toLocaleString()}
                         </span>
-                        {b.isHighest && (
+                        {b.isHighest && b.auctionStatus === "Active" && (
                           <span className="mt-1 inline-flex items-center gap-1 text-xs font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded-full w-fit">
                             <span className="w-1.5 h-1.5 bg-green-600 rounded-full animate-pulse"></span>
+                            You are winning
+                          </span>
+                        )}
+                        {b.isHighest && b.auctionStatus !== "Active" && (
+                          <span className="mt-1 inline-flex items-center gap-1 text-xs font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded-full w-fit">
                             Highest Bid
+                          </span>
+                        )}
+                        {!b.isHighest && b.auctionStatus === "Active" && (
+                          <span className="mt-1 text-xs text-orange-600 font-medium">
+                            Outbid
                           </span>
                         )}
                       </div>
