@@ -1,20 +1,34 @@
 import { useForm, useWatch } from "react-hook-form";
 import { X, Lock, Unlock, Clock, Loader2 } from "lucide-react";
 
-export default function ManageLockModal({
+//  OUTER WRAPPER: Handles the null check BEFORE any hooks are called
+export default function ManageLockModal({ selectedUser, ...props }) {
+  if (!selectedUser) return null;
+
+  return (
+    <ManageLockModalContent
+      key={selectedUser.userId}
+      selectedUser={selectedUser}
+      {...props}
+    />
+  );
+}
+
+//  INNER COMPONENT: Safe to use hooks here because it only mounts when selectedUser exists
+function ManageLockModalContent({
   selectedUser,
   onClose,
   onSubmit,
   submitting,
   getLockInfo,
+  initialAction,
 }) {
-  const { register, handleSubmit } = useForm({
-    defaultValues: { action: "unlock", durationMinutes: "" },
+  const { register, handleSubmit, control } = useForm({
+    defaultValues: { action: initialAction || "unlock", durationMinutes: "" },
   });
-  const lockAction = useWatch({ name: "action" });
-  const info = getLockInfo(selectedUser);
 
-  if (!selectedUser) return null;
+  const lockAction = useWatch({ control, name: "action" });
+  const info = getLockInfo(selectedUser);
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
@@ -76,6 +90,7 @@ export default function ManageLockModal({
                   </p>
                 </div>
               </label>
+
               <label
                 className={`cursor-pointer border-2 rounded-xl p-3 flex items-center gap-3 transition ${lockAction === "temporary" ? "border-orange-500 bg-orange-50" : "border-gray-200 hover:border-gray-300"}`}
               >
@@ -98,6 +113,7 @@ export default function ManageLockModal({
                   </p>
                 </div>
               </label>
+
               <label
                 className={`cursor-pointer border-2 rounded-xl p-3 flex items-center gap-3 transition ${lockAction === "permanent" ? "border-red-500 bg-red-50" : "border-gray-200 hover:border-gray-300"}`}
               >
@@ -122,6 +138,7 @@ export default function ManageLockModal({
               </label>
             </div>
           </div>
+
           {lockAction === "temporary" && (
             <div className="animate-in fade-in slide-in-from-top-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -137,6 +154,7 @@ export default function ManageLockModal({
               />
             </div>
           )}
+
           <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
             <button
               type="button"

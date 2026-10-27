@@ -15,14 +15,12 @@ export default function ReviewModal({
   onSubmit,
   submitting,
 }) {
-  const {
-    register,
-    handleSubmit,   
-  } = useForm({
+ 
+  const { register, handleSubmit, control } = useForm({
     defaultValues: { status: "Approved" },
   });
 
-  const actionStatus = useWatch({ name: "status" });
+  const actionStatus = useWatch({ control, name: "status" });
 
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
@@ -41,7 +39,6 @@ export default function ReviewModal({
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
       <div className="bg-white rounded-2xl w-full max-w-3xl max-h-[92vh] overflow-y-auto shadow-2xl flex flex-col">
-        {/* Modal Header */}
         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
           <div>
             <h2 className="text-xl font-bold text-gray-900">Review Deposit</h2>
@@ -57,7 +54,6 @@ export default function ReviewModal({
           </button>
         </div>
 
-        {/* Modal Body */}
         <div className="p-6 flex-1 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-gray-50 rounded-xl p-5 border border-gray-100">
@@ -153,7 +149,6 @@ export default function ReviewModal({
           </div>
         </div>
 
-        {/* Sticky Footer */}
         <div className="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4 rounded-b-2xl">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-2 gap-3">

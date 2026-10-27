@@ -19,12 +19,14 @@ export default function ResolveModal({
   onSubmit,
   submitting,
 }) {
-  const { register, handleSubmit } = useForm({
+ 
+  const { register, handleSubmit, control } = useForm({
     defaultValues: { faultType: "Buyer", applyPenalty: "false" },
   });
 
-  const applyPenalty = useWatch({ name: "applyPenalty" });
-  const faultType = useWatch({ name: "faultType" });
+ 
+  const applyPenalty = useWatch({ control, name: "applyPenalty" });
+  const faultType = useWatch({ control, name: "faultType" });
 
   if (!selected) return null;
 

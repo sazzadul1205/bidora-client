@@ -17,10 +17,11 @@ export default function ReviewModal({
   zoomImage,
   setZoomImage,
 }) {
-  const { register, handleSubmit } = useForm({
+  const { register, handleSubmit, control } = useForm({
     defaultValues: { status: "Verified" },
   });
-  const actionStatus = useWatch({ name: "status" });
+
+  const actionStatus = useWatch({ control, name: "status" });
 
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";

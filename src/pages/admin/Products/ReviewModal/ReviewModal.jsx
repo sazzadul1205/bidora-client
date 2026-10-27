@@ -18,11 +18,13 @@ export default function ReviewModal({
   zoomImage,
   setZoomImage,
 }) {
-  const { register, handleSubmit } = useForm({
+ 
+  const { register, handleSubmit, control } = useForm({
     defaultValues: { status: "Approved" },
   });
-  const actionStatus = useWatch({ name: "status" });
 
+ 
+  const actionStatus = useWatch({ control, name: "status" });
 
   if (!selectedProduct) return null;
 
