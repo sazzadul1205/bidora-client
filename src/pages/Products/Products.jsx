@@ -1,7 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import {
-  getProducts,
   getActiveAuctions,
   getUpcomingAuctions,
   getCategories,
@@ -21,10 +20,12 @@ import {
   Gamepad2,
   BookOpen,
   Dumbbell,
+  ChevronLeft,
+  ChevronRight,
+  Tag,
 } from "lucide-react";
 import { Skeleton } from "../../components/Skeleton";
 
-// Pool of icons to cycle through for categories
 const ICON_POOL = [
   Laptop,
   Shirt,
@@ -46,43 +47,58 @@ export default function Home() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
 
+  // --- DRAG TO SCROLL LOGIC ---
+  const scrollRef = useRef(null);
+  const isDown = useRef(false);
+  const startX = useRef(0);
+  const scrollLeft = useRef(0);
+
+  const handleMouseDown = (e) => {
+    isDown.current = true;
+    scrollRef.current.classList.add("active");
+    startX.current = e.pageX - scrollRef.current.offsetLeft;
+    scrollLeft.current = scrollRef.current.scrollLeft;
+  };
+  const handleMouseLeave = () => {
+    isDown.current = false;
+    scrollRef.current.classList.remove("active");
+  };
+  const handleMouseUp = () => {
+    isDown.current = false;
+    scrollRef.current.classList.remove("active");
+  };
+  const handleMouseMove = (e) => {
+    if (!isDown.current) return;
+    e.preventDefault();
+    const x = e.pageX - scrollRef.current.offsetLeft;
+    const walk = (x - startX.current) * 2;
+    scrollRef.current.scrollLeft = scrollLeft.current - walk;
+  };
+  const scroll = (direction) => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({
+        left: direction === "left" ? -300 : 300,
+        behavior: "smooth",
+      });
+    }
+  };
+
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
-        // Fetch Products, Active Auctions, Upcoming Auctions, and Categories
-        const [prodRes, activeAucRes, upcomingAucRes, catRes] =
-          await Promise.all([
-            getProducts(),
-            getActiveAuctions(),
-            getUpcomingAuctions(),
-            getCategories(),
-          ]);
+        // NO MORE getProducts() NEEDED!
+        const [activeAucRes, upcomingAucRes, catRes] = await Promise.all([
+          getActiveAuctions(),
+          getUpcomingAuctions(),
+          getCategories(),
+        ]);
 
         if (!mounted) return;
 
-        const products = prodRes.data.data || [];
         setCategories(catRes.data.data || []);
-
-        // Helper to merge auction data with product data (for images & pricing)
-        const mergeWithProducts = (auctions) => {
-          return auctions
-            .map((auction) => {
-              const product = products.find((p) => p.id === auction.productId);
-              return {
-                ...auction,
-                mainImageUrl: product?.mainImageUrl,
-                buyoutPrice: product?.buyoutPrice,
-                startingPrice: product?.startingPrice,
-                categoryId: product?.categoryId,
-                shortSummary: product?.shortSummary,
-              };
-            })
-            .filter((a) => a.mainImageUrl); // Only keep ones with images
-        };
-
-        setActiveAuctions(mergeWithProducts(activeAucRes.data.data || []));
-        setUpcomingAuctions(mergeWithProducts(upcomingAucRes.data.data || []));
+        setActiveAuctions(activeAucRes.data.data || []);
+        setUpcomingAuctions(upcomingAucRes.data.data || []);
       } catch (err) {
         console.error(err);
       } finally {
@@ -94,7 +110,7 @@ export default function Home() {
     };
   }, []);
 
-  // Filter logic
+  // Filter logic (Now works perfectly because categoryId is on the auction)
   const filterItems = (items) => {
     return items.filter((a) => {
       const matchesSearch = a.productTitle
@@ -110,12 +126,7 @@ export default function Home() {
   const filteredActive = filterItems(activeAuctions);
   const filteredUpcoming = filterItems(upcomingAuctions);
 
-  // Hero logic (prefer active, fallback to upcoming)
   const heroAuction = filteredActive[0] || filteredUpcoming[0];
-
-  // Grid logic — show all active auctions in the grid. We intentionally do
-  // NOT exclude the hero here so the grid is never empty when there are
-  // auctions to display (a single live auction still appears in the grid).
   const activeGrid = filteredActive.slice(0, 3);
   const upcomingGrid = filteredUpcoming
     .filter((a) => a.id !== heroAuction?.id)
@@ -198,7 +209,6 @@ export default function Home() {
                 </Link>
               </div>
             </div>
-
             <div className="md:w-1/2 p-8 md:p-12 flex justify-center md:justify-end relative z-10">
               <Link
                 to={`/auction/${heroAuction.id}`}
@@ -238,29 +248,63 @@ export default function Home() {
           </div>
         )}
 
-        {/* CATEGORIES SECTION (Random Icons) */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
-          {categories.slice(0, 4).map((c, index) => {
-            // Pick an icon from the pool based on the index
-            const Icon = ICON_POOL[index % ICON_POOL.length];
-            return (
-              <button
-                key={c.id}
-                onClick={() => setSelectedCategory(c.id.toString())}
-                className="flex items-center gap-4 p-4 rounded-xl border border-gray-100 bg-white hover:border-blue-200 hover:bg-blue-50/30 transition-colors text-left"
-              >
-                <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
-                  <Icon className="w-5 h-5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-900 line-clamp-1">
-                    {c.name}
-                  </p>
-                  <p className="text-xs text-gray-500">Explore items</p>
-                </div>
-              </button>
-            );
-          })}
+        {/* CATEGORIES SECTION */}
+        <div className="mb-12 relative group">
+          <button
+            onClick={() => scroll("left")}
+            className="absolute left-0 top-1/2 -translate-y-1/2 -ml-4 z-10 bg-white/90 hover:bg-white border border-gray-200 shadow-md rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hidden md:block"
+          >
+            <ChevronLeft className="w-5 h-5 text-gray-700" />
+          </button>
+
+          <div
+            ref={scrollRef}
+            onMouseDown={handleMouseDown}
+            onMouseLeave={handleMouseLeave}
+            onMouseUp={handleMouseUp}
+            onMouseMove={handleMouseMove}
+            className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide cursor-grab active:cursor-grabbing px-1"
+          >
+            {categories && categories.length > 0 ? (
+              categories.map((c, index) => {
+                const Icon = ICON_POOL[index % ICON_POOL.length];
+                return (
+                  <button
+                    key={c.id}
+                    onClick={() => setSelectedCategory(c.id.toString())}
+                    className={`shrink-0 w-48 flex flex-col items-start p-4 rounded-xl border transition-colors text-left select-none ${
+                      selectedCategory === c.id.toString()
+                        ? "border-blue-600 bg-blue-50"
+                        : "border-gray-100 bg-white hover:border-blue-200 hover:bg-blue-50/30"
+                    }`}
+                  >
+                    <div
+                      className={`w-10 h-10 rounded-lg flex items-center justify-center mb-3 pointer-events-none ${selectedCategory === c.id.toString() ? "bg-blue-600" : "bg-blue-50"}`}
+                    >
+                      <Icon
+                        className={`w-5 h-5 ${selectedCategory === c.id.toString() ? "text-white" : "text-blue-600"}`}
+                      />
+                    </div>
+                    <p className="font-semibold text-gray-900 line-clamp-1 w-full pointer-events-none">
+                      {c.name}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1 pointer-events-none">
+                      Explore items
+                    </p>
+                  </button>
+                );
+              })
+            ) : (
+              <p className="text-gray-500 text-sm">No categories available.</p>
+            )}
+          </div>
+
+          <button
+            onClick={() => scroll("right")}
+            className="absolute right-0 top-1/2 -translate-y-1/2 -mr-4 z-10 bg-white/90 hover:bg-white border border-gray-200 shadow-md rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hidden md:block"
+          >
+            <ChevronRight className="w-5 h-5 text-gray-700" />
+          </button>
         </div>
 
         {/* ACTIVE AUCTIONS SECTION */}
@@ -285,7 +329,7 @@ export default function Home() {
 
           {activeGrid.length === 0 ? (
             <div className="text-center py-10 bg-gray-50 rounded-xl text-gray-500">
-              No active auctions found.
+              No active auctions found for this selection.
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -293,7 +337,7 @@ export default function Home() {
                 <Link
                   to={`/auction/${auction.id}`}
                   key={auction.id}
-                  className="group bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow"
+                  className="group/card bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow"
                 >
                   <div className="relative aspect-4/3 bg-gray-100 overflow-hidden">
                     <img
@@ -304,7 +348,11 @@ export default function Home() {
                     />
                   </div>
                   <div className="p-5">
-                    <p className="text-xs text-gray-500 mb-1">Live Auction</p>
+                    {/* NEW: Show Category Name */}
+                    <p className="text-xs text-blue-600 font-medium mb-1 flex items-center gap-1">
+                      <Tag className="w-3 h-3" />{" "}
+                      {auction.categoryName || "Uncategorized"}
+                    </p>
                     <h3 className="font-bold text-gray-900 text-lg line-clamp-1 mb-3">
                       {auction.productTitle}
                     </h3>
@@ -354,7 +402,7 @@ export default function Home() {
 
           {upcomingGrid.length === 0 ? (
             <div className="text-center py-10 bg-gray-50 rounded-xl text-gray-500">
-              No upcoming auctions scheduled.
+              No upcoming auctions scheduled for this selection.
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -362,7 +410,7 @@ export default function Home() {
                 <Link
                   to={`/auction/${auction.id}`}
                   key={auction.id}
-                  className="group bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow"
+                  className="group/card bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow"
                 >
                   <div className="relative aspect-4/3 bg-gray-100 overflow-hidden">
                     <img
@@ -376,8 +424,10 @@ export default function Home() {
                     </span>
                   </div>
                   <div className="p-5">
-                    <p className="text-xs text-gray-500 mb-1">
-                      Upcoming Auction
+                    {/* NEW: Show Category Name */}
+                    <p className="text-xs text-orange-600 font-medium mb-1 flex items-center gap-1">
+                      <Tag className="w-3 h-3" />{" "}
+                      {auction.categoryName || "Uncategorized"}
                     </p>
                     <h3 className="font-bold text-gray-900 text-lg line-clamp-1 mb-3">
                       {auction.productTitle}

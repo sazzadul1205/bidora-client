@@ -4,8 +4,17 @@
 export const imageUrl = (path) => {
   if (!path) return "";
   if (path.startsWith("http")) return path;
-  const base = (import.meta.env.VITE_API_BASE_URL || "").replace("/api", "");
-  return `${base}${path}`;
+
+  // Get the base URL from .env, or fallback to the hardcoded backend port
+  let base = import.meta.env.VITE_API_BASE_URL || "http://localhost:5102/api";
+
+  // Remove "/api" from the end if it exists
+  base = base.replace(/\/api\/?$/, "");
+
+  // Ensure there is no double slash
+  const cleanPath = path.startsWith("/") ? path : `/${path}`;
+
+  return `${base}${cleanPath}`;
 };
 
 // A tiny inline SVG shown when an image fails to load or is missing.
