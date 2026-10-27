@@ -3,7 +3,6 @@ import { useForm } from "react-hook-form";
 import {
   getMySales,
   dispatchSale,
-  createDispute,
   createDisputeImage,
   reportNonDelivery,
 } from "../../../services/sellerApi";
@@ -19,10 +18,17 @@ import {
   X,
   Scale,
   ImagePlus,
+  FileText,
+  ShieldAlert,
+  MessageSquare,
+  Gavel,
+  Eye,
+  RotateCcw,
 } from "lucide-react";
 import { toast, confirmDialog } from "../../../utils/toast";
 import { imageUrl, handleImageError } from "../../../utils/image";
 import { SkeletonRow, Skeleton } from "../../../components/Skeleton";
+import Countdown from "../../../components/Countdown";
 
 export default function SellerSales() {
   const [sales, setSales] = useState([]);
@@ -31,6 +37,7 @@ export default function SellerSales() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
   const [disputeTarget, setDisputeTarget] = useState(null);
+  const [selectedDispute, setSelectedDispute] = useState(null); // NEW: Read-only view
   const [complaint, setComplaint] = useState("");
   const [evidenceImage, setEvidenceImage] = useState(null);
   const [evidenceImagePreview, setEvidenceImagePreview] = useState(null);
@@ -88,8 +95,7 @@ export default function SellerSales() {
     }
   };
 
-  // Raise a dispute for a paid/dispatched sale. The backend rejects
-  // disputes for AwaitingPayment sales and duplicate disputes.
+  // Raise a dispute for a paid/dispatched/overdue sale.
   const handleRaiseDispute = async (saleId) => {
     if (!complaint.trim()) {
       toast.error("Please describe the issue.");
@@ -101,8 +107,6 @@ export default function SellerSales() {
     }
     setIsSubmittingDispute(true);
     try {
-      // Evidence is image-only. Send as multipart/form-data so the
-      // backend uploads the photo to the shared image store.
       const formData = new FormData();
       formData.append("SaleId", saleId);
       formData.append("Complaint", complaint.trim());
@@ -128,6 +132,8 @@ export default function SellerSales() {
       day: "2-digit",
       month: "short",
       year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -150,10 +156,11 @@ export default function SellerSales() {
 
     const matchesStatus =
       filterStatus === "All" ||
+      (filterStatus === "Awaiting Payment" && (s.status === "AwaitingPayment" || s.status === "PaymentOverdue")) ||
       (filterStatus === "Awaiting Dispatch" && s.status === "Paid") ||
       (filterStatus === "Dispatched" && s.status === "Dispatched") ||
       (filterStatus === "Completed" && s.status === "Completed") ||
-      (filterStatus === "Disputed" && s.status === "Disputed");
+      (filterStatus === "Disputed" && (s.status === "Disputed" || s.status === "Refunded"));
 
     return matchesSearch && matchesStatus;
   });
@@ -255,16 +262,15 @@ export default function SellerSales() {
         {/* Toolbar */}
         <div className="p-4 border-b border-gray-200 bg-gray-50/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
-            {["All", "Awaiting Dispatch", "Dispatched", "Completed"].map(
+            {["All", "Awaiting Payment", "Awaiting Dispatch", "Dispatched", "Completed", "Disputed"].map(
               (tab) => (
                 <button
                   key={tab}
                   onClick={() => setFilterStatus(tab)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition whitespace-nowrap ${
-                    filterStatus === tab
-                      ? "bg-blue-600 text-white shadow-sm"
-                      : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-100"
-                  }`}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition whitespace-nowrap ${filterStatus === tab
+                    ? "bg-blue-600 text-white shadow-sm"
+                    : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-100"
+                    }`}
                 >
                   {tab}
                 </button>
@@ -357,10 +363,19 @@ export default function SellerSales() {
 
                     {/* Status Badge */}
                     <td className="px-6 py-4">
+                      {s.status === "AwaitingPayment" && (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-gray-100 text-gray-600 border border-gray-200">
+                          <Clock className="w-3.5 h-3.5" /> Awaiting Buyer
+                        </span>
+                      )}
+                      {s.status === "PaymentOverdue" && (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-red-50 text-red-700 border border-red-200">
+                          <AlertCircle className="w-3.5 h-3.5" /> Payment Overdue
+                        </span>
+                      )}
                       {s.status === "Paid" && (
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                          <AlertCircle className="w-3.5 h-3.5" /> Action
-                          Required
+                          <AlertCircle className="w-3.5 h-3.5" /> Action Required
                         </span>
                       )}
                       {s.status === "Dispatched" && (
@@ -373,42 +388,55 @@ export default function SellerSales() {
                           <CheckCircle className="w-3.5 h-3.5" /> Completed
                         </span>
                       )}
-                      {s.status === "AwaitingPayment" && (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-gray-100 text-gray-600 border border-gray-200">
-                          <Clock className="w-3.5 h-3.5" /> Awaiting Buyer
-                        </span>
-                      )}
                       {s.status === "Disputed" && (
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-red-50 text-red-700 border border-red-200">
                           <AlertCircle className="w-3.5 h-3.5" /> Disputed
+                        </span>
+                      )}
+                      {s.status === "Refunded" && (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-gray-100 text-gray-700 border border-gray-300">
+                          <RotateCcw className="w-3.5 h-3.5" /> Refunded
                         </span>
                       )}
                     </td>
 
                     {/* Actions */}
                     <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex flex-col items-end justify-center min-h-10 gap-2">
+
+                        {/* Awaiting Payment Counter */}
+                        {s.status === "AwaitingPayment" && (
+                          <div className="flex flex-col items-end gap-1.5">
+                            <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">
+                              Payment Deadline
+                            </span>
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 shadow-sm">
+                              <Clock className="w-3.5 h-3.5 animate-pulse" />
+                              <Countdown targetDate={s.paymentDeadline} fallback="Expired" />
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Primary Action */}
                         {s.status === "Paid" && (
                           <button
                             onClick={() => {
                               setSelected(s);
                               reset();
                             }}
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm"
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm w-full justify-center"
                           >
                             <Truck className="w-4 h-4" /> Dispatch Item
                           </button>
                         )}
+
                         {s.status === "Dispatched" && (
                           <span className="text-xs font-medium text-gray-400 flex items-center gap-1">
                             Waiting for buyer to confirm receipt
                           </span>
                         )}
 
-                        {/* Report Non-Delivery — seller can accuse the buyer
-                            of abandoning the item only after the 10-day
-                            pickup window has passed. The backend enforces
-                            this rule. */}
+                        {/* Report Non-Delivery */}
                         {s.status === "Dispatched" && (
                           <button
                             onClick={async () => {
@@ -427,38 +455,49 @@ export default function SellerSales() {
                               } catch (err) {
                                 toast.error(
                                   err.response?.data?.message ||
-                                    "Failed to report non-delivery.",
+                                  "Failed to report non-delivery.",
                                 );
                               }
                             }}
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm"
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm w-full justify-center"
                           >
                             <AlertCircle className="w-4 h-4" /> Report
                             Non-Delivery
                           </button>
                         )}
+
                         {s.status === "Completed" && (
                           <span className="text-xs font-medium text-green-600 flex items-center gap-1 bg-green-50 px-3 py-1.5 rounded-lg">
                             <CheckCircle className="w-4 h-4" /> Funds Released
                           </span>
                         )}
+
                         {s.status === "Disputed" && (
-                          <span className="text-xs font-medium text-red-600 flex items-center gap-1 bg-red-50 px-3 py-1.5 rounded-lg">
+                          <span className="text-xs font-medium text-red-600 flex items-center gap-1 bg-red-50 px-3 py-1.5 rounded-lg mb-1">
                             <AlertCircle className="w-4 h-4" /> Under Review
                           </span>
                         )}
-                        {/* Raise Dispute — only for Paid / Dispatched sales.
-                            The backend rejects disputes for AwaitingPayment,
-                            Completed, and duplicate disputes. Sellers can
-                            only dispute after the payment window has ended. */}
-                        {(s.status === "Paid" || s.status === "Dispatched") && (
+
+                        {/* View Dispute Details */}
+                        {(s.status === "Disputed" || s.status === "Refunded") && s.dispute && (
+                          <button
+                            onClick={() => setSelectedDispute(s.dispute)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg transition-colors w-full justify-center"
+                          >
+                            <Eye className="w-3.5 h-3.5" /> View Dispute
+                          </button>
+                        )}
+
+                        {/* Raise Dispute */}
+                        {(s.status === "Paid" || s.status === "Dispatched" || s.status === "PaymentOverdue") && (
                           <button
                             onClick={() => {
                               setDisputeTarget(s);
                               setComplaint("");
-                              setEvidenceUrl("");
+                              setEvidenceImage(null);
+                              setEvidenceImagePreview(null);
                             }}
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm"
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm w-full justify-center mt-2"
                           >
                             <Scale className="w-4 h-4" /> Raise Dispute
                           </button>
@@ -473,9 +512,152 @@ export default function SellerSales() {
         </div>
       </div>
 
-      {/* ========================================================= */}
+
+      {/* READ-ONLY DISPUTE DETAILS MODAL */}
+
+      {selectedDispute && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[92vh] overflow-y-auto shadow-xl flex flex-col">
+
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50 sticky top-0 z-10">
+              <div>
+                <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                  <Scale className="w-5 h-5 text-gray-700" /> Dispute #{selectedDispute.id}
+                </h2>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Opened on {formatDate(selectedDispute.createdAt)}
+                </p>
+              </div>
+              <button
+                onClick={() => setSelectedDispute(null)}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6 flex-1">
+
+              {/* Status Banner */}
+              {selectedDispute.status === "UnderReview" || selectedDispute.status === "Open" ? (
+                <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-xl flex items-start gap-3">
+                  <ShieldAlert className="w-5 h-5 shrink-0 mt-0.5" />
+                  <div>
+                    <h3 className="text-sm font-bold">Pending Admin Review</h3>
+                    <p className="text-sm mt-1">An administrator is currently reviewing this dispute. You will be notified once a decision is made.</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-red-50 border border-red-200 text-red-800 p-4 rounded-xl flex items-start gap-3">
+                  <Gavel className="w-5 h-5 shrink-0 mt-0.5" />
+                  <div>
+                    <h3 className="text-sm font-bold">Dispute Resolved</h3>
+                    <p className="text-sm mt-1">The admin has reviewed this case and made a final decision.</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Original Complaint */}
+              <div>
+                <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2 mb-3">
+                  <MessageSquare className="w-4 h-4 text-gray-500" /> Complaint
+                </h3>
+                <div className="bg-gray-50 border border-gray-200 p-4 rounded-xl text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">
+                  {selectedDispute.complaint}
+                </div>
+              </div>
+
+              {/* Evidence */}
+              {selectedDispute.evidenceUrl && (
+                <div>
+                  <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2 mb-3">
+                    <FileText className="w-4 h-4 text-gray-500" /> Submitted Evidence
+                  </h3>
+                  <div className="border border-gray-200 rounded-xl p-2 bg-gray-50 inline-block">
+                    <img
+                      src={imageUrl(selectedDispute.evidenceUrl)}
+                      alt="Dispute Evidence"
+                      onError={handleImageError}
+                      className="max-h-64 rounded-lg object-contain cursor-zoom-in hover:opacity-90 transition"
+                      onClick={() => window.open(imageUrl(selectedDispute.evidenceUrl), "_blank")}
+                    />
+                    <p className="text-center text-xs text-gray-500 mt-2">Click to open full image</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Admin Decision (If Resolved) */}
+              {selectedDispute.status === "Resolved" && selectedDispute.adminDecision && (
+                <div>
+                  <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2 mb-3">
+                    <ShieldAlert className="w-4 h-4 text-red-600" /> Admin Decision
+                  </h3>
+                  <div className="bg-white border-2 border-red-200 p-4 rounded-xl shadow-sm">
+                    <p className="text-sm text-gray-900 leading-relaxed font-medium">
+                      "{selectedDispute.adminDecision}"
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/*  Financial Breakdown */}
+              {selectedDispute.penalty && (
+                <div className="bg-red-50/50 rounded-xl border border-red-100 p-5 mt-4">
+                  <h3 className="text-sm font-bold text-red-900 flex items-center gap-2 mb-3">
+                    <DollarSign className="w-4 h-4 text-red-600" /> Penalty Breakdown
+                  </h3>
+                  <div className="space-y-3 text-sm">
+                    <div className="flex justify-between items-center border-b border-red-100 pb-2">
+                      <span className="text-gray-600">Total Deposit Forfeited:</span>
+                      <span className="font-bold text-gray-900">${selectedDispute.penalty.totalAmount?.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between items-center border-b border-red-100 pb-2">
+                      <span className="text-gray-600">Sent to Opposite Party (80%):</span>
+                      <span className="font-bold text-green-700">+${selectedDispute.penalty.oppositePartyAmount?.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Platform Fee (20%):</span>
+                      <span className="font-bold text-gray-500">${selectedDispute.penalty.platformAmount?.toFixed(2)}</span>
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-red-700 mt-3 bg-white p-2 rounded border border-red-100">
+                    <strong>Note:</strong> The penalty was applied against {selectedDispute.penalty.againstUserId === selectedDispute.raisedBy ? "You" : "the other party"}.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex justify-between items-center sticky bottom-0 z-10 rounded-b-2xl">
+
+              {/* Future-Proofing for Appeals */}
+              <div>
+                {selectedDispute.status === "Resolved" && (
+                  <button
+                    disabled
+                    className="text-xs font-semibold text-gray-400 bg-gray-100 px-3 py-1.5 rounded border border-gray-200 cursor-not-allowed flex items-center gap-1.5"
+                    title="Coming soon"
+                  >
+                    <Scale className="w-3 h-3" /> Challenge Decision
+                  </button>
+                )}
+              </div>
+
+              <button
+                onClick={() => setSelectedDispute(null)}
+                className="px-6 py-2.5 bg-gray-900 hover:bg-black text-white text-sm font-semibold rounded-lg transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+
       {/* DISPATCH MODAL */}
-      {/* ========================================================= */}
+
       {selected && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
           <div className="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
@@ -535,7 +717,7 @@ export default function SellerSales() {
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <LinkIcon className="h-4 w-4 text-gray-400" />
+                    <Scale className="h-4 w-4 text-gray-400" />
                   </div>
                   <input
                     {...register("trackingEvidence", {
@@ -578,9 +760,9 @@ export default function SellerSales() {
         </div>
       )}
 
-      {/* ========================================================= */}
+
       {/* RAISE DISPUTE MODAL (Seller side) */}
-      {/* ========================================================= */}
+
       {disputeTarget && (
         <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm"
@@ -611,9 +793,10 @@ export default function SellerSales() {
               <div className="bg-red-50 text-red-800 p-3 rounded-lg border border-red-100 text-sm flex items-start gap-2">
                 <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
                 <p>
-                  Disputes can only be raised for sales that have been paid.
-                  Once submitted, an admin will review your complaint and may
-                  apply a penalty to the responsible party.
+                  Disputes can only be raised for sales that have been paid or
+                  have overdue payments. Once submitted, an admin will review
+                  your complaint and may apply a penalty to the responsible
+                  party.
                 </p>
               </div>
 
@@ -625,7 +808,7 @@ export default function SellerSales() {
                   value={complaint}
                   onChange={(e) => setComplaint(e.target.value)}
                   rows={4}
-                  placeholder="e.g. The buyer never confirmed receipt, the item was returned damaged..."
+                  placeholder="e.g. The buyer never paid, the item was returned damaged..."
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 outline-none resize-none"
                 />
                 <p className="text-[11px] text-gray-400 mt-1">
@@ -634,38 +817,38 @@ export default function SellerSales() {
               </div>
 
               <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Upload Photo (optional)
-                  </label>
-                  <div
-                    onDragOver={(e) => e.preventDefault()}
-                    onDrop={(e) => {
-                      e.preventDefault();
-                      const file = e.dataTransfer.files?.[0];
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Upload Photo (optional)
+                </label>
+                <div
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    const file = e.dataTransfer.files?.[0];
+                    if (!file) return;
+                    setEvidenceImage(file);
+                    setEvidenceImagePreview(URL.createObjectURL(file));
+                  }}
+                  className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-red-400 hover:bg-red-50/30 transition-colors cursor-pointer"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <ImagePlus className="w-8 h-8 text-gray-400 mx-auto mb-1" />
+                  <p className="text-xs text-gray-500">
+                    Drop a photo here or click to browse
+                  </p>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
                       if (!file) return;
                       setEvidenceImage(file);
                       setEvidenceImagePreview(URL.createObjectURL(file));
                     }}
-                    className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-red-400 hover:bg-red-50/30 transition-colors cursor-pointer"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <ImagePlus className="w-8 h-8 text-gray-400 mx-auto mb-1" />
-                    <p className="text-xs text-gray-500">
-                      Drop a photo here or click to browse
-                    </p>
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (!file) return;
-                        setEvidenceImage(file);
-                        setEvidenceImagePreview(URL.createObjectURL(file));
-                      }}
-                    />
-                  </div>
+                  />
+                </div>
                 {evidenceImagePreview && (
                   <div className="relative mt-3">
                     <img

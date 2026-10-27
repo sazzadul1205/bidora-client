@@ -321,9 +321,9 @@ export default function Users() {
         </div>
       </div>
 
-      {/* ========================================================= */}
+      
       {/* MANAGE LOCK MODAL (Keep existing) */}
-      {/* ========================================================= */}
+      
       {selectedUser && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
           {/* ... [Keep entire existing modal] ... */}
@@ -397,9 +397,9 @@ export default function Users() {
         </div>
       )}
 
-      {/* ========================================================= */}
+      
       {/* NEW: CREATE ADMIN MODAL */}
-      {/* ========================================================= */}
+      
       {showCreateModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
           <div className="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden animate-in fade-in zoom-in-95">

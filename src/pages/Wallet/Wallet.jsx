@@ -9,6 +9,7 @@ import {
   X,
   Loader2,
   History,
+  Scale, // NEW ICON IMPORT
 } from "lucide-react";
 import { toast } from "../../utils/toast";
 import { Skeleton } from "../../components/Skeleton";
@@ -26,6 +27,7 @@ import OverviewTab from "./OverviewTab/OverviewTab";
 import TransactionsTab from "./TransactionsTab/TransactionsTab";
 import ReservationsTab from "./ReservationsTab/ReservationsTab";
 import DepositRequestsTab from "./DepositRequestsTab/DepositRequestsTab";
+import DisputesTab from "./DisputesTab/DisputesTab"; // NEW TAB IMPORT
 
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
@@ -100,11 +102,10 @@ function ReceiptDropzone({ file, onFileChange }) {
           setDragActive(false);
         }}
         onDrop={handleDrop}
-        className={`relative flex min-h-40 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-4 text-center transition ${
-          dragActive
+        className={`relative flex min-h-40 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-4 text-center transition ${dragActive
             ? "border-blue-500 bg-blue-50"
             : "border-gray-300 bg-gray-50 hover:border-blue-400 hover:bg-blue-50/50"
-        }`}
+          }`}
       >
         <input
           ref={inputRef}
@@ -276,8 +277,13 @@ export default function Wallet() {
     );
   }
 
-  const availableBalance =
-    (wallet?.balance || 0) - (wallet?.reservedBalance || 0);
+  const safeReservedBalance = Math.max(0, wallet?.reservedBalance || 0);
+  const availableBalance = (wallet?.balance || 0) - safeReservedBalance;
+
+  // NEW: Filter transactions to only show dispute-related ones
+  const disputeTransactions = transactions.filter((tx) =>
+    tx.reference?.toLowerCase().includes("dispute")
+  );
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -312,7 +318,7 @@ export default function Wallet() {
             <Lock className="w-5 h-5 text-orange-500" />
           </div>
           <p className="text-3xl font-bold text-gray-900">
-            {formatMoney(wallet?.reservedBalance)}
+            {formatMoney(safeReservedBalance)}
           </p>
           <p className="text-xs text-gray-400 mt-1">Locked in active bids</p>
         </div>
@@ -331,48 +337,54 @@ export default function Wallet() {
 
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <div className="border-b border-gray-200">
-          <nav className="flex">
+          <nav className="flex overflow-x-auto">
             <button
               onClick={() => setActiveTab("overview")}
-              className={`flex items-center gap-2 px-6 py-3.5 text-sm font-medium border-b-2 transition ${
-                activeTab === "overview"
+              className={`flex items-center gap-2 px-6 py-3.5 text-sm font-medium border-b-2 transition whitespace-nowrap ${activeTab === "overview"
                   ? "border-blue-600 text-blue-600"
                   : "border-transparent text-gray-600 hover:text-gray-900"
-              }`}
+                }`}
             >
               <WalletIcon className="w-4 h-4" /> Overview
             </button>
             <button
               onClick={() => setActiveTab("transactions")}
-              className={`flex items-center gap-2 px-6 py-3.5 text-sm font-medium border-b-2 transition ${
-                activeTab === "transactions"
+              className={`flex items-center gap-2 px-6 py-3.5 text-sm font-medium border-b-2 transition whitespace-nowrap ${activeTab === "transactions"
                   ? "border-blue-600 text-blue-600"
                   : "border-transparent text-gray-600 hover:text-gray-900"
-              }`}
+                }`}
             >
               <History className="w-4 h-4" /> Transactions (
               {transactions.length})
             </button>
             <button
               onClick={() => setActiveTab("reservations")}
-              className={`flex items-center gap-2 px-6 py-3.5 text-sm font-medium border-b-2 transition ${
-                activeTab === "reservations"
+              className={`flex items-center gap-2 px-6 py-3.5 text-sm font-medium border-b-2 transition whitespace-nowrap ${activeTab === "reservations"
                   ? "border-blue-600 text-blue-600"
                   : "border-transparent text-gray-600 hover:text-gray-900"
-              }`}
+                }`}
             >
               <Lock className="w-4 h-4" /> Reservations ({reservations.length})
             </button>
             <button
               onClick={() => setActiveTab("deposit-requests")}
-              className={`flex items-center gap-2 px-6 py-3.5 text-sm font-medium border-b-2 transition ${
-                activeTab === "deposit-requests"
+              className={`flex items-center gap-2 px-6 py-3.5 text-sm font-medium border-b-2 transition whitespace-nowrap ${activeTab === "deposit-requests"
                   ? "border-blue-600 text-blue-600"
                   : "border-transparent text-gray-600 hover:text-gray-900"
-              }`}
+                }`}
             >
               <ArrowDownToLine className="w-4 h-4" /> Deposit Requests (
               {depositRequests.length})
+            </button>
+            {/* NEW TAB BUTTON */}
+            <button
+              onClick={() => setActiveTab("disputes")}
+              className={`flex items-center gap-2 px-6 py-3.5 text-sm font-medium border-b-2 transition whitespace-nowrap ${activeTab === "disputes"
+                  ? "border-blue-600 text-blue-600"
+                  : "border-transparent text-gray-600 hover:text-gray-900"
+                }`}
+            >
+              <Scale className="w-4 h-4" /> Disputes ({disputeTransactions.length})
             </button>
           </nav>
         </div>
@@ -416,9 +428,20 @@ export default function Wallet() {
               formatDate={formatDate}
             />
           )}
+
+          {/* NEW TAB RENDER */}
+          {activeTab === "disputes" && (
+            <DisputesTab
+              disputeTransactions={disputeTransactions}
+              formatMoney={formatMoney}
+              formatDate={formatDate}
+              getTxColor={getTxColor}
+            />
+          )}
         </div>
       </div>
 
+      {/* Deposit Modal (Keep existing) */}
       {showDepositModal && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
           <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl">

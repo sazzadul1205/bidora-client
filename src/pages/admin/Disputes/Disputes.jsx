@@ -20,29 +20,30 @@ import {
   Loader2,
   Package,
   DollarSign,
+  Eye,
 } from "lucide-react";
 import { toast } from "../../../utils/toast";
 import { SkeletonRow, Skeleton } from "../../../components/Skeleton";
+import { imageUrl } from "../../../utils/image";
 
 export default function Disputes() {
   const [disputes, setDisputes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);
+  const [viewDetailsTarget, setViewDetailsTarget] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("Open");
 
-  const { register, handleSubmit, reset, control } = useForm();
-  const applyPenalty = useWatch({
-    control,
-    name: "applyPenalty",
-    defaultValue: "false",
+  const { register, handleSubmit, reset, control } = useForm({
+    defaultValues: {
+      faultType: "Buyer",
+      applyPenalty: "false",
+    },
   });
-  const faultType = useWatch({
-    control,
-    name: "faultType",
-    defaultValue: "Buyer",
-  });
+
+  const applyPenalty = useWatch({ control, name: "applyPenalty" });
+  const faultType = useWatch({ control, name: "faultType" });
 
   const fetchDisputes = async () => {
     try {
@@ -50,6 +51,7 @@ export default function Disputes() {
       setDisputes(res.data.data || []);
     } catch (err) {
       console.error(err);
+      toast.error(err.response?.data?.message || "Failed to load disputes. Check console.");
     } finally {
       setLoading(false);
     }
@@ -108,10 +110,12 @@ export default function Disputes() {
 
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString("en-GB", {
+    return new Date(dateString).toLocaleString("en-GB", {
       day: "2-digit",
       month: "short",
       year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -127,7 +131,9 @@ export default function Disputes() {
     const matchesSearch =
       d.complaint?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       d.id.toString().includes(searchTerm) ||
-      d.saleId.toString().includes(searchTerm);
+      d.saleId.toString().includes(searchTerm) ||
+      d.raisedByName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      d.againstName?.toLowerCase().includes(searchTerm.toLowerCase());
 
     if (!matchesSearch) return false;
 
@@ -153,7 +159,7 @@ export default function Disputes() {
             <thead className="bg-gray-50 border-b border-gray-200 text-gray-900">
               <tr>
                 <th className="px-6 py-4 font-medium">Dispute</th>
-                <th className="px-6 py-4 font-medium">Complaint</th>
+                <th className="px-6 py-4 font-medium">Parties Involved</th>
                 <th className="px-6 py-4 font-medium">Status</th>
                 <th className="px-6 py-4 font-medium text-right">Actions</th>
               </tr>
@@ -227,22 +233,21 @@ export default function Disputes() {
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition whitespace-nowrap ${
-                  activeTab === tab
-                    ? "bg-blue-600 text-white shadow-sm"
-                    : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-100"
-                }`}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition whitespace-nowrap ${activeTab === tab
+                  ? "bg-blue-600 text-white shadow-sm"
+                  : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-100"
+                  }`}
               >
                 {tab === "UnderReview" ? "Under Review" : tab}
               </button>
             ))}
           </div>
 
-          <div className="relative w-full md:w-64">
+          <div className="relative w-full md:w-72">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
-              placeholder="Search by ID or complaint..."
+              placeholder="Search by name, ID or complaint..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-9 pr-4 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
@@ -255,8 +260,8 @@ export default function Disputes() {
           <table className="w-full text-left text-sm text-gray-600 min-w-200">
             <thead className="bg-gray-50 border-b border-gray-200 text-gray-900">
               <tr>
-                <th className="px-6 py-4 font-medium">Dispute</th>
-                <th className="px-6 py-4 font-medium w-[35%]">Complaint</th>
+                <th className="px-6 py-4 font-medium w-[20%]">Dispute</th>
+                <th className="px-6 py-4 font-medium w-[45%]">Parties Involved</th>
                 <th className="px-6 py-4 font-medium">Status</th>
                 <th className="px-6 py-4 font-medium text-right">Actions</th>
               </tr>
@@ -287,30 +292,45 @@ export default function Disputes() {
                           Dispute #{d.id}
                         </p>
                         <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
-                          <Package className="w-3 h-3" /> Sale #{d.saleId} ·
-                          Product #{d.productId}
+                          <Package className="w-3 h-3" /> Sale #{d.saleId}
                         </p>
                         <p className="text-[11px] text-gray-400 mt-1 flex items-center gap-1">
-                          <Calendar className="w-3 h-3" />{" "}
-                          {formatDate(d.createdAt)}
+                          <Calendar className="w-3 h-3" /> {formatDate(d.createdAt)}
                         </p>
                       </div>
                     </td>
 
-                    {/* Complaint Preview */}
+                    {/* Parties Involved */}
                     <td className="px-6 py-4">
-                      <p className="text-xs text-gray-700 line-clamp-2 leading-relaxed">
-                        "{d.complaint}"
-                      </p>
-{d.evidenceUrl && (
-  <button
-    type="button"
-    onClick={() => window.open(d.evidenceUrl, "_blank")}
-    className="inline-flex items-center gap-1 text-[11px] text-blue-600 hover:text-blue-800 mt-1 font-medium"
-  >
-    <LinkIcon className="w-3 h-3" /> View Evidence
-  </button>
-)}
+                      <div className="flex flex-col gap-2">
+                        <div className="flex items-center gap-2 text-xs">
+                          <span className="font-semibold text-gray-800">{d.raisedByName}</span>
+                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${d.raisedByRole === 'Buyer' ? 'bg-blue-100 text-blue-700' :
+                            d.raisedByRole === 'Seller' ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-700'
+                            }`}>
+                            {d.raisedByRole}
+                          </span>
+                          <span className="text-gray-400 font-medium">raised against</span>
+                          <span className="font-semibold text-gray-800">{d.againstName}</span>
+                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${d.againstRole === 'Buyer' ? 'bg-blue-100 text-blue-700' :
+                            d.againstRole === 'Seller' ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-700'
+                            }`}>
+                            {d.againstRole}
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-600 line-clamp-1 italic">
+                          "{d.complaint}"
+                        </p>
+                        {d.evidenceUrl && (
+                          <button
+                            type="button"
+                            onClick={() => window.open(imageUrl(d.evidenceUrl), "_blank")}
+                            className="inline-flex items-center gap-1 text-[11px] text-blue-600 hover:text-blue-800 font-medium w-fit"
+                          >
+                            <LinkIcon className="w-3 h-3" /> View Evidence
+                          </button>
+                        )}
+                      </div>
                     </td>
 
                     {/* Status */}
@@ -343,8 +363,8 @@ export default function Disputes() {
                             <PlayCircle className="w-3.5 h-3.5" /> Start Review
                           </button>
                         )}
-                        {(d.status === "Open" ||
-                          d.status === "UnderReview") && (
+
+                        {d.status === "UnderReview" && (
                           <button
                             onClick={() => {
                               setSelected(d);
@@ -355,10 +375,15 @@ export default function Disputes() {
                             <Scale className="w-3.5 h-3.5" /> Resolve
                           </button>
                         )}
+
+                        {/* NEW: View Details button for Resolved disputes */}
                         {d.status === "Resolved" && (
-                          <span className="text-xs text-gray-400 font-medium">
-                            Closed
-                          </span>
+                          <button
+                            onClick={() => setViewDetailsTarget(d)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-lg transition-colors"
+                          >
+                            <Eye className="w-3.5 h-3.5" /> View Details
+                          </button>
                         )}
                       </div>
                     </td>
@@ -370,9 +395,165 @@ export default function Disputes() {
         </div>
       </div>
 
-      {/* ========================================================= */}
-      {/* RESOLVE MODAL */}
-      {/* ========================================================= */}
+
+      {/* READ-ONLY DETAILS MODAL (For Resolved Disputes) */}
+
+      {viewDetailsTarget && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[92vh] overflow-y-auto shadow-xl flex flex-col">
+
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50 sticky top-0 z-10">
+              <div>
+                <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-green-600" /> Resolved Dispute #{viewDetailsTarget.id}
+                </h2>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Sale #{viewDetailsTarget.saleId} · Product #{viewDetailsTarget.productId}
+                </p>
+              </div>
+              <button
+                onClick={() => setViewDetailsTarget(null)}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-5 flex-1">
+
+              {/* Parties Involved Card */}
+              <div className="bg-gray-50 rounded-xl border border-gray-200 p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <User className="w-4 h-4 text-gray-500" />
+                  <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide">
+                    Parties Involved
+                  </h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm bg-white p-4 rounded-lg border border-gray-200">
+                  <div className="flex flex-col">
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Raised By</p>
+                    <div className="flex items-center gap-2">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-sm ${viewDetailsTarget.raisedByRole === 'Seller' ? 'bg-orange-500' : 'bg-blue-500'
+                        }`}>
+                        {viewDetailsTarget.raisedByName?.charAt(0) || "?"}
+                      </div>
+                      <div>
+                        <p className="font-bold text-gray-900">{viewDetailsTarget.raisedByName}</p>
+                        <span className={`inline-block mt-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${viewDetailsTarget.raisedByRole === 'Buyer' ? 'bg-blue-100 text-blue-700' :
+                          viewDetailsTarget.raisedByRole === 'Seller' ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-700'
+                          }`}>
+                          {viewDetailsTarget.raisedByRole}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col md:border-l md:border-gray-100 md:pl-4">
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Raised Against</p>
+                    <div className="flex items-center gap-2">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-sm ${viewDetailsTarget.againstRole === 'Seller' ? 'bg-orange-500' : 'bg-blue-500'
+                        }`}>
+                        {viewDetailsTarget.againstName?.charAt(0) || "?"}
+                      </div>
+                      <div>
+                        <p className="font-bold text-gray-900">{viewDetailsTarget.againstName}</p>
+                        <span className={`inline-block mt-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${viewDetailsTarget.againstRole === 'Buyer' ? 'bg-blue-100 text-blue-700' :
+                          viewDetailsTarget.againstRole === 'Seller' ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-700'
+                          }`}>
+                          {viewDetailsTarget.againstRole}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Original Complaint */}
+              <div>
+                <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2 mb-3">
+                  <FileText className="w-4 h-4 text-gray-500" /> Original Complaint
+                </h3>
+                <div className="bg-gray-50 border border-gray-200 p-4 rounded-xl text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">
+                  {viewDetailsTarget.complaint}
+                </div>
+              </div>
+
+              {/* Evidence */}
+              {viewDetailsTarget.evidenceUrl && (
+                <div>
+                  <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2 mb-3">
+                    <LinkIcon className="w-4 h-4 text-gray-500" /> Submitted Evidence
+                  </h3>
+                  <div className="border border-gray-200 rounded-xl p-2 bg-gray-50 inline-block">
+                    <img
+                      src={imageUrl(viewDetailsTarget.evidenceUrl)}
+                      alt="Dispute Evidence"
+                      className="max-h-48 rounded-lg object-contain cursor-zoom-in hover:opacity-90 transition"
+                      onClick={() => window.open(imageUrl(viewDetailsTarget.evidenceUrl), "_blank")}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Admin Decision */}
+              <div>
+                <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2 mb-3">
+                  <ShieldAlert className="w-4 h-4 text-green-600" /> Admin Decision
+                </h3>
+                <div className="bg-green-50 border-2 border-green-200 p-4 rounded-xl shadow-sm">
+                  <p className="text-sm text-gray-900 leading-relaxed font-medium">
+                    "{viewDetailsTarget.adminDecision || "No decision recorded."}"
+                  </p>
+                  <p className="text-xs text-gray-500 mt-3 pt-3 border-t border-green-200">
+                    Decided By Admin ID: <span className="font-mono">{viewDetailsTarget.decidedBy || "Unknown"}</span>
+                  </p>
+                </div>
+              </div>
+
+              {/* NEW: Financial Breakdown */}
+              {viewDetailsTarget.penalty && (
+                <div className="bg-gray-50 rounded-xl border border-gray-200 p-5 mt-2">
+                  <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2 mb-3">
+                    <DollarSign className="w-4 h-4 text-gray-600" /> Penalty Breakdown
+                  </h3>
+                  <div className="grid grid-cols-3 gap-4 text-center">
+                    <div className="bg-white p-3 rounded-lg border border-gray-100">
+                      <p className="text-xs text-gray-500 mb-1">Total Forfeited</p>
+                      <p className="font-bold text-gray-900">${viewDetailsTarget.penalty.totalAmount?.toFixed(2)}</p>
+                    </div>
+                    <div className="bg-white p-3 rounded-lg border border-gray-100">
+                      <p className="text-xs text-gray-500 mb-1">To Opposite Party</p>
+                      <p className="font-bold text-green-600">${viewDetailsTarget.penalty.oppositePartyAmount?.toFixed(2)}</p>
+                    </div>
+                    <div className="bg-white p-3 rounded-lg border border-gray-100">
+                      <p className="text-xs text-gray-500 mb-1">To Platform</p>
+                      <p className="font-bold text-purple-600">${viewDetailsTarget.penalty.platformAmount?.toFixed(2)}</p>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-600 mt-3 text-center">
+                    Penalty applied against User ID: <span className="font-mono font-bold">{viewDetailsTarget.penalty.againstUserId}</span>
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex justify-end sticky bottom-0 z-10 rounded-b-2xl">
+              <button
+                onClick={() => setViewDetailsTarget(null)}
+                className="px-6 py-2.5 bg-gray-900 hover:bg-black text-white text-sm font-semibold rounded-lg transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+
+      {/* RESOLVE MODAL (Keep existing) */}
+
       {selected && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
           <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[92vh] overflow-y-auto shadow-xl flex flex-col">
@@ -380,8 +561,7 @@ export default function Disputes() {
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50 sticky top-0 z-10">
               <div>
                 <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                  <Scale className="w-5 h-5 text-blue-600" /> Resolve Dispute #
-                  {selected.id}
+                  <Scale className="w-5 h-5 text-blue-600" /> Resolve Dispute #{selected.id}
                 </h2>
                 <p className="text-xs text-gray-500 mt-0.5">
                   Sale #{selected.saleId} · Product #{selected.productId}
@@ -404,45 +584,65 @@ export default function Disputes() {
                     Complaint Details
                   </h3>
                 </div>
-                <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap bg-white p-4 rounded-lg border border-gray-100">
+
+                <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap bg-white p-4 rounded-lg border border-gray-100 mb-4">
                   "{selected.complaint}"
                 </p>
 
-                <div className="grid grid-cols-2 gap-4 mt-4 text-sm">
-                  <div>
-                    <p className="text-xs text-gray-500 mb-0.5">Raised By</p>
-                    <p className="font-mono text-xs text-gray-900 bg-white p-1.5 rounded border">
-                      {selected.raisedBy}
-                    </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm bg-white p-4 rounded-lg border border-gray-200">
+                  <div className="flex flex-col">
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Raised By</p>
+                    <div className="flex items-center gap-2">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-sm ${selected.raisedByRole === 'Seller' ? 'bg-orange-500' : 'bg-blue-500'
+                        }`}>
+                        {selected.raisedByName?.charAt(0) || "?"}
+                      </div>
+                      <div>
+                        <p className="font-bold text-gray-900">{selected.raisedByName}</p>
+                        <span className={`inline-block mt-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${selected.raisedByRole === 'Buyer' ? 'bg-blue-100 text-blue-700' :
+                          selected.raisedByRole === 'Seller' ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-700'
+                          }`}>
+                          {selected.raisedByRole}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-xs text-gray-500 mb-0.5">Date</p>
-                    <p className="font-medium text-gray-900">
-                      {formatDate(selected.createdAt)}
-                    </p>
+
+                  <div className="flex flex-col md:border-l md:border-gray-100 md:pl-4">
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Raised Against</p>
+                    <div className="flex items-center gap-2">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-sm ${selected.againstRole === 'Seller' ? 'bg-orange-500' : 'bg-blue-500'
+                        }`}>
+                        {selected.againstName?.charAt(0) || "?"}
+                      </div>
+                      <div>
+                        <p className="font-bold text-gray-900">{selected.againstName}</p>
+                        <span className={`inline-block mt-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${selected.againstRole === 'Buyer' ? 'bg-blue-100 text-blue-700' :
+                          selected.againstRole === 'Seller' ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-700'
+                          }`}>
+                          {selected.againstRole}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
                 {selected.evidenceUrl && (
                   <div className="mt-4">
                     <a
-                      href={selected.evidenceUrl}
+                      href={imageUrl(selected.evidenceUrl)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 text-sm font-medium rounded-lg border border-blue-200 transition-colors"
                     >
-                      <LinkIcon className="w-4 h-4" /> Open Evidence (
-                      {new URL(selected.evidenceUrl).hostname})
+                      <LinkIcon className="w-4 h-4" /> Open Evidence
                     </a>
                   </div>
                 )}
               </div>
 
               {/* Resolution Form */}
-              <form
-                onSubmit={handleSubmit(onSubmitResolve)}
-                className="space-y-5"
-              >
+              <form onSubmit={handleSubmit(onSubmitResolve)} className="space-y-5">
                 {/* Fault Assignment */}
                 <div>
                   <label className="block text-sm font-bold text-gray-900 mb-2">
@@ -509,8 +709,7 @@ export default function Disputes() {
                 {/* Admin Decision */}
                 <div>
                   <label className="block text-sm font-bold text-gray-900 mb-2">
-                    Admin Decision & Reasoning{" "}
-                    <span className="text-red-500">*</span>
+                    Admin Decision & Reasoning <span className="text-red-500">*</span>
                   </label>
                   <textarea
                     {...register("adminDecision", {
@@ -552,14 +751,12 @@ export default function Disputes() {
                       <p>
                         The forfeited deposit will be split:{" "}
                         <strong>80% to the opposite party</strong> and{" "}
-                        <strong>20% to the platform</strong>. This action cannot
-                        be undone.
+                        <strong>20% to the platform</strong>. This action cannot be undone.
                       </p>
                     </div>
                   ) : (
                     <p className="text-xs text-gray-600 mt-1">
-                      No financial penalty will be applied. Escrow funds will be
-                      refunded based on the fault type.
+                      No financial penalty will be applied. Escrow funds will be refunded based on the fault type.
                     </p>
                   )}
                 </div>
@@ -568,9 +765,7 @@ export default function Disputes() {
                 <div className="bg-amber-50 border border-amber-200 text-amber-800 p-3 rounded-lg text-xs flex items-start gap-2">
                   <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
                   <p>
-                    <strong>Important:</strong> Once resolved, the dispute is
-                    final. The sale will be marked as "Refunded", the product as
-                    "Unavailable", and all reservations will be released.
+                    <strong>Important:</strong> Once resolved, the dispute is final. The sale will be marked as "Refunded", the product as "Unavailable", and all reservations will be released.
                   </p>
                 </div>
 
@@ -587,11 +782,10 @@ export default function Disputes() {
                   <button
                     type="submit"
                     disabled={submitting}
-                    className={`inline-flex items-center gap-2 px-6 py-2.5 text-white text-sm font-bold rounded-lg transition-all disabled:opacity-50 ${
-                      applyPenalty === "true"
-                        ? "bg-red-600 hover:bg-red-700 shadow-md shadow-red-600/20"
-                        : "bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-600/20"
-                    }`}
+                    className={`inline-flex items-center gap-2 px-6 py-2.5 text-white text-sm font-bold rounded-lg transition-all disabled:opacity-50 ${applyPenalty === "true"
+                      ? "bg-red-600 hover:bg-red-700 shadow-md shadow-red-600/20"
+                      : "bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-600/20"
+                      }`}
                   >
                     {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
                     {submitting ? "Resolving..." : "Submit Resolution"}

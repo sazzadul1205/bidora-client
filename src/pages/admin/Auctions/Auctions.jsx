@@ -414,9 +414,9 @@ export default function Auctions() {
         </table>
       </div>
 
-      {/* ========================================================= */}
+      
       {/* ACTION MODAL */}
-      {/* ========================================================= */}
+      
       {selected && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
           <div className="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
@@ -540,9 +540,9 @@ export default function Auctions() {
         </div>
       )}
 
-      {/* ========================================================= */}
+      
       {/* BIDS MODAL (Admin-only) */}
-      {/* ========================================================= */}
+      
       {bidsData && (
         <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm"
