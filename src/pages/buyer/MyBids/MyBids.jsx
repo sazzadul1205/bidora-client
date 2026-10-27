@@ -285,15 +285,16 @@ export default function MyBids() {
 
                   {/* End Time */}
                   <td className="px-6 py-4 text-xs text-gray-600">
-                    {b.auctionEndTime
-                      ? new Date(b.auctionEndTime).toLocaleString("en-GB", {
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })
-                      : "N/A"}
+                    {b.auctionEndTime ? (() => {
+                      const d = new Date(b.auctionEndTime);
+                      const day = d.getDate().toString().padStart(2,'0');
+                      const monthNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                      const month = monthNames[d.getMonth()];
+                      const year = d.getFullYear();
+                      let hours = d.getHours(); const mins = d.getMinutes().toString().padStart(2,'0');
+                      const ampm = hours>=12?'PM':'AM'; hours = hours%12; hours = hours===0?12:hours;
+                      return day+'-'+month+'-'+year+' '+hours.toString().padStart(2,'0')+':'+mins+' '+ampm;
+                    })() : "N/A"}
                   </td>
 
                   {/* Action */}

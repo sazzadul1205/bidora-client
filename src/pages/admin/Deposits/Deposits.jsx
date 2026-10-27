@@ -96,13 +96,14 @@ export default function Deposits() {
 
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    const d = new Date(dateString);
+    const day = d.getDate().toString().padStart(2,'0');
+    const monthNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const month = monthNames[d.getMonth()];
+    const year = d.getFullYear();
+    let hours = d.getHours(); const mins = d.getMinutes().toString().padStart(2,'0');
+    const ampm = hours>=12?'PM':'AM'; hours = hours%12; hours = hours===0?12:hours;
+    return day+'-'+month+'-'+year+' '+hours.toString().padStart(2,'0')+':'+mins+' '+ampm;
   };
 
   const formatMoney = (amount) => {
