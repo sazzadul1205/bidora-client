@@ -34,6 +34,8 @@ import SellerSales from "./pages/seller/Sales/SellerSales";
 
 // Shared / Guards / Layouts
 import ProfileCompletionGuard from "./components/Auth/ProfileCompletionGuard";
+import GuestGuard from "./components/Auth/GuestGuard";
+import RoleGuard from "./components/Auth/RoleGuard";
 import ProfilePending from "./pages/ProfilePending/ProfilePending";
 import Wallet from "./pages/Wallet/Wallet";
 import Settings from "./pages/Auth/Settings/Settings";
@@ -42,6 +44,7 @@ import AdminSales from "./pages/admin/Sales/AdminSales";
 import TermsOfUse from "./pages/Frontend/TermsOfUse/TermsOfUse";
 import PrivacyPolicy from "./pages/Frontend/PrivacyPolicy/PrivacyPolicy";
 import AboutUs from "./pages/Frontend/AboutUs/AboutUs";
+import Unauthorized from "./pages/Unauthorized/Unauthorized";
 
 function App() {
   return (
@@ -56,121 +59,147 @@ function App() {
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/about" element={<AboutUs />} />
 
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+          {/* Guest-only */}
+          <Route
+            path="/login"
+            element={
+              <GuestGuard>
+                <Login />
+              </GuestGuard>
+            }
+          />
+          <Route
+            path="/register"
+            element={
+              <GuestGuard>
+                <Register />
+              </GuestGuard>
+            }
+          />
         </Route>
+
+        {/* Unauthorized page — full page, no layout */}
+        <Route path="/unauthorized" element={<Unauthorized />} />
 
         {/* Profile Pending Route (Outside Auth Layout) */}
         <Route path="/profile-pending" element={<ProfilePending />} />
 
         {/* Authenticated Routes */}
         <Route element={<AuthenticatedLayout />}>
-          {/* ADMIN ROUTES */}
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/admin/users" element={<Users />} />
-          <Route path="/admin/products" element={<AdminProducts />} />
-          <Route path="/admin/deposits" element={<Deposits />} />
-          <Route path="/admin/verifications" element={<Verifications />} />
-          <Route path="/admin/auctions" element={<AdminAuction />} />
-          <Route path="/admin/disputes" element={<Disputes />} />
-          <Route path="/admin/categories" element={<Categories />} />
-          <Route path="/admin/wallet" element={<PlatformWallet />} />
-          <Route path="/admin/transactions" element={<AdminTransactions />} />
-          <Route path="/admin/sales" element={<AdminSales />} />
+          {/* ADMIN ROUTES — Admin only */}
+          <Route element={<RoleGuard allowedRoles={["Admin"]} />}>
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route path="/admin/users" element={<Users />} />
+            <Route path="/admin/products" element={<AdminProducts />} />
+            <Route path="/admin/deposits" element={<Deposits />} />
+            <Route path="/admin/verifications" element={<Verifications />} />
+            <Route path="/admin/auctions" element={<AdminAuction />} />
+            <Route path="/admin/disputes" element={<Disputes />} />
+            <Route path="/admin/categories" element={<Categories />} />
+            <Route path="/admin/wallet" element={<PlatformWallet />} />
+            <Route path="/admin/transactions" element={<AdminTransactions />} />
+            <Route path="/admin/sales" element={<AdminSales />} />
+          </Route>
 
-          {/* BUYER ROUTES */}
-          <Route
-            path="/buyer/dashboard"
-            element={
-              <ProfileCompletionGuard>
-                <BuyerDashboard />
-              </ProfileCompletionGuard>
-            }
-          />
-          <Route
-            path="/buyer/bids"
-            element={
-              <ProfileCompletionGuard>
-                <MyBids />
-              </ProfileCompletionGuard>
-            }
-          />
-          <Route
-            path="/buyer/won"
-            element={
-              <ProfileCompletionGuard>
-                <WonAuctions />
-              </ProfileCompletionGuard>
-            }
-          />
+          {/* BUYER ROUTES — Buyer only */}
+          <Route element={<RoleGuard allowedRoles={["Buyer"]} />}>
+            <Route
+              path="/buyer/dashboard"
+              element={
+                <ProfileCompletionGuard>
+                  <BuyerDashboard />
+                </ProfileCompletionGuard>
+              }
+            />
+            <Route
+              path="/buyer/bids"
+              element={
+                <ProfileCompletionGuard>
+                  <MyBids />
+                </ProfileCompletionGuard>
+              }
+            />
+            <Route
+              path="/buyer/won"
+              element={
+                <ProfileCompletionGuard>
+                  <WonAuctions />
+                </ProfileCompletionGuard>
+              }
+            />
+          </Route>
 
-          {/* SELLER ROUTES */}
-          <Route
-            path="/seller/dashboard"
-            element={
-              <ProfileCompletionGuard>
-                <SellerDashboard />
-              </ProfileCompletionGuard>
-            }
-          />
-          <Route
-            path="/seller/products"
-            element={
-              <ProfileCompletionGuard>
-                <MyProducts />
-              </ProfileCompletionGuard>
-            }
-          />
-          <Route
-            path="/seller/products/create"
-            element={
-              <ProfileCompletionGuard>
-                <CreateProduct />
-              </ProfileCompletionGuard>
-            }
-          />
-          <Route
-            path="/seller/products/edit/:id"
-            element={
-              <ProfileCompletionGuard>
-                <EditProduct />
-              </ProfileCompletionGuard>
-            }
-          />
-          <Route
-            path="/seller/products/view/:id"
-            element={
-              <ProfileCompletionGuard>
-                <ViewProduct />
-              </ProfileCompletionGuard>
-            }
-          />
-          <Route
-            path="/seller/sales"
-            element={
-              <ProfileCompletionGuard>
-                <SellerSales />
-              </ProfileCompletionGuard>
-            }
-          />
-          <Route
-            path="/seller/auctions/:id"
-            element={
-              <ProfileCompletionGuard>
-                <SellerAuctionView />
-              </ProfileCompletionGuard>
-            }
-          />
+          {/* SELLER ROUTES — Seller only */}
+          <Route element={<RoleGuard allowedRoles={["Seller"]} />}>
+            <Route
+              path="/seller/dashboard"
+              element={
+                <ProfileCompletionGuard>
+                  <SellerDashboard />
+                </ProfileCompletionGuard>
+              }
+            />
+            <Route
+              path="/seller/products"
+              element={
+                <ProfileCompletionGuard>
+                  <MyProducts />
+                </ProfileCompletionGuard>
+              }
+            />
+            <Route
+              path="/seller/products/create"
+              element={
+                <ProfileCompletionGuard>
+                  <CreateProduct />
+                </ProfileCompletionGuard>
+              }
+            />
+            <Route
+              path="/seller/products/edit/:id"
+              element={
+                <ProfileCompletionGuard>
+                  <EditProduct />
+                </ProfileCompletionGuard>
+              }
+            />
+            <Route
+              path="/seller/products/view/:id"
+              element={
+                <ProfileCompletionGuard>
+                  <ViewProduct />
+                </ProfileCompletionGuard>
+              }
+            />
+            <Route
+              path="/seller/sales"
+              element={
+                <ProfileCompletionGuard>
+                  <SellerSales />
+                </ProfileCompletionGuard>
+              }
+            />
+            <Route
+              path="/seller/auctions/:id"
+              element={
+                <ProfileCompletionGuard>
+                  <SellerAuctionView />
+                </ProfileCompletionGuard>
+              }
+            />
+          </Route>
 
-          {/* SHARED ROUTES */}
-          <Route
-            path="/wallet"
-            element={
-              <ProfileCompletionGuard>
-                <Wallet />
-              </ProfileCompletionGuard>
-            }
-          />
+          {/* SHARED ROUTES — all authenticated roles */}
+          <Route element={<RoleGuard allowedRoles={["Buyer", "Seller", "Admin"]} />}>
+            <Route
+              path="/wallet"
+              element={
+                <ProfileCompletionGuard>
+                  <Wallet />
+                </ProfileCompletionGuard>
+              }
+            />
+          </Route>
           <Route path="/settings" element={<Settings />} />
         </Route>
       </Routes>

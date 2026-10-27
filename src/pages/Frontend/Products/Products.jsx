@@ -195,7 +195,7 @@ export default function Home() {
               </p>
               <div className="flex gap-3">
                 <Link
-                  to="/auctions"
+                  to="/auction"
                   className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg text-sm font-semibold transition-colors"
                 >
                   Explore Auctions
@@ -210,7 +210,7 @@ export default function Home() {
             </div>
             <div className="md:w-1/2 p-8 md:p-12 flex justify-center md:justify-end relative z-10">
               <Link
-                to={`/auctions/${heroAuction.id}`}
+                to={`/auction/${heroAuction.id}`}
                 className="bg-white p-4 rounded-2xl shadow-xl w-full max-w-sm block hover:-translate-y-1 transition-transform"
               >
                 <div className="aspect-4/3 bg-gray-100 rounded-xl overflow-hidden mb-4">
@@ -319,7 +319,7 @@ export default function Home() {
               </p>
             </div>
             <Link
-              to="/auctions"
+              to="/auction"
               className="text-sm font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1"
             >
               View all <ArrowRight className="w-4 h-4" />
@@ -334,7 +334,7 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               {activeGrid.map((auction) => (
                 <Link
-                  to={`/auctions/${auction.id}`}
+                  to={`/auction/${auction.id}`}
                   key={auction.id}
                   className="group/card bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow"
                 >
@@ -408,7 +408,7 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               {upcomingGrid.map((auction) => (
                 <Link
-                  to={`/auctions/${auction.id}`}
+                  to={`/auction/${auction.id}`}
                   key={auction.id}
                   className="group/card bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow"
                 >

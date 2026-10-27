@@ -23,6 +23,7 @@ import authApi, {
   getAuthConfig,
 } from "../../services/authApi";
 import AuctionLoader from "../../components/AuctionLoader";
+import { formatDateTime } from "../../utils/date";
 
 function AuthenticatedLayout() {
   const navigate = useNavigate();
@@ -77,14 +78,7 @@ function AuthenticatedLayout() {
   }
 
   const role = userData?.account?.roles?.[0] || "User";
-  const currentDate =
-    new Date().toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    }) + " (Local)";
+  const currentDate = formatDateTime(new Date()) + " (Local)";
 
   // Determine the exact path for the main dashboard link
   const dashboardLink =
