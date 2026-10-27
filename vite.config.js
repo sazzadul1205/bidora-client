@@ -8,11 +8,13 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "http://localhost:5102", 
+        // target: "http://localhost:5102", 
+        target: "http://10.192.168.204:5102", 
         changeOrigin: true,
       },
       "/uploads": {
-        target: "http://localhost:5102", 
+        // target: "http://localhost:5102", 
+        target: "http://10.192.168.204:5102", 
         changeOrigin: true,
       },
     },
