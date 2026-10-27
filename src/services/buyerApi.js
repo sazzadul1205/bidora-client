@@ -1,56 +1,39 @@
 import authApi, { getAuthConfig } from "./authApi";
 import {
   getCategories,
-  getProducts,
-  getProductById,
-  getAuctions,
   getActiveAuctions,
   getUpcomingAuctions,
 } from "./publicApi";
 
-// Export public routes so buyers can browse without logging in
-export {
-  getCategories,
-  getProducts,
-  getProductById,
-  getAuctions,
-  getActiveAuctions,
-  getUpcomingAuctions,
-};
+// Re-export public routes so buyers can browse without logging in
+export { getCategories, getActiveAuctions, getUpcomingAuctions };
 
+// Dashboard
 export const getBuyerDashboard = () =>
   authApi.get("/buyer/dashboard", getAuthConfig());
 
-// Protected Bidding Endpoints
-// Place a bid. Backend expects { auctionId, amount }.
-// Note: Backend requires a 25% wallet reservation for first-time bids on an auction.
+// Bidding
 export const placeBid = (data) => authApi.post("/bid", data, getAuthConfig());
-
-// View the bid history for a specific auction
 export const getAuctionBids = (auctionId) =>
   authApi.get(`/bid/auction/${auctionId}/bids`, getAuthConfig());
-
-// Instantly buy a product at the buyout price
 export const buyoutAuction = (auctionId) =>
   authApi.post(`/bid/${auctionId}/buyout`, {}, getAuthConfig());
 
-// Protected Buyer Activity
+// Buyer Activity
 export const getMyBids = () => authApi.get("/buyer/my-bids", getAuthConfig());
-export const getBidHistory = () =>
-  authApi.get("/buyer/bid-history", getAuthConfig());
 export const getWonAuctions = () =>
   authApi.get("/buyer/won-auctions", getAuthConfig());
 
-// Protected Wallet Endpoints
+// Wallet
 export const getMyWallet = () => authApi.get("/wallet/me", getAuthConfig());
-
-// Fetch the logged-in user's own deposit requests (approved, rejected, pending).
 export const getMyDepositRequests = () =>
   authApi.get("/wallet/deposit-requests", getAuthConfig());
+export const getWalletTransactions = () =>
+  authApi.get("/wallet/transactions", getAuthConfig());
+export const getWalletReservations = () =>
+  authApi.get("/wallet/reservations", getAuthConfig());
 
-// Submit a deposit request. Backend expects a FormData object (Method, Amount, TransactionReference, ReceiptImage)
-// and binds it with [FromForm], so we MUST override the Content-Type header to multipart/form-data.
-// Note: Axios automatically sets the multipart/form-data header when you pass a FormData object. We only need to add the Auth header.
+// Submit a deposit request (FormData required for receipt image)
 export const requestDeposit = (formData) =>
   authApi.post("/wallet/deposit-request", formData, {
     headers: {
@@ -59,22 +42,11 @@ export const requestDeposit = (formData) =>
     },
   });
 
-export const getWalletTransactions = () =>
-  authApi.get("/wallet/transactions", getAuthConfig());
-export const getWalletReservations = () =>
-  authApi.get("/wallet/reservations", getAuthConfig());
-
-// Protected Sales & Payment
-export const getMySales = () => authApi.get("/sale/my-sales", getAuthConfig());
-export const getSaleById = (id) => authApi.get(`/sale/${id}`, getAuthConfig());
-
-// Pay for a won auction. The backend deducts funds from the wallet and holds them in escrow.
+// Sales & Disputes
 export const payForSale = (id) =>
   authApi.post(`/sale/${id}/pay`, {}, getAuthConfig());
 
-// Confirm receipt of a dispatched item. The buyer MUST supply proof
-// (a photo, tracking screenshot, or URL) so the seller has evidence
-// the item was received. This releases escrow funds to the seller.
+// Confirm receipt (FormData required for proof image)
 export const confirmReceipt = (id, formData) =>
   authApi.post(`/sale/${id}/confirm-receipt`, formData, {
     headers: {
@@ -83,18 +55,7 @@ export const confirmReceipt = (id, formData) =>
     },
   });
 
-// Protected Disputes
-export const getMyDisputes = () =>
-  authApi.get("/dispute/my-disputes", getAuthConfig());
-export const getDisputeById = (id) =>
-  authApi.get(`/dispute/${id}`, getAuthConfig());
-
-// Create a dispute. Backend expects { saleId, complaint, evidenceUrl (optional) }
-export const createDispute = (data) =>
-  authApi.post("/dispute", data, getAuthConfig());
-
-// Create a dispute with an optional photo. Backend binds with [FromForm],
-// so we MUST force multipart/form-data instead of application/json.
+// Create a dispute with an optional photo (FormData required)
 export const createDisputeImage = (formData) =>
   authApi.post("/dispute", formData, {
     headers: {
@@ -103,44 +64,30 @@ export const createDisputeImage = (formData) =>
     },
   });
 
-// Protected Profile
-export const getMyProfile = () => authApi.get("/auth/me", getAuthConfig());
-export const updateMyProfile = (data) =>
-  authApi.put("/auth/me", data, getAuthConfig());
-
-// Submit National ID for verification. No body data is needed, the backend handles the logic.
+// Profile Verification
 export const submitProfileVerification = () =>
   authApi.put("/profile/submit-verification", {}, getAuthConfig());
 
-// Re-export from authApi
+// Re-export from authApi for convenience
 export { changePassword } from "./authApi";
 
 export default {
   getBuyerDashboard,
   getCategories,
-  getProducts,
-  getProductById,
-  getAuctions,
   getActiveAuctions,
   getUpcomingAuctions,
   placeBid,
   getAuctionBids,
   buyoutAuction,
   getMyBids,
-  getBidHistory,
   getWonAuctions,
   getMyWallet,
   requestDeposit,
   getWalletTransactions,
   getWalletReservations,
-  getMySales,
-  getSaleById,
+  getMyDepositRequests,
   payForSale,
   confirmReceipt,
-  getMyDisputes,
-  getDisputeById,
-  createDispute,
-  getMyProfile,
-  updateMyProfile,
+  createDisputeImage,
   submitProfileVerification,
 };
