@@ -16,6 +16,8 @@ import {
   Trophy,
   ShoppingCart,
   Activity,
+  Menu,
+  X,
 } from "lucide-react";
 import authApi, {
   logout,
@@ -30,6 +32,7 @@ function AuthenticatedLayout() {
   const [userData, setUserData] = useState(null);
   const [balance, setBalance] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -80,7 +83,6 @@ function AuthenticatedLayout() {
   const role = userData?.account?.roles?.[0] || "User";
   const currentDate = formatDateTime(new Date()) + " (Local)";
 
-  // Determine the exact path for the main dashboard link
   const dashboardLink =
     role === "Admin"
       ? "/admin/dashboard"
@@ -90,11 +92,23 @@ function AuthenticatedLayout() {
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
+      {/* MOBILE SIDEBAR BACKDROP */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm transition-opacity"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* SIDEBAR */}
-      <aside className="w-64 bg-white border-r border-gray-200 flex flex-col shrink-0 z-10">
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 flex flex-col shrink-0 transform transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="h-16 flex items-center px-6 border-b border-gray-100 shrink-0">
+          <div className="h-16 flex items-center justify-between px-6 border-b border-gray-100 shrink-0">
             <Link to="/" className="flex items-center gap-2">
               <div className="bg-blue-600 p-1.5 rounded-md text-white">
                 <svg
@@ -115,6 +129,12 @@ function AuthenticatedLayout() {
                 Bidora
               </span>
             </Link>
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="lg:hidden p-1.5 text-gray-500 hover:bg-gray-100 rounded-lg"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
 
           {/* Dynamic Navigation Links */}
@@ -124,19 +144,36 @@ function AuthenticatedLayout() {
                 Overview
               </p>
               <nav className="space-y-1">
-                <NavLink to={dashboardLink} end className={navLinkClass}>
+                <NavLink
+                  to={dashboardLink}
+                  end
+                  className={navLinkClass}
+                  onClick={() => setSidebarOpen(false)}
+                >
                   <LayoutDashboard className="w-4 h-4" /> Dashboard
                 </NavLink>
 
                 {role === "Buyer" && (
                   <>
-                    <NavLink to="/buyer/bids" className={navLinkClass}>
+                    <NavLink
+                      to="/buyer/bids"
+                      className={navLinkClass}
+                      onClick={() => setSidebarOpen(false)}
+                    >
                       <Gavel className="w-4 h-4" /> My bids
                     </NavLink>
-                    <NavLink to="/buyer/won" className={navLinkClass}>
+                    <NavLink
+                      to="/buyer/won"
+                      className={navLinkClass}
+                      onClick={() => setSidebarOpen(false)}
+                    >
                       <Trophy className="w-4 h-4" /> Won Auctions
                     </NavLink>
-                    <NavLink to="/wallet" className={navLinkClass}>
+                    <NavLink
+                      to="/wallet"
+                      className={navLinkClass}
+                      onClick={() => setSidebarOpen(false)}
+                    >
                       <Wallet className="w-4 h-4" /> My wallet
                     </NavLink>
                   </>
@@ -144,13 +181,25 @@ function AuthenticatedLayout() {
 
                 {role === "Seller" && (
                   <>
-                    <NavLink to="/seller/products" className={navLinkClass}>
+                    <NavLink
+                      to="/seller/products"
+                      className={navLinkClass}
+                      onClick={() => setSidebarOpen(false)}
+                    >
                       <Package className="w-4 h-4" /> My products
                     </NavLink>
-                    <NavLink to="/seller/sales" className={navLinkClass}>
+                    <NavLink
+                      to="/seller/sales"
+                      className={navLinkClass}
+                      onClick={() => setSidebarOpen(false)}
+                    >
                       <ShoppingCart className="w-4 h-4" /> My sales
                     </NavLink>
-                    <NavLink to="/wallet" className={navLinkClass}>
+                    <NavLink
+                      to="/wallet"
+                      className={navLinkClass}
+                      onClick={() => setSidebarOpen(false)}
+                    >
                       <Wallet className="w-4 h-4" /> My wallet
                     </NavLink>
                   </>
@@ -166,14 +215,23 @@ function AuthenticatedLayout() {
                         <NavLink
                           to="/admin/verifications"
                           className={navLinkClass}
+                          onClick={() => setSidebarOpen(false)}
                         >
                           <CheckCircle className="w-4 h-4" /> Profile
                           Verifications
                         </NavLink>
-                        <NavLink to="/admin/deposits" className={navLinkClass}>
+                        <NavLink
+                          to="/admin/deposits"
+                          className={navLinkClass}
+                          onClick={() => setSidebarOpen(false)}
+                        >
                           <CreditCard className="w-4 h-4" /> Deposit Requests
                         </NavLink>
-                        <NavLink to="/admin/products" className={navLinkClass}>
+                        <NavLink
+                          to="/admin/products"
+                          className={navLinkClass}
+                          onClick={() => setSidebarOpen(false)}
+                        >
                           <ShieldCheck className="w-4 h-4" /> Product Moderation
                         </NavLink>
                       </nav>
@@ -184,31 +242,53 @@ function AuthenticatedLayout() {
                         Management
                       </p>
                       <nav className="space-y-1">
-                        <NavLink to="/admin/users" className={navLinkClass}>
+                        <NavLink
+                          to="/admin/users"
+                          className={navLinkClass}
+                          onClick={() => setSidebarOpen(false)}
+                        >
                           <Users className="w-4 h-4" /> User Management
                         </NavLink>
-                        <NavLink to="/admin/auctions" className={navLinkClass}>
+                        <NavLink
+                          to="/admin/auctions"
+                          className={navLinkClass}
+                          onClick={() => setSidebarOpen(false)}
+                        >
                           <Gavel className="w-4 h-4" /> Auctions
                         </NavLink>
-                        <NavLink to="/admin/disputes" className={navLinkClass}>
+                        <NavLink
+                          to="/admin/disputes"
+                          className={navLinkClass}
+                          onClick={() => setSidebarOpen(false)}
+                        >
                           <Scale className="w-4 h-4" /> Disputes
                         </NavLink>
                         <NavLink
                           to="/admin/categories"
                           className={navLinkClass}
+                          onClick={() => setSidebarOpen(false)}
                         >
                           <LayoutDashboard className="w-4 h-4" /> Categories
                         </NavLink>
-                        <NavLink to="/admin/wallet" className={navLinkClass}>
+                        <NavLink
+                          to="/admin/wallet"
+                          className={navLinkClass}
+                          onClick={() => setSidebarOpen(false)}
+                        >
                           <Wallet className="w-4 h-4" /> Platform Wallet
                         </NavLink>
                         <NavLink
                           to="/admin/transactions"
                           className={navLinkClass}
+                          onClick={() => setSidebarOpen(false)}
                         >
                           <Activity className="w-4 h-4" /> Financial Ledger
                         </NavLink>
-                        <NavLink to="/admin/sales" className={navLinkClass}>
+                        <NavLink
+                          to="/admin/sales"
+                          className={navLinkClass}
+                          onClick={() => setSidebarOpen(false)}
+                        >
                           <ShoppingCart className="w-4 h-4" /> Sales &
                           Deliveries
                         </NavLink>
@@ -224,7 +304,11 @@ function AuthenticatedLayout() {
                 Activity
               </p>
               <nav className="space-y-1">
-                <NavLink to="/settings" className={navLinkClass}>
+                <NavLink
+                  to="/settings"
+                  className={navLinkClass}
+                  onClick={() => setSidebarOpen(false)}
+                >
                   <Settings className="w-4 h-4" /> Account settings
                 </NavLink>
               </nav>
@@ -238,6 +322,7 @@ function AuthenticatedLayout() {
                 <Link
                   to="/"
                   className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+                  onClick={() => setSidebarOpen(false)}
                 >
                   <ArrowLeft className="w-4 h-4" /> Back to marketplace
                 </Link>
@@ -259,15 +344,24 @@ function AuthenticatedLayout() {
 
       {/* MAIN CONTENT AREA */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-8 shrink-0 z-5">
-          <div className="flex items-center text-sm text-gray-500"></div>
+        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 sm:px-6 md:px-8 shrink-0 z-5">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="lg:hidden p-2 -ml-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+          </div>
 
-          <div className="flex items-center gap-4">
-            <span className="text-xs text-gray-400">{currentDate}</span>
+          <div className="flex items-center gap-3 sm:gap-4">
+            <span className="hidden sm:block text-xs text-gray-400">
+              {currentDate}
+            </span>
             {role !== "Admin" && (
               <Link
                 to="/wallet"
-                className="flex items-center gap-2 bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition-colors cursor-pointer ml-2"
+                className="flex items-center gap-2 bg-blue-50 border border-blue-200 px-2.5 sm:px-3 py-1.5 rounded-lg hover:bg-blue-100 transition-colors cursor-pointer"
                 title="Go to Wallet"
               >
                 <Wallet className="w-4 h-4 text-blue-600" />
@@ -283,7 +377,7 @@ function AuthenticatedLayout() {
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-8 bg-gray-50">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 bg-gray-50">
           <div className="max-w-7xl mx-auto">
             <Outlet />
           </div>

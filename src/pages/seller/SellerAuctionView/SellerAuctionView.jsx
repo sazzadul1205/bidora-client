@@ -29,9 +29,6 @@ export default function SellerAuctionView() {
     let mounted = true;
     (async () => {
       try {
-        // Seller-only endpoint: returns ALL statuses including Completed and
-        // Cancelled, and exposes the cancellation reason, product info, and
-        // the main image URL — so no separate product fetch is needed.
         const aucRes = await getAuctionByIdForSeller(id);
         const auctionData = aucRes.data.data;
 
@@ -78,7 +75,6 @@ export default function SellerAuctionView() {
   const isCompleted = auction.status === "Completed";
   const isCancelled = auction.status === "Cancelled";
 
-  // Calculate unique bidders
   const uniqueBidders = new Set(bids.map((b) => b.bidderId)).size;
 
   return (
@@ -92,21 +88,22 @@ export default function SellerAuctionView() {
         </Link>
 
         {/* Header Banner */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 sm:p-6 mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-2xl font-bold text-gray-900">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
                 {auction.productTitle}
               </h1>
               <span
-                className={`px-3 py-1 rounded-full text-xs font-bold ${isLive
+                className={`px-3 py-1 rounded-full text-xs font-bold ${
+                  isLive
                     ? "bg-green-100 text-green-700"
                     : isUpcoming
                       ? "bg-orange-100 text-orange-700"
                       : isCompleted
                         ? "bg-blue-100 text-blue-700"
                         : "bg-red-100 text-red-700"
-                  }`}
+                }`}
               >
                 {auction.status.toUpperCase()}
               </span>
@@ -118,7 +115,7 @@ export default function SellerAuctionView() {
           </div>
 
           {isUpcoming && (
-            <div className="bg-orange-50 text-orange-800 px-4 py-3 rounded-xl border border-orange-100 text-sm">
+            <div className="bg-orange-50 text-orange-800 px-4 py-3 rounded-xl border border-orange-100 text-sm w-full md:w-auto">
               <p className="font-semibold">Waiting to go live.</p>
               <p className="text-orange-600 text-xs mt-1">
                 Starts in: <Countdown targetDate={auction.startTime} />
@@ -127,7 +124,7 @@ export default function SellerAuctionView() {
           )}
 
           {isCompleted && (
-            <div className="bg-blue-50 text-blue-800 px-4 py-3 rounded-xl border border-blue-100 text-sm">
+            <div className="bg-blue-50 text-blue-800 px-4 py-3 rounded-xl border border-blue-100 text-sm w-full md:w-auto">
               <p className="font-semibold flex items-center gap-2">
                 <CheckCircle className="w-4 h-4" /> Auction Ended
               </p>
@@ -139,7 +136,7 @@ export default function SellerAuctionView() {
           )}
 
           {isCancelled && (
-            <div className="bg-red-50 text-red-800 px-4 py-3 rounded-xl border border-red-100 text-sm">
+            <div className="bg-red-50 text-red-800 px-4 py-3 rounded-xl border border-red-100 text-sm w-full md:w-auto">
               <p className="font-semibold flex items-center gap-2">
                 <XCircle className="w-4 h-4" /> Auction Cancelled
               </p>
@@ -157,12 +154,14 @@ export default function SellerAuctionView() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* LEFT: Product Info */}
           <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 sm:p-6">
               <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
                 <Package className="w-5 h-5 text-blue-600" /> Item Details
               </h2>
-              <div className="flex gap-6">
-                <div className="w-40 h-40 rounded-xl bg-gray-100 overflow-hidden shrink-0 border border-gray-200">
+
+              {/* Image + Details: stacks on mobile, side by side on sm+ */}
+              <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+                <div className="w-full sm:w-40 h-48 sm:h-40 rounded-xl bg-gray-100 overflow-hidden shrink-0 border border-gray-200">
                   <img
                     src={imageUrl(auction.mainImageUrl)}
                     alt={auction.productTitle}
@@ -224,7 +223,7 @@ export default function SellerAuctionView() {
                   <p className="text-[11px] uppercase tracking-wide text-gray-400 font-semibold">
                     Starting Price
                   </p>
-                  <p className="text-xl font-bold text-gray-900">
+                  <p className="text-lg sm:text-xl font-bold text-gray-900">
                     ${auction.startingPrice?.toLocaleString()}
                   </p>
                 </div>
@@ -232,13 +231,12 @@ export default function SellerAuctionView() {
                   <p className="text-[11px] uppercase tracking-wide text-gray-400 font-semibold">
                     Buyout Price
                   </p>
-                  <p className="text-xl font-bold text-purple-600">
+                  <p className="text-lg sm:text-xl font-bold text-purple-600">
                     ৳{auction.buyoutPrice?.toLocaleString()}
                   </p>
                 </div>
               </div>
 
-              {/* Full description */}
               {auction.productDescription && (
                 <div className="mt-5">
                   <p className="text-[11px] uppercase tracking-wide text-gray-400 font-semibold mb-1">
@@ -250,7 +248,6 @@ export default function SellerAuctionView() {
                 </div>
               )}
 
-              {/* Usage history */}
               {auction.usageHistory && (
                 <div className="mt-4">
                   <p className="text-[11px] uppercase tracking-wide text-gray-400 font-semibold mb-1">
@@ -262,7 +259,6 @@ export default function SellerAuctionView() {
                 </div>
               )}
 
-              {/* Reason for selling */}
               {auction.reasonForSelling && (
                 <div className="mt-4">
                   <p className="text-[11px] uppercase tracking-wide text-gray-400 font-semibold mb-1">
@@ -274,11 +270,11 @@ export default function SellerAuctionView() {
                 </div>
               )}
 
-              {/* Known issues */}
               {auction.knownIssues && (
                 <div className="mt-4 bg-red-50 border border-red-100 rounded-lg p-3">
                   <p className="text-[11px] uppercase tracking-wide text-red-500 font-semibold mb-1 flex items-center gap-1">
-                    <AlertTriangle className="w-3.5 h-3.5" /> Known Issues / Defects
+                    <AlertTriangle className="w-3.5 h-3.5" /> Known Issues /
+                    Defects
                   </p>
                   <p className="text-sm text-red-700 whitespace-pre-wrap leading-relaxed">
                     {auction.knownIssues}
@@ -289,61 +285,62 @@ export default function SellerAuctionView() {
 
             {/* Bid History Table */}
             <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-              <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+              <div className="p-4 sm:p-6 border-b border-gray-100 flex items-center justify-between gap-2">
                 <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
                   <Gavel className="w-5 h-5 text-blue-600" /> Bidding History
                 </h2>
-                <span className="bg-blue-50 text-blue-700 text-xs font-bold px-3 py-1 rounded-full">
+                <span className="bg-blue-50 text-blue-700 text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">
                   {bids.length} Total Bids
                 </span>
               </div>
-              <table className="w-full text-left text-sm text-gray-600">
-                <thead className="bg-gray-50 text-gray-900">
-                  <tr>
-                    <th className="px-6 py-3 font-medium">Bidder</th>
-                    <th className="px-6 py-3 font-medium">Amount</th>
-                    <th className="px-6 py-3 font-medium text-right">Time</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {bids.length === 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm text-gray-600 min-w-125">
+                  <thead className="bg-gray-50 text-gray-900">
                     <tr>
-                      <td
-                        colSpan="3"
-                        className="text-center py-6 text-gray-400"
-                      >
-                        No bids yet.
-                      </td>
+                      <th className="px-6 py-3 font-medium">Bidder</th>
+                      <th className="px-6 py-3 font-medium">Amount</th>
+                      <th className="px-6 py-3 font-medium text-right">Time</th>
                     </tr>
-                  ) : (
-                    bids.map((b, i) => (
-                      <tr key={i} className="hover:bg-gray-50">
-                        {/* CHANGED: Now showing the Bidder's Name with a fallback */}
-                        <td className="px-6 py-4 font-medium text-gray-900">
-                          {b.bidderName || `User_${b.bidderId.substring(0, 5)}`}
-                        </td>
-                        <td className="px-6 py-4 font-bold text-gray-900">
-                          ৳{b.amount.toLocaleString()}
-                        </td>
-                        <td className="px-6 py-4 text-right text-xs">
-                          {formatTime(b.placedAt)}
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {bids.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan="3"
+                          className="text-center py-6 text-gray-400"
+                        >
+                          No bids yet.
                         </td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+                    ) : (
+                      bids.map((b, i) => (
+                        <tr key={i} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 font-medium text-gray-900">
+                            {b.bidderName ||
+                              `User_${b.bidderId.substring(0, 5)}`}
+                          </td>
+                          <td className="px-6 py-4 font-bold text-gray-900">
+                            ৳{b.amount.toLocaleString()}
+                          </td>
+                          <td className="px-6 py-4 text-right text-xs">
+                            {formatTime(b.placedAt)}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
 
           {/* RIGHT: Analytics & Management */}
           <div className="space-y-6">
-            {/* Current Status Card */}
             <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 text-center">
               <p className="text-sm font-medium text-gray-500 mb-1">
                 Current Highest Bid
               </p>
-              <p className="text-4xl font-bold text-blue-600 mb-4">
+              <p className="text-3xl sm:text-4xl font-bold text-blue-600 mb-4">
                 ৳{auction.currentHighestBid?.toLocaleString() || "0.00"}
               </p>
 
@@ -373,7 +370,6 @@ export default function SellerAuctionView() {
               </div>
             </div>
 
-            {/* Seller Payout Estimate */}
             <div className="bg-gray-900 rounded-2xl p-6 text-white">
               <h3 className="font-bold mb-4 flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-green-400" /> Estimated
@@ -382,7 +378,7 @@ export default function SellerAuctionView() {
               <p className="text-sm text-gray-400 mb-1">
                 If sold at current bid:
               </p>
-              <p className="text-3xl font-bold mb-2">
+              <p className="text-2xl sm:text-3xl font-bold mb-2">
                 ${((auction.currentHighestBid || 0) * 0.9).toLocaleString()}
               </p>
               <p className="text-xs text-gray-400">
