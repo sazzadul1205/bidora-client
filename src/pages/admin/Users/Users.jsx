@@ -2,9 +2,27 @@ import { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { getUsers, lockUser, createAdmin } from "../../../services/adminApi";
 import {
-  Lock, Search, Users as UsersIcon, Shield, Store, ShoppingBag,
-  MapPin, CheckCircle2, XCircle, AlertTriangle, Unlock, Clock,
-  X, Loader2, Mail, UserPlus, Eye, Wallet, Phone, CreditCard, Calendar
+  Lock,
+  Search,
+  Users as UsersIcon,
+  Shield,
+  Store,
+  ShoppingBag,
+  MapPin,
+  CheckCircle2,
+  XCircle,
+  AlertTriangle,
+  Unlock,
+  Clock,
+  X,
+  Loader2,
+  Mail,
+  UserPlus,
+  Eye,
+  Wallet,
+  Phone,
+  CreditCard,
+  Calendar,
 } from "lucide-react";
 import { toast } from "../../../utils/toast";
 import { SkeletonRow, Skeleton } from "../../../components/Skeleton";
@@ -24,12 +42,21 @@ export default function Users() {
 
   // Form for locking users
   const { register, handleSubmit, reset, control } = useForm({
-    defaultValues: { action: "unlock", isPermanent: false, durationMinutes: "" },
+    defaultValues: {
+      action: "unlock",
+      isPermanent: false,
+      durationMinutes: "",
+    },
   });
   const lockAction = useWatch({ control, name: "action" });
 
   // Form for creating admins
-  const { register: registerAdmin, handleSubmit: handleAdminSubmit, reset: resetAdmin, formState: { errors: adminErrors, isSubmitting: isAdminSubmitting } } = useForm();
+  const {
+    register: registerAdmin,
+    handleSubmit: handleAdminSubmit,
+    reset: resetAdmin,
+    formState: { errors: adminErrors, isSubmitting: isAdminSubmitting },
+  } = useForm();
 
   const fetchUsers = async () => {
     try {
@@ -58,16 +85,19 @@ export default function Users() {
         if (mounted) setLoading(false);
       }
     })();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const handleSearch = (e) => {
     const term = e.target.value.toLowerCase();
     setSearchTerm(term);
     const filtered = users.filter(
-      (u) => u.email?.toLowerCase().includes(term) ||
+      (u) =>
+        u.email?.toLowerCase().includes(term) ||
         u.profile?.fullName?.toLowerCase().includes(term) ||
-        u.userId?.toLowerCase().includes(term)
+        u.userId?.toLowerCase().includes(term),
     );
     setFilteredUsers(filtered);
   };
@@ -81,15 +111,20 @@ export default function Users() {
       await lockUser(selectedUser.userId, {
         isLocked: !isUnlock,
         isPermanent: isPermanent,
-        durationMinutes: data.action === "temporary" ? parseInt(data.durationMinutes) : null,
+        durationMinutes:
+          data.action === "temporary" ? parseInt(data.durationMinutes) : null,
       });
 
       setSelectedUser(null);
       reset();
       fetchUsers();
-      toast.success(`User account ${isUnlock ? "unlocked" : "locked"} successfully!`);
+      toast.success(
+        `User account ${isUnlock ? "unlocked" : "locked"} successfully!`,
+      );
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to update lock status.");
+      toast.error(
+        err.response?.data?.message || "Failed to update lock status.",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -107,15 +142,22 @@ export default function Users() {
     }
   };
 
-  // --- STATS ---
+  // STATS
   const totalUsers = users.length;
   const adminCount = users.filter((u) => u.roles?.[0] === "Admin").length;
   const sellerCount = users.filter((u) => u.roles?.[0] === "Seller").length;
-  const buyerCount = users.filter((u) => u.roles?.[0] === "Buyer" || !u.roles?.[0]).length;
+  const buyerCount = users.filter(
+    (u) => u.roles?.[0] === "Buyer" || !u.roles?.[0],
+  ).length;
 
   const getInitials = (name) => {
     if (!name) return "?";
-    return name.split(" ").map((n) => n[0]).join("").substring(0, 2).toUpperCase();
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .substring(0, 2)
+      .toUpperCase();
   };
 
   const formatMoney = (num) =>
@@ -123,6 +165,33 @@ export default function Users() {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })}`;
+
+  //  figure out whether a user is locked and how
+  // returns null when the user is active, otherwise an object with details
+  const getLockInfo = (user) => {
+    if (!user?.isLocked) return null;
+
+    const end = user.lockoutEnd ? new Date(user.lockoutEnd) : null;
+
+    // year 9999 means the backend used DateTimeOffset.MaxValue → permanent
+    const isPermanent = end && end.getFullYear() >= 9000;
+
+    return {
+      isPermanent,
+      // simple, readable display string for the modal
+      endLabel:
+        end && !isPermanent
+          ? end.toLocaleString("en-US", {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            })
+          : null,
+      label: isPermanent ? "Permanently Locked" : "Temporarily Locked",
+    };
+  };
 
   if (loading) {
     return (
@@ -252,96 +321,175 @@ export default function Users() {
                   </td>
                 </tr>
               ) : (
-                filteredUsers.map((u) => (
-                  <tr key={u.userId} className="hover:bg-gray-50/80 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-linear-to-br from-blue-100 to-blue-200 flex items-center justify-center shrink-0 text-blue-700 font-bold text-xs shadow-sm border border-blue-200">
-                          {getInitials(u.profile?.fullName)}
-                        </div>
-                        <div>
-                          <p className="font-semibold text-gray-900">{u.profile?.fullName || "Unnamed User"}</p>
-                          <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
-                            <Mail className="w-3 h-3" /> {u.email}
-                          </p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold border ${u.roles?.[0] === "Admin" ? "bg-purple-50 text-purple-700 border-purple-200"
-                          : u.roles?.[0] === "Seller" ? "bg-orange-50 text-orange-700 border-orange-200"
-                            : "bg-blue-50 text-blue-700 border-blue-200"
-                        }`}>
-                        {u.roles?.[0] === "Admin" && <Shield className="w-3.5 h-3.5" />}
-                        {u.roles?.[0] === "Seller" && <Store className="w-3.5 h-3.5" />}
-                        {u.roles?.[0] === "Buyer" && <ShoppingBag className="w-3.5 h-3.5" />}
-                        {u.roles?.[0] || "Buyer"}
-                      </span>
-                    </td>
+                filteredUsers.map((u) => {
+                  //  compute lock info for this row
+                  const lockInfo = getLockInfo(u);
 
-                    {/* NEW: Wallet Column */}
-                    <td className="px-6 py-4">
-                      {u.wallet ? (
-                        <div>
-                          <p className="font-bold text-gray-900">{formatMoney(u.wallet.availableBalance)}</p>
-                          <p className="text-[11px] text-gray-500 mt-0.5">
-                            Res: {formatMoney(u.wallet.reservedBalance)}
-                          </p>
+                  return (
+                    <tr
+                      key={u.userId}
+                      className={`transition-colors ${
+                        lockInfo
+                          ? "bg-red-50/40 hover:bg-red-50/60 border-l-4 border-l-red-500"
+                          : "hover:bg-gray-50/80 border-l-4 border-l-transparent"
+                      }`}
+                    >
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          {/*  avatar gets a small red lock overlay when locked */}
+                          <div className="relative shrink-0">
+                            <div
+                              className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs shadow-sm border ${
+                                lockInfo
+                                  ? "bg-linear-to-br from-red-100 to-red-200 text-red-700 border-red-300"
+                                  : "bg-linear-to-br from-blue-100 to-blue-200 text-blue-700 border-blue-200"
+                              }`}
+                            >
+                              {getInitials(u.profile?.fullName)}
+                            </div>
+                            {lockInfo && (
+                              <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-red-600 text-white flex items-center justify-center border-2 border-white shadow">
+                                <Lock className="w-2.5 h-2.5" />
+                              </span>
+                            )}
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="font-semibold text-gray-900">
+                                {u.profile?.fullName || "Unnamed User"}
+                              </p>
+                              {/*  locked badge next to the name */}
+                              {lockInfo && (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-red-700 bg-red-100 border border-red-300 px-1.5 py-0.5 rounded">
+                                  <Lock className="w-2.5 h-2.5" />
+                                  {lockInfo.isPermanent ? "Banned" : "Locked"}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
+                              <Mail className="w-3 h-3" /> {u.email}
+                            </p>
+                          </div>
                         </div>
-                      ) : (
-                        <span className="text-xs text-gray-400 italic">No Wallet</span>
-                      )}
-                    </td>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold border ${
+                            u.roles?.[0] === "Admin"
+                              ? "bg-purple-50 text-purple-700 border-purple-200"
+                              : u.roles?.[0] === "Seller"
+                                ? "bg-orange-50 text-orange-700 border-orange-200"
+                                : "bg-blue-50 text-blue-700 border-blue-200"
+                          }`}
+                        >
+                          {u.roles?.[0] === "Admin" && (
+                            <Shield className="w-3.5 h-3.5" />
+                          )}
+                          {u.roles?.[0] === "Seller" && (
+                            <Store className="w-3.5 h-3.5" />
+                          )}
+                          {u.roles?.[0] === "Buyer" && (
+                            <ShoppingBag className="w-3.5 h-3.5" />
+                          )}
+                          {u.roles?.[0] || "Buyer"}
+                        </span>
+                      </td>
 
-                    <td className="px-6 py-4">
-                      <span className="text-sm text-gray-700 flex items-center gap-1.5">
-                        <MapPin className="w-3.5 h-3.5 text-gray-400" />
-                        {u.profile?.city || "—"}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => setViewDetailsTarget(u)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors"
-                          title="View Details"
-                        >
-                          <Eye className="w-3.5 h-3.5" /> View
-                        </button>
-                        <button
-                          onClick={() => {
-                            setSelectedUser(u);
-                            reset({ action: "unlock", durationMinutes: "" });
-                          }}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg transition-colors"
-                        >
-                          <Lock className="w-3.5 h-3.5" /> Manage Access
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                      {/* Wallet Column */}
+                      <td className="px-6 py-4">
+                        {u.wallet ? (
+                          <div>
+                            <p className="font-bold text-gray-900">
+                              {formatMoney(u.wallet.availableBalance)}
+                            </p>
+                            <p className="text-[11px] text-gray-500 mt-0.5">
+                              Res: {formatMoney(u.wallet.reservedBalance)}
+                            </p>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-gray-400 italic">
+                            No Wallet
+                          </span>
+                        )}
+                      </td>
+
+                      <td className="px-6 py-4">
+                        <span className="text-sm text-gray-700 flex items-center gap-1.5">
+                          <MapPin className="w-3.5 h-3.5 text-gray-400" />
+                          {u.profile?.city || "—"}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => setViewDetailsTarget(u)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors"
+                            title="View Details"
+                          >
+                            <Eye className="w-3.5 h-3.5" /> View
+                          </button>
+                          <button
+                            onClick={() => {
+                              setSelectedUser(u);
+                              //  pre-select the current lock state so the admin sees it immediately
+                              if (lockInfo?.isPermanent) {
+                                reset({
+                                  action: "permanent",
+                                  durationMinutes: "",
+                                });
+                              } else if (lockInfo) {
+                                reset({
+                                  action: "temporary",
+                                  durationMinutes: "",
+                                });
+                              } else {
+                                reset({
+                                  action: "unlock",
+                                  durationMinutes: "",
+                                });
+                              }
+                            }}
+                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold border rounded-lg transition-colors ${
+                              lockInfo
+                                ? "text-red-700 bg-red-50 hover:bg-red-100 border-red-200"
+                                : "text-gray-700 bg-white hover:bg-gray-50 border-gray-300"
+                            }`}
+                          >
+                            <Lock className="w-3.5 h-3.5" /> Manage Access
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
         </div>
       </div>
 
-      {/* ========================================================= */}
-      {/* NEW: READ-ONLY USER DETAILS MODAL */}
-      {/* ========================================================= */}
+      {/* READ-ONLY USER DETAILS MODAL */}
       {viewDetailsTarget && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
           <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[92vh] overflow-y-auto shadow-xl flex flex-col">
-
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50 sticky top-0 z-10">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-linear-to-br from-blue-100 to-blue-200 flex items-center justify-center shrink-0 text-blue-700 font-bold text-lg shadow-sm border border-blue-200">
+                <div
+                  className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 font-bold text-lg shadow-sm border ${
+                    getLockInfo(viewDetailsTarget)
+                      ? "bg-linear-to-br from-red-100 to-red-200 text-red-700 border-red-300"
+                      : "bg-linear-to-br from-blue-100 to-blue-200 text-blue-700 border-blue-200"
+                  }`}
+                >
                   {getInitials(viewDetailsTarget.profile?.fullName)}
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-gray-900">{viewDetailsTarget.profile?.fullName || "Unnamed User"}</h2>
-                  <p className="text-xs text-gray-500">{viewDetailsTarget.email}</p>
+                  <h2 className="text-lg font-bold text-gray-900">
+                    {viewDetailsTarget.profile?.fullName || "Unnamed User"}
+                  </h2>
+                  <p className="text-xs text-gray-500">
+                    {viewDetailsTarget.email}
+                  </p>
                 </div>
               </div>
               <button
@@ -353,6 +501,61 @@ export default function Users() {
             </div>
 
             <div className="p-6 space-y-6 flex-1">
+              {/*  Security / lock status section */}
+              {(() => {
+                const info = getLockInfo(viewDetailsTarget);
+                return (
+                  <div>
+                    <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2 mb-3">
+                      <Lock className="w-4 h-4 text-gray-500" /> Account
+                      Security
+                    </h3>
+                    {info ? (
+                      <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+                        <div className="p-2 bg-red-100 text-red-600 rounded-lg shrink-0">
+                          {info.isPermanent ? (
+                            <Lock className="w-5 h-5" />
+                          ) : (
+                            <Clock className="w-5 h-5" />
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-bold text-red-900 text-sm">
+                            {info.label}
+                          </p>
+                          {info.isPermanent ? (
+                            <p className="text-xs text-red-700 mt-1">
+                              This account has been permanently banned and
+                              cannot log in.
+                            </p>
+                          ) : (
+                            <p className="text-xs text-red-700 mt-1">
+                              Lock expires:{" "}
+                              <span className="font-semibold">
+                                {info.endLabel}
+                              </span>
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-start gap-3">
+                        <div className="p-2 bg-green-100 text-green-600 rounded-lg shrink-0">
+                          <CheckCircle2 className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <p className="font-bold text-green-900 text-sm">
+                            Active
+                          </p>
+                          <p className="text-xs text-green-700 mt-1">
+                            This account is not locked and can log in normally.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
 
               {/* Wallet Overview */}
               <div>
@@ -362,75 +565,117 @@ export default function Users() {
                 {viewDetailsTarget.wallet ? (
                   <div className="grid grid-cols-3 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
                     <div className="text-center">
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Available</p>
-                      <p className="text-xl font-bold text-green-600">{formatMoney(viewDetailsTarget.wallet.availableBalance)}</p>
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                        Available
+                      </p>
+                      <p className="text-xl font-bold text-green-600">
+                        {formatMoney(viewDetailsTarget.wallet.availableBalance)}
+                      </p>
                     </div>
                     <div className="text-center border-l border-gray-200">
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Reserved</p>
-                      <p className="text-xl font-bold text-orange-600">{formatMoney(viewDetailsTarget.wallet.reservedBalance)}</p>
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                        Reserved
+                      </p>
+                      <p className="text-xl font-bold text-orange-600">
+                        {formatMoney(viewDetailsTarget.wallet.reservedBalance)}
+                      </p>
                     </div>
                     <div className="text-center border-l border-gray-200">
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total</p>
-                      <p className="text-xl font-bold text-gray-900">{formatMoney(viewDetailsTarget.wallet.balance)}</p>
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                        Total
+                      </p>
+                      <p className="text-xl font-bold text-gray-900">
+                        {formatMoney(viewDetailsTarget.wallet.balance)}
+                      </p>
                     </div>
                   </div>
                 ) : (
-                  <div className="bg-gray-50 p-4 rounded-xl text-center text-gray-500 text-sm">No wallet data available.</div>
+                  <div className="bg-gray-50 p-4 rounded-xl text-center text-gray-500 text-sm">
+                    No wallet data available.
+                  </div>
                 )}
               </div>
 
               {/* Account Information */}
               <div>
                 <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2 mb-3">
-                  <Shield className="w-4 h-4 text-gray-500" /> Account Information
+                  <Shield className="w-4 h-4 text-gray-500" /> Account
+                  Information
                 </h3>
                 <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200 text-sm">
                   <div>
                     <p className="text-xs text-gray-500 mb-0.5">Role</p>
-                    <p className="font-semibold text-gray-900">{viewDetailsTarget.roles?.[0] || "Buyer"}</p>
+                    <p className="font-semibold text-gray-900">
+                      {viewDetailsTarget.roles?.[0] || "Buyer"}
+                    </p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 mb-0.5">Verification Status</p>
+                    <p className="text-xs text-gray-500 mb-0.5">
+                      Verification Status
+                    </p>
                     <div>
                       {viewDetailsTarget.roles?.[0] === "Admin" ? (
-                        <span className="text-xs text-gray-400 italic">N/A</span>
-                      ) : viewDetailsTarget.profile?.verificationStatus === "Verified" || viewDetailsTarget.profile?.verificationStatus === "Approved" ? (
-                        <span className="inline-flex items-center gap-1 text-xs font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded"><CheckCircle2 className="w-3 h-3" /> Verified</span>
-                      ) : viewDetailsTarget.profile?.verificationStatus === "PendingReview" ? (
-                        <span className="inline-flex items-center gap-1 text-xs font-bold text-orange-700 bg-orange-100 px-2 py-0.5 rounded"><Clock className="w-3 h-3" /> Pending</span>
-                      ) : viewDetailsTarget.profile?.verificationStatus === "Rejected" ? (
-                        <span className="inline-flex items-center gap-1 text-xs font-bold text-red-700 bg-red-100 px-2 py-0.5 rounded"><XCircle className="w-3 h-3" /> Rejected</span>
+                        <span className="text-xs text-gray-400 italic">
+                          N/A
+                        </span>
+                      ) : viewDetailsTarget.profile?.verificationStatus ===
+                          "Verified" ||
+                        viewDetailsTarget.profile?.verificationStatus ===
+                          "Approved" ? (
+                        <span className="inline-flex items-center gap-1 text-xs font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded">
+                          <CheckCircle2 className="w-3 h-3" /> Verified
+                        </span>
+                      ) : viewDetailsTarget.profile?.verificationStatus ===
+                        "PendingReview" ? (
+                        <span className="inline-flex items-center gap-1 text-xs font-bold text-orange-700 bg-orange-100 px-2 py-0.5 rounded">
+                          <Clock className="w-3 h-3" /> Pending
+                        </span>
+                      ) : viewDetailsTarget.profile?.verificationStatus ===
+                        "Rejected" ? (
+                        <span className="inline-flex items-center gap-1 text-xs font-bold text-red-700 bg-red-100 px-2 py-0.5 rounded">
+                          <XCircle className="w-3 h-3" /> Rejected
+                        </span>
                       ) : (
-                        <span className="text-xs text-gray-500">Not Submitted</span>
+                        <span className="text-xs text-gray-500">
+                          Not Submitted
+                        </span>
                       )}
                     </div>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500 mb-0.5">Phone Number</p>
                     <p className="font-semibold text-gray-900 flex items-center gap-1">
-                      <Phone className="w-3.5 h-3.5 text-gray-400" /> {viewDetailsTarget.phoneNumber || "N/A"}
+                      <Phone className="w-3.5 h-3.5 text-gray-400" />{" "}
+                      {viewDetailsTarget.phoneNumber || "N/A"}
                     </p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500 mb-0.5">National ID</p>
                     <p className="font-semibold text-gray-900 flex items-center gap-1">
-                      <CreditCard className="w-3.5 h-3.5 text-gray-400" /> {viewDetailsTarget.profile?.nationalIdNumber || "N/A"}
+                      <CreditCard className="w-3.5 h-3.5 text-gray-400" />{" "}
+                      {viewDetailsTarget.profile?.nationalIdNumber || "N/A"}
                     </p>
                   </div>
                   <div className="col-span-2">
                     <p className="text-xs text-gray-500 mb-0.5">Address</p>
-                    <p className="font-semibold text-gray-900">{viewDetailsTarget.profile?.address || "N/A"}, {viewDetailsTarget.profile?.city || "N/A"}</p>
+                    <p className="font-semibold text-gray-900">
+                      {viewDetailsTarget.profile?.address || "N/A"},{" "}
+                      {viewDetailsTarget.profile?.city || "N/A"}
+                    </p>
                   </div>
                   <div className="col-span-2 border-t border-gray-200 pt-2">
                     <p className="text-xs text-gray-500 mb-0.5">Joined Date</p>
                     <p className="font-semibold text-gray-900 flex items-center gap-1">
                       <Calendar className="w-3.5 h-3.5 text-gray-400" />
-                      {viewDetailsTarget.profile?.createdAt ? new Date(viewDetailsTarget.profile.createdAt).toLocaleDateString() : "N/A"}
+                      {viewDetailsTarget.profile?.createdAt
+                        ? new Date(
+                            viewDetailsTarget.profile.createdAt,
+                          ).toLocaleDateString()
+                        : "N/A"}
                     </p>
                   </div>
                 </div>
               </div>
-
             </div>
 
             <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex justify-end sticky bottom-0 z-10 rounded-b-2xl">
@@ -445,74 +690,175 @@ export default function Users() {
         </div>
       )}
 
-      {/* ========================================================= */}
-      {/* MANAGE LOCK MODAL (Keep existing) */}
-      {/* ========================================================= */}
+      {/* MANAGE LOCK MODAL */}
       {selectedUser && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
           <div className="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden animate-in fade-in zoom-in-95">
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
               <div>
-                <h2 className="text-lg font-bold text-gray-900">Manage Access</h2>
-                <p className="text-xs text-gray-500 mt-0.5 truncate max-w-70">{selectedUser.email}</p>
+                <h2 className="text-lg font-bold text-gray-900">
+                  Manage Access
+                </h2>
+                <p className="text-xs text-gray-500 mt-0.5 truncate max-w-70">
+                  {selectedUser.email}
+                </p>
               </div>
-              <button onClick={() => setSelectedUser(null)} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">
+              <button
+                onClick={() => setSelectedUser(null)}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <form onSubmit={handleSubmit(onLockSubmit)} className="p-6 space-y-5">
+
+            {/*  current lock state banner */}
+            {(() => {
+              const info = getLockInfo(selectedUser);
+              if (!info) return null;
+              return (
+                <div className="mx-6 mt-4 bg-red-50 border border-red-200 text-red-800 p-3 rounded-lg text-xs flex items-start gap-2">
+                  <Lock className="w-4 h-4 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-bold">{info.label}</p>
+                    {info.endLabel && (
+                      <p className="mt-0.5">
+                        Currently locked until {info.endLabel}.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
+
+            <form
+              onSubmit={handleSubmit(onLockSubmit)}
+              className="p-6 space-y-5"
+            >
               <div>
-                <label className="block text-sm font-bold text-gray-900 mb-2">Account Status</label>
+                <label className="block text-sm font-bold text-gray-900 mb-2">
+                  Account Status
+                </label>
                 <div className="grid grid-cols-1 gap-2">
-                  <label className={`cursor-pointer border-2 rounded-xl p-3 flex items-center gap-3 transition ${lockAction === "unlock" ? "border-green-500 bg-green-50" : "border-gray-200 hover:border-gray-300"}`}>
-                    <input type="radio" value="unlock" {...register("action")} className="hidden" />
-                    <div className={`p-2 rounded-lg ${lockAction === "unlock" ? "bg-green-100 text-green-600" : "bg-gray-100 text-gray-400"}`}>
+                  <label
+                    className={`cursor-pointer border-2 rounded-xl p-3 flex items-center gap-3 transition ${lockAction === "unlock" ? "border-green-500 bg-green-50" : "border-gray-200 hover:border-gray-300"}`}
+                  >
+                    <input
+                      type="radio"
+                      value="unlock"
+                      {...register("action")}
+                      className="hidden"
+                    />
+                    <div
+                      className={`p-2 rounded-lg ${lockAction === "unlock" ? "bg-green-100 text-green-600" : "bg-gray-100 text-gray-400"}`}
+                    >
                       <Unlock className="w-4 h-4" />
                     </div>
                     <div>
-                      <p className={`text-sm font-bold ${lockAction === "unlock" ? "text-green-800" : "text-gray-700"}`}>Unlock Account</p>
-                      <p className="text-xs text-gray-500">Restore normal access immediately.</p>
+                      <p
+                        className={`text-sm font-bold ${lockAction === "unlock" ? "text-green-800" : "text-gray-700"}`}
+                      >
+                        Unlock Account
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Restore normal access immediately.
+                      </p>
                     </div>
                   </label>
-                  <label className={`cursor-pointer border-2 rounded-xl p-3 flex items-center gap-3 transition ${lockAction === "temporary" ? "border-orange-500 bg-orange-50" : "border-gray-200 hover:border-gray-300"}`}>
-                    <input type="radio" value="temporary" {...register("action")} className="hidden" />
-                    <div className={`p-2 rounded-lg ${lockAction === "temporary" ? "bg-orange-100 text-orange-600" : "bg-gray-100 text-gray-400"}`}>
+                  <label
+                    className={`cursor-pointer border-2 rounded-xl p-3 flex items-center gap-3 transition ${lockAction === "temporary" ? "border-orange-500 bg-orange-50" : "border-gray-200 hover:border-gray-300"}`}
+                  >
+                    <input
+                      type="radio"
+                      value="temporary"
+                      {...register("action")}
+                      className="hidden"
+                    />
+                    <div
+                      className={`p-2 rounded-lg ${lockAction === "temporary" ? "bg-orange-100 text-orange-600" : "bg-gray-100 text-gray-400"}`}
+                    >
                       <Clock className="w-4 h-4" />
                     </div>
                     <div>
-                      <p className={`text-sm font-bold ${lockAction === "temporary" ? "text-orange-800" : "text-gray-700"}`}>Temporary Lock</p>
-                      <p className="text-xs text-gray-500">Suspend access for a specific duration.</p>
+                      <p
+                        className={`text-sm font-bold ${lockAction === "temporary" ? "text-orange-800" : "text-gray-700"}`}
+                      >
+                        Temporary Lock
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Suspend access for a specific duration.
+                      </p>
                     </div>
                   </label>
-                  <label className={`cursor-pointer border-2 rounded-xl p-3 flex items-center gap-3 transition ${lockAction === "permanent" ? "border-red-500 bg-red-50" : "border-gray-200 hover:border-gray-300"}`}>
-                    <input type="radio" value="permanent" {...register("action")} className="hidden" />
-                    <div className={`p-2 rounded-lg ${lockAction === "permanent" ? "bg-red-100 text-red-600" : "bg-gray-100 text-gray-400"}`}>
+                  <label
+                    className={`cursor-pointer border-2 rounded-xl p-3 flex items-center gap-3 transition ${lockAction === "permanent" ? "border-red-500 bg-red-50" : "border-gray-200 hover:border-gray-300"}`}
+                  >
+                    <input
+                      type="radio"
+                      value="permanent"
+                      {...register("action")}
+                      className="hidden"
+                    />
+                    <div
+                      className={`p-2 rounded-lg ${lockAction === "permanent" ? "bg-red-100 text-red-600" : "bg-gray-100 text-gray-400"}`}
+                    >
                       <Lock className="w-4 h-4" />
                     </div>
                     <div>
-                      <p className={`text-sm font-bold ${lockAction === "permanent" ? "text-red-800" : "text-gray-700"}`}>Permanent Lock</p>
-                      <p className="text-xs text-gray-500">Permanently ban this user from the platform.</p>
+                      <p
+                        className={`text-sm font-bold ${lockAction === "permanent" ? "text-red-800" : "text-gray-700"}`}
+                      >
+                        Permanent Lock
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Permanently ban this user from the platform.
+                      </p>
                     </div>
                   </label>
                 </div>
               </div>
               {lockAction === "temporary" && (
                 <div className="animate-in fade-in slide-in-from-top-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Duration (Minutes)</label>
-                  <input type="number" {...register("durationMinutes", { required: lockAction === "temporary" })} className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none text-sm" placeholder="e.g. 60 for 1 hour" />
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Duration (Minutes)
+                  </label>
+                  <input
+                    type="number"
+                    {...register("durationMinutes", {
+                      required: lockAction === "temporary",
+                    })}
+                    className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none text-sm"
+                    placeholder="e.g. 60 for 1 hour"
+                  />
                 </div>
               )}
               {lockAction !== "unlock" && (
                 <div className="bg-red-50 border border-red-200 text-red-800 p-3 rounded-lg text-xs flex items-start gap-2 animate-in fade-in">
                   <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
-                  <p>The user will be immediately logged out and unable to sign in until the lock is lifted.</p>
+                  <p>
+                    The user will be immediately logged out and unable to sign
+                    in until the lock is lifted.
+                  </p>
                 </div>
               )}
               <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
-                <button type="button" onClick={() => setSelectedUser(null)} className="px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">Cancel</button>
-                <button type="submit" disabled={submitting} className={`inline-flex items-center gap-2 px-5 py-2.5 text-white text-sm font-bold rounded-lg transition-all disabled:opacity-50 ${lockAction === "unlock" ? "bg-green-600 hover:bg-green-700" : lockAction === "permanent" ? "bg-red-600 hover:bg-red-700" : "bg-orange-600 hover:bg-orange-700"}`}>
+                <button
+                  type="button"
+                  onClick={() => setSelectedUser(null)}
+                  className="px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className={`inline-flex items-center gap-2 px-5 py-2.5 text-white text-sm font-bold rounded-lg transition-all disabled:opacity-50 ${lockAction === "unlock" ? "bg-green-600 hover:bg-green-700" : lockAction === "permanent" ? "bg-red-600 hover:bg-red-700" : "bg-orange-600 hover:bg-orange-700"}`}
+                >
                   {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                  {submitting ? "Applying..." : lockAction === "unlock" ? "Confirm Unlock" : "Apply Lock"}
+                  {submitting
+                    ? "Applying..."
+                    : lockAction === "unlock"
+                      ? "Confirm Unlock"
+                      : "Apply Lock"}
                 </button>
               </div>
             </form>
@@ -520,64 +866,104 @@ export default function Users() {
         </div>
       )}
 
-      {/* ========================================================= */}
-      {/* CREATE ADMIN MODAL (Keep existing) */}
-      {/* ========================================================= */}
+      {/* CREATE ADMIN MODAL */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
           <div className="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden animate-in fade-in zoom-in-95">
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
               <div>
                 <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                  <Shield className="w-5 h-5 text-gray-700" /> Create Admin Account
+                  <Shield className="w-5 h-5 text-gray-700" /> Create Admin
+                  Account
                 </h2>
-                <p className="text-xs text-gray-500 mt-0.5">Grant full platform access to a new user.</p>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Grant full platform access to a new user.
+                </p>
               </div>
-              <button onClick={() => setShowCreateModal(false)} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleAdminSubmit(onCreateAdminSubmit)} className="p-6 space-y-4">
+            <form
+              onSubmit={handleAdminSubmit(onCreateAdminSubmit)}
+              className="p-6 space-y-4"
+            >
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Full Name
+                </label>
                 <input
                   type="text"
-                  {...registerAdmin("fullName", { required: "Name is required" })}
+                  {...registerAdmin("fullName", {
+                    required: "Name is required",
+                  })}
                   className={`w-full border p-2.5 rounded-lg focus:ring-2 focus:ring-gray-500 outline-none text-sm ${adminErrors.fullName ? "border-red-500" : "border-gray-300"}`}
                   placeholder="John Doe"
                 />
-                {adminErrors.fullName && <p className="text-xs text-red-600 mt-1">{adminErrors.fullName.message}</p>}
+                {adminErrors.fullName && (
+                  <p className="text-xs text-red-600 mt-1">
+                    {adminErrors.fullName.message}
+                  </p>
+                )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Email Address
+                </label>
                 <input
                   type="email"
                   {...registerAdmin("email", { required: "Email is required" })}
                   className={`w-full border p-2.5 rounded-lg focus:ring-2 focus:ring-gray-500 outline-none text-sm ${adminErrors.email ? "border-red-500" : "border-gray-300"}`}
                   placeholder="admin@bidora.com"
                 />
-                {adminErrors.email && <p className="text-xs text-red-600 mt-1">{adminErrors.email.message}</p>}
+                {adminErrors.email && (
+                  <p className="text-xs text-red-600 mt-1">
+                    {adminErrors.email.message}
+                  </p>
+                )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Password
+                </label>
                 <input
                   type="password"
-                  {...registerAdmin("password", { required: "Password is required", minLength: { value: 6, message: "Min 6 characters" } })}
+                  {...registerAdmin("password", {
+                    required: "Password is required",
+                    minLength: { value: 6, message: "Min 6 characters" },
+                  })}
                   className={`w-full border p-2.5 rounded-lg focus:ring-2 focus:ring-gray-500 outline-none text-sm ${adminErrors.password ? "border-red-500" : "border-gray-300"}`}
                   placeholder="••••••••"
                 />
-                {adminErrors.password && <p className="text-xs text-red-600 mt-1">{adminErrors.password.message}</p>}
+                {adminErrors.password && (
+                  <p className="text-xs text-red-600 mt-1">
+                    {adminErrors.password.message}
+                  </p>
+                )}
               </div>
 
               <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 mt-6">
-                <button type="button" onClick={() => setShowCreateModal(false)} className="px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateModal(false)}
+                  className="px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                >
                   Cancel
                 </button>
-                <button type="submit" disabled={isAdminSubmitting} className="inline-flex items-center gap-2 px-5 py-2.5 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-50 bg-gray-900 hover:bg-black shadow-md">
-                  {isAdminSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
+                <button
+                  type="submit"
+                  disabled={isAdminSubmitting}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-50 bg-gray-900 hover:bg-black shadow-md"
+                >
+                  {isAdminSubmitting && (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  )}
                   {isAdminSubmitting ? "Creating..." : "Create Admin"}
                 </button>
               </div>
@@ -585,7 +971,6 @@ export default function Users() {
           </div>
         </div>
       )}
-
     </div>
   );
 }

@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { Skeleton } from "../../../components/Skeleton";
 import { toast } from "../../../utils/toast";
+import { formatDateTime } from "../../../utils/date";
 
 export default function AdminTransactions() {
   const [activeTab, setActiveTab] = useState("transactions");
@@ -44,14 +45,7 @@ export default function AdminTransactions() {
 
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
-    const d = new Date(dateString);
-    const day = d.getDate().toString().padStart(2,'0');
-    const monthNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    const month = monthNames[d.getMonth()];
-    const year = d.getFullYear();
-    let hours = d.getHours(); const mins = d.getMinutes().toString().padStart(2,'0');
-    const ampm = hours>=12?'PM':'AM'; hours = hours%12; hours = hours===0?12:hours;
-    return day+'-'+month+'-'+year+' '+hours.toString().padStart(2,'0')+':'+mins+' '+ampm;
+    return formatDateTime(dateString);
   };
 
   // --- CALCULATE STATS (Fixed to camelCase) ---

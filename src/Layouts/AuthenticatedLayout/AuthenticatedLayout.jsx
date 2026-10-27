@@ -1,11 +1,28 @@
 import { useEffect, useState } from "react";
 import { Outlet, NavLink, Link, useNavigate } from "react-router-dom";
 import {
-  LayoutDashboard, Gavel, Wallet, Settings, ArrowLeft, LogOut,
-  Package, Users, ShieldCheck, CreditCard, Scale, CheckCircle,
-  Trophy, ShoppingCart, Activity,
+  LayoutDashboard,
+  Gavel,
+  Wallet,
+  Settings,
+  ArrowLeft,
+  LogOut,
+  Package,
+  Users,
+  ShieldCheck,
+  CreditCard,
+  Scale,
+  CheckCircle,
+  Trophy,
+  ShoppingCart,
+  Activity,
 } from "lucide-react";
-import authApi, { logout, getCurrentUser, getAuthConfig } from "../../services/authApi";
+import authApi, {
+  logout,
+  getCurrentUser,
+  getAuthConfig,
+} from "../../services/authApi";
+import AuctionLoader from "../../components/AuctionLoader";
 
 function AuthenticatedLayout() {
   const navigate = useNavigate();
@@ -26,7 +43,10 @@ function AuthenticatedLayout() {
             const walletRes = await authApi.get("/wallet/me", getAuthConfig());
             setBalance(walletRes.data.data.balance || 0);
           } catch (walletErr) {
-            console.warn("Wallet not found or could not be fetched:", walletErr);
+            console.warn(
+              "Wallet not found or could not be fetched:",
+              walletErr,
+            );
             setBalance(0);
           }
         }
@@ -46,31 +66,33 @@ function AuthenticatedLayout() {
   };
 
   const navLinkClass = ({ isActive }) =>
-    `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive
-      ? "bg-blue-50 text-blue-700"
-      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+    `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+      isActive
+        ? "bg-blue-50 text-blue-700"
+        : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
     }`;
 
   if (loading) {
-    return (
-      <div className="h-screen flex items-center justify-center bg-gray-50 text-gray-500">
-        Loading your workspace...
-      </div>
-    );
+    return <AuctionLoader />;
   }
 
   const role = userData?.account?.roles?.[0] || "User";
   const currentDate =
     new Date().toLocaleDateString("en-GB", {
-      day: "2-digit", month: "short", year: "numeric",
-      hour: "2-digit", minute: "2-digit",
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     }) + " (Local)";
 
   // Determine the exact path for the main dashboard link
   const dashboardLink =
-    role === "Admin" ? "/admin/dashboard" :
-      role === "Seller" ? "/seller/dashboard" :
-        "/buyer/dashboard";
+    role === "Admin"
+      ? "/admin/dashboard"
+      : role === "Seller"
+        ? "/seller/dashboard"
+        : "/buyer/dashboard";
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
@@ -81,18 +103,32 @@ function AuthenticatedLayout() {
           <div className="h-16 flex items-center px-6 border-b border-gray-100 shrink-0">
             <Link to="/" className="flex items-center gap-2">
               <div className="bg-blue-600 p-1.5 rounded-md text-white">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                  />
                 </svg>
               </div>
-              <span className="text-xl font-bold text-gray-900 tracking-tight">Bidora</span>
+              <span className="text-xl font-bold text-gray-900 tracking-tight">
+                Bidora
+              </span>
             </Link>
           </div>
 
           {/* Dynamic Navigation Links */}
           <div className="flex-1 overflow-y-auto px-4 py-4 space-y-5">
             <div>
-              <p className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Overview</p>
+              <p className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                Overview
+              </p>
               <nav className="space-y-1">
                 <NavLink to={dashboardLink} end className={navLinkClass}>
                   <LayoutDashboard className="w-4 h-4" /> Dashboard
@@ -129,10 +165,16 @@ function AuthenticatedLayout() {
                 {role === "Admin" && (
                   <>
                     <div className="mt-3">
-                      <p className="px-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Validation & Moderation</p>
+                      <p className="px-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
+                        Validation & Moderation
+                      </p>
                       <nav className="space-y-1">
-                        <NavLink to="/admin/verifications" className={navLinkClass}>
-                          <CheckCircle className="w-4 h-4" /> Profile Verifications
+                        <NavLink
+                          to="/admin/verifications"
+                          className={navLinkClass}
+                        >
+                          <CheckCircle className="w-4 h-4" /> Profile
+                          Verifications
                         </NavLink>
                         <NavLink to="/admin/deposits" className={navLinkClass}>
                           <CreditCard className="w-4 h-4" /> Deposit Requests
@@ -144,7 +186,9 @@ function AuthenticatedLayout() {
                     </div>
 
                     <div className="mt-4">
-                      <p className="px-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Management</p>
+                      <p className="px-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
+                        Management
+                      </p>
                       <nav className="space-y-1">
                         <NavLink to="/admin/users" className={navLinkClass}>
                           <Users className="w-4 h-4" /> User Management
@@ -155,17 +199,24 @@ function AuthenticatedLayout() {
                         <NavLink to="/admin/disputes" className={navLinkClass}>
                           <Scale className="w-4 h-4" /> Disputes
                         </NavLink>
-                        <NavLink to="/admin/categories" className={navLinkClass}>
+                        <NavLink
+                          to="/admin/categories"
+                          className={navLinkClass}
+                        >
                           <LayoutDashboard className="w-4 h-4" /> Categories
                         </NavLink>
                         <NavLink to="/admin/wallet" className={navLinkClass}>
                           <Wallet className="w-4 h-4" /> Platform Wallet
                         </NavLink>
-                        <NavLink to="/admin/transactions" className={navLinkClass}>
+                        <NavLink
+                          to="/admin/transactions"
+                          className={navLinkClass}
+                        >
                           <Activity className="w-4 h-4" /> Financial Ledger
                         </NavLink>
                         <NavLink to="/admin/sales" className={navLinkClass}>
-                          <ShoppingCart className="w-4 h-4" /> Sales & Deliveries
+                          <ShoppingCart className="w-4 h-4" /> Sales &
+                          Deliveries
                         </NavLink>
                       </nav>
                     </div>
@@ -175,7 +226,9 @@ function AuthenticatedLayout() {
             </div>
 
             <div>
-              <p className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Activity</p>
+              <p className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                Activity
+              </p>
               <nav className="space-y-1">
                 <NavLink to="/settings" className={navLinkClass}>
                   <Settings className="w-4 h-4" /> Account settings
@@ -184,9 +237,14 @@ function AuthenticatedLayout() {
             </div>
 
             <div>
-              <p className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Explore</p>
+              <p className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                Explore
+              </p>
               <nav className="space-y-1">
-                <Link to="/" className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors">
+                <Link
+                  to="/"
+                  className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+                >
                   <ArrowLeft className="w-4 h-4" /> Back to marketplace
                 </Link>
               </nav>
@@ -195,7 +253,10 @@ function AuthenticatedLayout() {
 
           {/* Logout */}
           <div className="border-t border-gray-100 p-3 shrink-0 bg-white">
-            <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-2 w-full rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-3 px-3 py-2 w-full rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+            >
               <LogOut className="w-4 h-4" /> Log out
             </button>
           </div>
@@ -210,10 +271,18 @@ function AuthenticatedLayout() {
           <div className="flex items-center gap-4">
             <span className="text-xs text-gray-400">{currentDate}</span>
             {role !== "Admin" && (
-              <Link to="/wallet" className="flex items-center gap-2 bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition-colors cursor-pointer ml-2" title="Go to Wallet">
+              <Link
+                to="/wallet"
+                className="flex items-center gap-2 bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition-colors cursor-pointer ml-2"
+                title="Go to Wallet"
+              >
                 <Wallet className="w-4 h-4 text-blue-600" />
                 <span className="font-bold text-blue-800 text-sm">
-                  ৳{balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  ৳
+                  {balance.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
                 </span>
               </Link>
             )}

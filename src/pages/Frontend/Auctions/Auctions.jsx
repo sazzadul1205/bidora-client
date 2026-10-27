@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { getAuctions, getCategories } from "../../services/publicApi";
-import { imageUrl, handleImageError } from "../../utils/image";
-import Countdown from "../../components/Countdown";
+import { getAuctions, getCategories } from "../../../services/publicApi";
+import { imageUrl, handleImageError } from "../../../utils/image";
+import Countdown from "../../../components/Countdown";
 import { Search, Gavel, Package, ArrowRight } from "lucide-react";
-import { Skeleton } from "../../components/Skeleton";
+import { Skeleton } from "../../../components/Skeleton";
 
 export default function Auctions() {
   const [auctions, setAuctions] = useState([]);
@@ -41,28 +41,47 @@ export default function Auctions() {
   }, []);
 
   // Filter Logic
-  const filteredAuctions = auctions.filter((a) => {
-    // 1. Search Filter
-    const matchesSearch = a.productTitle
-      ?.toLowerCase()
-      .includes(searchTerm.toLowerCase());
+  const filteredAuctions = auctions
+    .filter((a) => {
+      // 1. Search Filter
+      const matchesSearch = a.productTitle
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase());
 
-    // 2. Status Filter
-    const matchesStatus =
-      activeStatus === "All"
-        ? true
-        : activeStatus === "Live"
-          ? a.status === "Active"
-          : activeStatus === "Upcoming"
-            ? a.status === "Upcoming"
-            : a.status === "Completed" || a.status === "Cancelled";
+      // 2. Status Filter
+      const matchesStatus =
+        activeStatus === "All"
+          ? true
+          : activeStatus === "Live"
+            ? a.status === "Active"
+            : activeStatus === "Upcoming"
+              ? a.status === "Upcoming"
+              : a.status === "Completed" || a.status === "Cancelled";
 
-    // 3. Category Filter (Now working!)
-    const matchesCategory =
-      activeCategory === "All" || a.categoryId?.toString() === activeCategory;
+      // 3. Category Filter (Now working!)
+      const matchesCategory =
+        activeCategory === "All" || a.categoryId?.toString() === activeCategory;
 
-    return matchesSearch && matchesStatus && matchesCategory;
-  });
+      return matchesSearch && matchesStatus && matchesCategory;
+    })
+    .sort((a, b) => {
+      const getPriority = (status) => {
+        if (status === "Active") return 1; // Live first
+        if (status === "Upcoming") return 2; // Upcoming next
+        if (status === "Completed" || status === "Cancelled") return 3; // Ended last
+        return 4;
+      };
+      const priorityDiff = getPriority(a.status) - getPriority(b.status);
+      if (priorityDiff !== 0) return priorityDiff;
+      // For same status, sort by end time/start time
+      if (a.status === "Active" && b.status === "Active") {
+        return new Date(a.endTime || 0) - new Date(b.endTime || 0);
+      }
+      if (a.status === "Upcoming" && b.status === "Upcoming") {
+        return new Date(a.startTime || 0) - new Date(b.startTime || 0);
+      }
+      return 0;
+    });
 
   if (loading) {
     return (
@@ -225,9 +244,7 @@ export default function Auctions() {
                             </p>
                             <p className="text-lg font-bold text-blue-600">
                               ৳
-                              {auction.currentHighestBid?.toLocaleString() ||
-                                auction.startingPrice?.toLocaleString() ||
-                                "0.00"}
+                              {(auction.currentHighestBid ?? auction.startingPrice ?? 0).toLocaleString()}
                             </p>
                           </div>
                           <div className="text-right">
@@ -253,8 +270,7 @@ export default function Auctions() {
                             </p>
                             <p className="text-lg font-bold text-gray-900">
                               ৳
-                              {auction.startingPrice?.toLocaleString() ||
-                                "0.00"}
+                              {(auction.startingPrice ?? 0).toLocaleString()}
                             </p>
                           </div>
                           <div className="text-right">

@@ -87,6 +87,10 @@ function Navbar() {
           <NavLink to="/auctions" className={navLinkClass}>
             Browse auctions
           </NavLink>
+          <NavLink to="/about" className={navLinkClass}>
+            About Us
+          </NavLink>
+
         </nav>
 
         {/* Right Side Auth & User Info */}

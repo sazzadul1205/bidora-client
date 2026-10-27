@@ -407,7 +407,6 @@ export default function MyProducts() {
                     {/* Actions Group */}
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-1.5">
-                        {/* Primary Actions */}
                         <Link
                           to={`/seller/products/view/${p.id}`}
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg transition-colors"
@@ -425,7 +424,7 @@ export default function MyProducts() {
                           </button>
                         )}
 
-                        {p.auctionId && (
+                        {p.auctionId ? (
                           <Link
                             to={`/seller/auctions/${p.auctionId}`}
                             className="p-2 text-purple-600 hover:text-purple-800 hover:bg-purple-50 rounded-lg transition-colors border border-transparent hover:border-purple-100"
@@ -433,7 +432,7 @@ export default function MyProducts() {
                           >
                             <Gavel className="w-4 h-4" />
                           </Link>
-                        )}
+                        ) : null}
 
                         {/* Divider */}
                         {(p.approvalStatus === "Draft" ||

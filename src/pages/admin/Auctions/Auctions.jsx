@@ -18,10 +18,11 @@ import {
   Loader2,
   X,
   Eye,
+    ArrowUp,
   Users,
-  ArrowUp,
 } from "lucide-react";
 import { toast } from "../../../utils/toast";
+import { formatDateTime } from "../../../utils/date";
 import { SkeletonRow, Skeleton } from "../../../components/Skeleton";
 
 export default function Auctions() {
@@ -146,13 +147,7 @@ export default function Auctions() {
 
   const formatDate = (dateString) => {
     if (!dateString) return "Not set";
-    return new Date(dateString).toLocaleString("en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    return formatDateTime(dateString);
   };
 
   // --- FILTERING LOGIC ---

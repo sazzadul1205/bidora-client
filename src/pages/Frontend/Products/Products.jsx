@@ -4,9 +4,9 @@ import {
   getActiveAuctions,
   getUpcomingAuctions,
   getCategories,
-} from "../../services/publicApi";
-import { imageUrl, handleImageError } from "../../utils/image";
-import Countdown from "../../components/Countdown";
+} from "../../../services/publicApi";
+import { imageUrl, handleImageError } from "../../../utils/image";
+import Countdown from "../../../components/Countdown";
 import {
   Search,
   ArrowRight,
@@ -24,7 +24,7 @@ import {
   ChevronRight,
   Tag,
 } from "lucide-react";
-import { Skeleton } from "../../components/Skeleton";
+import { Skeleton } from "../../../components/Skeleton";
 
 const ICON_POOL = [
   Laptop,
@@ -87,7 +87,6 @@ export default function Home() {
     let mounted = true;
     (async () => {
       try {
-        // NO MORE getProducts() NEEDED!
         const [activeAucRes, upcomingAucRes, catRes] = await Promise.all([
           getActiveAuctions(),
           getUpcomingAuctions(),
@@ -176,7 +175,7 @@ export default function Home() {
           </select>
         </div>
 
-        {/* HERO SECTION */}
+        {/* HERO BANNER SECTION */}
         {heroAuction && (
           <div className="relative bg-[#F0F4F8] rounded-3xl overflow-hidden mb-12 flex flex-col md:flex-row items-center">
             <div className="p-10 md:p-16 md:w-1/2 relative z-10">
@@ -202,7 +201,7 @@ export default function Home() {
                   Explore Auctions
                 </Link>
                 <Link
-                  to="/sell"
+                  to="/register"
                   className="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-6 py-3 rounded-lg text-sm font-semibold transition-colors"
                 >
                   Sell an item
@@ -211,7 +210,7 @@ export default function Home() {
             </div>
             <div className="md:w-1/2 p-8 md:p-12 flex justify-center md:justify-end relative z-10">
               <Link
-                to={`/auction/${heroAuction.id}`}
+                to={`/auctions/${heroAuction.id}`}
                 className="bg-white p-4 rounded-2xl shadow-xl w-full max-w-sm block hover:-translate-y-1 transition-transform"
               >
                 <div className="aspect-4/3 bg-gray-100 rounded-xl overflow-hidden mb-4">
@@ -335,7 +334,7 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               {activeGrid.map((auction) => (
                 <Link
-                  to={`/auction/${auction.id}`}
+                  to={`/auctions/${auction.id}`}
                   key={auction.id}
                   className="group/card bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow"
                 >
@@ -348,7 +347,6 @@ export default function Home() {
                     />
                   </div>
                   <div className="p-5">
-                    {/* NEW: Show Category Name */}
                     <p className="text-xs text-blue-600 font-medium mb-1 flex items-center gap-1">
                       <Tag className="w-3 h-3" />{" "}
                       {auction.categoryName || "Uncategorized"}
@@ -363,9 +361,11 @@ export default function Home() {
                         </p>
                         <p className="text-lg font-bold text-blue-600">
                           ৳
-                          {auction.currentHighestBid?.toLocaleString() ||
-                            auction.startingPrice?.toLocaleString() ||
-                            "0.00"}
+                          {(
+                            auction.currentHighestBid ??
+                            auction.startingPrice ??
+                            0
+                          ).toLocaleString()}
                         </p>
                       </div>
                       <div className="text-right">
@@ -408,7 +408,7 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               {upcomingGrid.map((auction) => (
                 <Link
-                  to={`/auction/${auction.id}`}
+                  to={`/auctions/${auction.id}`}
                   key={auction.id}
                   className="group/card bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow"
                 >
@@ -424,7 +424,6 @@ export default function Home() {
                     </span>
                   </div>
                   <div className="p-5">
-                    {/* NEW: Show Category Name */}
                     <p className="text-xs text-orange-600 font-medium mb-1 flex items-center gap-1">
                       <Tag className="w-3 h-3" />{" "}
                       {auction.categoryName || "Uncategorized"}
@@ -438,7 +437,7 @@ export default function Home() {
                           Starting Price
                         </p>
                         <p className="text-lg font-bold text-gray-900">
-                          ৳{auction.startingPrice?.toLocaleString() || "0.00"}
+                          ৳{(auction.startingPrice ?? 0).toLocaleString()}
                         </p>
                       </div>
                       <div className="text-right">

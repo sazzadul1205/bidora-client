@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { SkeletonRow, Skeleton } from "../../../components/Skeleton";
 import { imageUrl, handleImageError } from "../../../utils/image";
+import { formatDateTime } from "../../../utils/date";
 
 export default function MyBids() {
   const [bids, setBids] = useState([]);
@@ -285,16 +286,7 @@ export default function MyBids() {
 
                   {/* End Time */}
                   <td className="px-6 py-4 text-xs text-gray-600">
-                    {b.auctionEndTime ? (() => {
-                      const d = new Date(b.auctionEndTime);
-                      const day = d.getDate().toString().padStart(2,'0');
-                      const monthNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-                      const month = monthNames[d.getMonth()];
-                      const year = d.getFullYear();
-                      let hours = d.getHours(); const mins = d.getMinutes().toString().padStart(2,'0');
-                      const ampm = hours>=12?'PM':'AM'; hours = hours%12; hours = hours===0?12:hours;
-                      return day+'-'+month+'-'+year+' '+hours.toString().padStart(2,'0')+':'+mins+' '+ampm;
-                    })() : "N/A"}
+                    {b.auctionEndTime ? formatDateTime(b.auctionEndTime) : "N/A"}
                   </td>
 
                   {/* Action */}

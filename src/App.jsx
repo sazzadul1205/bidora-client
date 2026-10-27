@@ -3,9 +3,9 @@ import PublicLayout from "./Layouts/PublicLayout/PublicLayout";
 import AuthenticatedLayout from "./Layouts/AuthenticatedLayout/AuthenticatedLayout";
 import Login from "./pages/Auth/Login/Login";
 import Register from "./pages/Auth/Register/Register";
-import Products from "./pages/Products/Products";
-import Auctions from "./pages/Auctions/Auctions";
-import AuctionDetails from "./pages/AuctionDetails/AuctionDetails";
+import Products from "./pages/Frontend/Products/Products";
+import Auctions from "./pages/Frontend/Auctions/Auctions";
+import AuctionDetails from "./pages/Frontend/AuctionDetails/AuctionDetails";
 
 // Admin Pages
 import AdminDashboard from "./pages/admin/Dashboard/AdminDashboard";
@@ -39,6 +39,9 @@ import Wallet from "./pages/Wallet/Wallet";
 import Settings from "./pages/Auth/Settings/Settings";
 import AdminTransactions from "./pages/admin/Transactions/AdminTransactions";
 import AdminSales from "./pages/admin/Sales/AdminSales";
+import TermsOfUse from "./pages/Frontend/TermsOfUse/TermsOfUse";
+import PrivacyPolicy from "./pages/Frontend/PrivacyPolicy/PrivacyPolicy";
+import AboutUs from "./pages/Frontend/AboutUs/AboutUs";
 
 function App() {
   return (
@@ -49,6 +52,10 @@ function App() {
           <Route path="/" element={<Products />} />
           <Route path="/auctions" element={<Auctions />} />
           <Route path="/auction/:id" element={<AuctionDetails />} />
+          <Route path="/terms" element={<TermsOfUse />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/about" element={<AboutUs />} />
+
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
         </Route>
@@ -58,7 +65,6 @@ function App() {
 
         {/* Authenticated Routes */}
         <Route element={<AuthenticatedLayout />}>
-
           {/* ADMIN ROUTES */}
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/admin/users" element={<Users />} />
@@ -166,7 +172,6 @@ function App() {
             }
           />
           <Route path="/settings" element={<Settings />} />
-
         </Route>
       </Routes>
     </BrowserRouter>

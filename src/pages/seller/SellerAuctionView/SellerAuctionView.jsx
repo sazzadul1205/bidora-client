@@ -17,6 +17,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { toast } from "../../../utils/toast";
+import { formatDate, formatTime } from "../../../utils/date";
 
 export default function SellerAuctionView() {
   const { id } = useParams();
@@ -131,7 +132,7 @@ export default function SellerAuctionView() {
                 <CheckCircle className="w-4 h-4" /> Auction Ended
               </p>
               <p className="text-blue-600 text-xs mt-1">
-                Result: {auction.result || "No winner"} · Final bid $
+                Result: {auction.result || "No winner"} · Final bid ৳
                 {auction.currentHighestBid?.toLocaleString() || "0.00"}
               </p>
             </div>
@@ -209,7 +210,7 @@ export default function SellerAuctionView() {
                       </p>
                       <p className="font-semibold text-gray-900">
                         {auction.purchaseDate
-                          ? new Date(auction.purchaseDate).toLocaleDateString()
+                          ? formatDate(auction.purchaseDate)
                           : "N/A"}
                       </p>
                     </div>
@@ -232,7 +233,7 @@ export default function SellerAuctionView() {
                     Buyout Price
                   </p>
                   <p className="text-xl font-bold text-purple-600">
-                    ${auction.buyoutPrice?.toLocaleString()}
+                    ৳{auction.buyoutPrice?.toLocaleString()}
                   </p>
                 </div>
               </div>
@@ -322,10 +323,10 @@ export default function SellerAuctionView() {
                           {b.bidderName || `User_${b.bidderId.substring(0, 5)}`}
                         </td>
                         <td className="px-6 py-4 font-bold text-gray-900">
-                          ${b.amount.toLocaleString()}
+                          ৳{b.amount.toLocaleString()}
                         </td>
                         <td className="px-6 py-4 text-right text-xs">
-                          {new Date(b.placedAt).toLocaleTimeString()}
+                          {formatTime(b.placedAt)}
                         </td>
                       </tr>
                     ))
@@ -343,7 +344,7 @@ export default function SellerAuctionView() {
                 Current Highest Bid
               </p>
               <p className="text-4xl font-bold text-blue-600 mb-4">
-                ${auction.currentHighestBid?.toLocaleString() || "0.00"}
+                ৳{auction.currentHighestBid?.toLocaleString() || "0.00"}
               </p>
 
               {isLive && (

@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { getAuctionById } from "../../services/publicApi"; // Removed getProductById
-import { getAuctionBids, placeBid, buyoutAuction } from "../../services/buyerApi";
-import { imageUrl, handleImageError } from "../../utils/image";
-import Countdown from "../../components/Countdown";
-import { toast } from "../../utils/toast";
+import { getAuctionById } from "../../../services/publicApi"; // Removed getProductById
+import { getAuctionBids, placeBid, buyoutAuction } from "../../../services/buyerApi";
+import { imageUrl, handleImageError } from "../../../utils/image";
+import Countdown from "../../../components/Countdown";
+import { toast } from "../../../utils/toast";
 import { Gavel, Clock, ShieldCheck, ArrowLeft, Tag, Loader2, CheckCircle, XCircle, TrendingUp, Target } from "lucide-react";
 
 export default function AuctionDetails() {
