@@ -105,8 +105,13 @@ export const getMySales = () => authApi.get("/sale/my-sales", getAuthConfig());
 export const getSaleById = (id) => authApi.get(`/sale/${id}`, getAuthConfig());
 
 // Dispatch a paid item. Backend expects { dispatchInfo, trackingEvidence }
-export const dispatchSale = (id, data) =>
-  authApi.post(`/sale/${id}/dispatch`, data, getAuthConfig());
+export const dispatchSale = (id, formData) =>
+  authApi.post(`/sale/${id}/dispatch`, formData, {
+    headers: {
+      ...getAuthConfig().headers,
+      "Content-Type": "multipart/form-data",
+    },
+  });
 
 // Seller reports that the buyer never picked up the item after dispatch.
 // Allowed only after the 10-day pickup window has passed.
