@@ -75,8 +75,13 @@ export const payForSale = (id) =>
 // Confirm receipt of a dispatched item. The buyer MUST supply proof
 // (a photo, tracking screenshot, or URL) so the seller has evidence
 // the item was received. This releases escrow funds to the seller.
-export const confirmReceipt = (id, data) =>
-  authApi.post(`/sale/${id}/confirm-receipt`, data, getAuthConfig());
+export const confirmReceipt = (id, formData) =>
+  authApi.post(`/sale/${id}/confirm-receipt`, formData, {
+    headers: {
+      ...getAuthConfig().headers,
+      "Content-Type": "multipart/form-data",
+    },
+  });
 
 // Protected Disputes
 export const getMyDisputes = () =>

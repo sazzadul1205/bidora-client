@@ -98,15 +98,14 @@ export default function SellerAuctionView() {
                 {auction.productTitle}
               </h1>
               <span
-                className={`px-3 py-1 rounded-full text-xs font-bold ${
-                  isLive
+                className={`px-3 py-1 rounded-full text-xs font-bold ${isLive
                     ? "bg-green-100 text-green-700"
                     : isUpcoming
                       ? "bg-orange-100 text-orange-700"
                       : isCompleted
                         ? "bg-blue-100 text-blue-700"
                         : "bg-red-100 text-red-700"
-                }`}
+                  }`}
               >
                 {auction.status.toUpperCase()}
               </span>
@@ -300,7 +299,7 @@ export default function SellerAuctionView() {
               <table className="w-full text-left text-sm text-gray-600">
                 <thead className="bg-gray-50 text-gray-900">
                   <tr>
-                    <th className="px-6 py-3 font-medium">Bidder ID</th>
+                    <th className="px-6 py-3 font-medium">Bidder</th>
                     <th className="px-6 py-3 font-medium">Amount</th>
                     <th className="px-6 py-3 font-medium text-right">Time</th>
                   </tr>
@@ -318,8 +317,9 @@ export default function SellerAuctionView() {
                   ) : (
                     bids.map((b, i) => (
                       <tr key={i} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 font-mono text-xs">
-                          {b.bidderId.split("-")[0]}...
+                        {/* CHANGED: Now showing the Bidder's Name with a fallback */}
+                        <td className="px-6 py-4 font-medium text-gray-900">
+                          {b.bidderName || `User_${b.bidderId.substring(0, 5)}`}
                         </td>
                         <td className="px-6 py-4 font-bold text-gray-900">
                           ${b.amount.toLocaleString()}

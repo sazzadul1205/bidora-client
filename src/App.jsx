@@ -37,6 +37,8 @@ import ProfileCompletionGuard from "./components/Auth/ProfileCompletionGuard";
 import ProfilePending from "./pages/ProfilePending/ProfilePending";
 import Wallet from "./pages/Wallet/Wallet";
 import Settings from "./pages/Auth/Settings/Settings";
+import AdminTransactions from "./pages/admin/Transactions/AdminTransactions";
+import AdminSales from "./pages/admin/Sales/AdminSales";
 
 function App() {
   return (
@@ -57,7 +59,7 @@ function App() {
         {/* Authenticated Routes */}
         <Route element={<AuthenticatedLayout />}>
 
-          {/* ================= ADMIN ROUTES ================= */}
+          {/* ADMIN ROUTES */}
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/admin/users" element={<Users />} />
           <Route path="/admin/products" element={<AdminProducts />} />
@@ -67,8 +69,10 @@ function App() {
           <Route path="/admin/disputes" element={<Disputes />} />
           <Route path="/admin/categories" element={<Categories />} />
           <Route path="/admin/wallet" element={<PlatformWallet />} />
+          <Route path="/admin/transactions" element={<AdminTransactions />} />
+          <Route path="/admin/sales" element={<AdminSales />} />
 
-          {/* ================= BUYER ROUTES ================= */}
+          {/* BUYER ROUTES */}
           <Route
             path="/buyer/dashboard"
             element={
@@ -94,7 +98,7 @@ function App() {
             }
           />
 
-          {/* ================= SELLER ROUTES ================= */}
+          {/* SELLER ROUTES */}
           <Route
             path="/seller/dashboard"
             element={
@@ -152,7 +156,7 @@ function App() {
             }
           />
 
-          {/* ================= SHARED ROUTES ================= */}
+          {/* SHARED ROUTES */}
           <Route
             path="/wallet"
             element={

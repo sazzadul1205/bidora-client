@@ -317,7 +317,7 @@ export default function AuctionDetails() {
               {isLive && (
                 <div className="space-y-4 animate-in fade-in duration-300">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1 flex justify-between items-end">
+                    <label className="block text-sm font-medium text-gray-700 mb-1 justify-between items-end">
                       <span>Your Bid</span>
                       <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
                         Min: ${calculatedMinBid.toLocaleString()}
@@ -358,8 +358,12 @@ export default function AuctionDetails() {
                   <div className="space-y-3">
                     {bids.slice(0, 5).map((bid, idx) => (
                       <div key={idx} className="flex justify-between items-center text-sm">
-                        <span className="text-gray-600 font-mono">User_{bid.bidderId.substring(0, 5)}...</span>
-                        <span className="font-bold text-gray-900">${bid.amount.toLocaleString()}</span>
+                        <span className="text-gray-700 font-medium truncate max-w-37.5">
+                          {bid.bidderName}
+                        </span>
+                        <span className="font-bold text-gray-900">
+                          ${bid.amount.toLocaleString()}
+                        </span>
                       </div>
                     ))}
                   </div>

@@ -1,6 +1,5 @@
 import authApi, { getAuthConfig } from "./authApi";
 
-
 export const getAdminDashboard = () =>
   authApi.get("/admin/dashboard", getAuthConfig());
 export const createAdmin = (data) =>
@@ -96,6 +95,11 @@ export const updateMyProfile = (data) =>
 export const getPlatformWallet = () =>
   authApi.get("/admin/platform-wallet", getAuthConfig());
 
+export const getAllTransactions = () =>
+  authApi.get("/admin/transactions", getAuthConfig());
+export const getAllReservations = () =>
+  authApi.get("/admin/reservations", getAuthConfig());
+
 export default {
   getAdminDashboard,
   createAdmin,
@@ -124,4 +128,6 @@ export default {
   resolveDispute,
   getPenalties,
   getPlatformWallet,
+  getAllTransactions,
+  getAllReservations
 };

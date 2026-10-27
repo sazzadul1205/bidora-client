@@ -19,7 +19,6 @@ import {
   X,
   Eye,
   Users,
-  Trophy,
   ArrowUp,
 } from "lucide-react";
 import { toast } from "../../../utils/toast";
@@ -255,11 +254,10 @@ export default function Auctions() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-6 py-4 text-sm font-medium border-b-2 transition whitespace-nowrap ${
-                  activeTab === tab.id
-                    ? "border-blue-600 text-blue-600 bg-white"
-                    : "border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-                }`}
+                className={`flex items-center gap-2 px-6 py-4 text-sm font-medium border-b-2 transition whitespace-nowrap ${activeTab === tab.id
+                  ? "border-blue-600 text-blue-600 bg-white"
+                  : "border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                  }`}
               >
                 <tab.icon className="w-4 h-4" />
                 {tab.label}
@@ -333,15 +331,14 @@ export default function Auctions() {
                   {/* Status */}
                   <td className="px-6 py-4">
                     <span
-                      className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
-                        a.status === "Active"
-                          ? "bg-green-100 text-green-700"
-                          : a.status === "Upcoming"
-                            ? "bg-yellow-100 text-yellow-700"
-                            : a.status === "Completed"
-                              ? "bg-blue-100 text-blue-700"
-                              : "bg-red-100 text-red-700"
-                      }`}
+                      className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${a.status === "Active"
+                        ? "bg-green-100 text-green-700"
+                        : a.status === "Upcoming"
+                          ? "bg-yellow-100 text-yellow-700"
+                          : a.status === "Completed"
+                            ? "bg-blue-100 text-blue-700"
+                            : "bg-red-100 text-red-700"
+                        }`}
                     >
                       {a.status}
                     </span>
@@ -414,9 +411,9 @@ export default function Auctions() {
         </table>
       </div>
 
-      
+
       {/* ACTION MODAL */}
-      
+
       {selected && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
           <div className="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
@@ -521,11 +518,10 @@ export default function Auctions() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className={`inline-flex items-center gap-2 px-5 py-2.5 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-50 ${
-                    action === "configure"
-                      ? "bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-600/20"
-                      : "bg-red-600 hover:bg-red-700 shadow-md shadow-red-600/20"
-                  }`}
+                  className={`inline-flex items-center gap-2 px-5 py-2.5 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-50 ${action === "configure"
+                    ? "bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-600/20"
+                    : "bg-red-600 hover:bg-red-700 shadow-md shadow-red-600/20"
+                    }`}
                 >
                   {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
                   {isSubmitting
@@ -540,9 +536,9 @@ export default function Auctions() {
         </div>
       )}
 
-      
+
       {/* BIDS MODAL (Admin-only) */}
-      
+
       {bidsData && (
         <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm"
@@ -574,11 +570,10 @@ export default function Auctions() {
               <div>
                 <p className="text-xs text-gray-500">Status</p>
                 <p
-                  className={`text-sm font-bold ${
-                    bidsData.auctionStatus === "Active"
-                      ? "text-green-700"
-                      : "text-gray-700"
-                  }`}
+                  className={`text-sm font-bold ${bidsData.auctionStatus === "Active"
+                    ? "text-green-700"
+                    : "text-gray-700"
+                    }`}
                 >
                   {bidsData.auctionStatus}
                 </p>
@@ -634,11 +629,11 @@ export default function Auctions() {
                           <div className="flex items-center gap-2">
                             <Users className="w-4 h-4 text-gray-400" />
                             <div>
-                              <p className="font-medium text-gray-900 text-xs">
-                                {b.bidderEmail}
+                              <p className="font-bold text-gray-900 text-sm">
+                                {b.bidderName}
                               </p>
-                              <p className="text-[10px] text-gray-400">
-                                {b.bidderId.slice(0, 8)}...
+                              <p className="text-[11px] text-gray-500">
+                                {b.bidderEmail}
                               </p>
                             </div>
                           </div>

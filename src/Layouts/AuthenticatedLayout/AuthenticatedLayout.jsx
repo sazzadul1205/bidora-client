@@ -3,7 +3,7 @@ import { Outlet, NavLink, Link, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Gavel, Wallet, Settings, ArrowLeft, LogOut,
   Package, Users, ShieldCheck, CreditCard, Scale, CheckCircle,
-  Trophy, ShoppingCart,
+  Trophy, ShoppingCart, Activity,
 } from "lucide-react";
 import authApi, { logout, getCurrentUser, getAuthConfig } from "../../services/authApi";
 
@@ -160,6 +160,12 @@ function AuthenticatedLayout() {
                         </NavLink>
                         <NavLink to="/admin/wallet" className={navLinkClass}>
                           <Wallet className="w-4 h-4" /> Platform Wallet
+                        </NavLink>
+                        <NavLink to="/admin/transactions" className={navLinkClass}>
+                          <Activity className="w-4 h-4" /> Financial Ledger
+                        </NavLink>
+                        <NavLink to="/admin/sales" className={navLinkClass}>
+                          <ShoppingCart className="w-4 h-4" /> Sales & Deliveries
                         </NavLink>
                       </nav>
                     </div>

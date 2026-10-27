@@ -4,7 +4,7 @@ import { getUsers, lockUser, createAdmin } from "../../../services/adminApi";
 import {
   Lock, Search, Users as UsersIcon, Shield, Store, ShoppingBag,
   MapPin, CheckCircle2, XCircle, AlertTriangle, Unlock, Clock,
-  X, Loader2, Mail, UserPlus
+  X, Loader2, Mail, UserPlus, Eye, Wallet, Phone, CreditCard, Calendar
 } from "lucide-react";
 import { toast } from "../../../utils/toast";
 import { SkeletonRow, Skeleton } from "../../../components/Skeleton";
@@ -14,11 +14,13 @@ export default function Users() {
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [submitting, setSubmitting] = useState(false);
 
-  // NEW: State for Create Admin modal
-  const [showCreateModal, setShowCreateModal] = useState(false);
+  // Modals State
+  const [selectedUser, setSelectedUser] = useState(null); // For Manage Access
+  const [viewDetailsTarget, setViewDetailsTarget] = useState(null); // For Read-Only View
+  const [showCreateModal, setShowCreateModal] = useState(false); // For Create Admin
+
+  const [submitting, setSubmitting] = useState(false);
 
   // Form for locking users
   const { register, handleSubmit, reset, control } = useForm({
@@ -26,7 +28,7 @@ export default function Users() {
   });
   const lockAction = useWatch({ control, name: "action" });
 
-  // NEW: Form for creating admins
+  // Form for creating admins
   const { register: registerAdmin, handleSubmit: handleAdminSubmit, reset: resetAdmin, formState: { errors: adminErrors, isSubmitting: isAdminSubmitting } } = useForm();
 
   const fetchUsers = async () => {
@@ -93,14 +95,13 @@ export default function Users() {
     }
   };
 
-  // NEW: Handle Admin Creation
   const onCreateAdminSubmit = async (data) => {
     try {
       await createAdmin(data);
       toast.success("Admin account created successfully!");
       setShowCreateModal(false);
       resetAdmin();
-      fetchUsers(); // Refresh the list to show the new admin
+      fetchUsers();
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to create admin.");
     }
@@ -116,6 +117,12 @@ export default function Users() {
     if (!name) return "?";
     return name.split(" ").map((n) => n[0]).join("").substring(0, 2).toUpperCase();
   };
+
+  const formatMoney = (num) =>
+    `$${Number(num || 0).toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
 
   if (loading) {
     return (
@@ -136,7 +143,7 @@ export default function Users() {
               <tr>
                 <th className="px-6 py-4 font-medium">User</th>
                 <th className="px-6 py-4 font-medium">Role</th>
-                <th className="px-6 py-4 font-medium">Verification</th>
+                <th className="px-6 py-4 font-medium">Wallet</th>
                 <th className="px-6 py-4 font-medium">Location</th>
                 <th className="px-6 py-4 font-medium text-right">Actions</th>
               </tr>
@@ -159,7 +166,7 @@ export default function Users() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
           <p className="text-sm text-gray-500 mt-1">
-            Manage user accounts, roles, and security settings.
+            Manage user accounts, roles, wallets, and security settings.
           </p>
         </div>
 
@@ -174,7 +181,6 @@ export default function Users() {
               className="w-full pl-9 pr-4 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
             />
           </div>
-          {/* NEW: Create Admin Button */}
           <button
             onClick={() => setShowCreateModal(true)}
             className="inline-flex items-center justify-center gap-2 bg-gray-900 hover:bg-black text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors shadow-sm shrink-0 w-full sm:w-auto"
@@ -186,7 +192,6 @@ export default function Users() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        {/* ... [Keep existing stats cards] ... */}
         <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
           <div className="p-3 bg-blue-50 text-blue-600 rounded-lg shrink-0">
             <UsersIcon className="w-6 h-6" />
@@ -229,18 +234,16 @@ export default function Users() {
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm text-gray-600 min-w-225">
-            {/* ... [Keep existing table headers] ... */}
             <thead className="bg-gray-50 border-b border-gray-200 text-gray-900">
               <tr>
-                <th className="px-6 py-4 font-medium w-[30%]">User</th>
+                <th className="px-6 py-4 font-medium w-[25%]">User</th>
                 <th className="px-6 py-4 font-medium">Role</th>
-                <th className="px-6 py-4 font-medium">Verification</th>
+                <th className="px-6 py-4 font-medium">Wallet Balance</th>
                 <th className="px-6 py-4 font-medium">Location</th>
                 <th className="px-6 py-4 font-medium text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {/* ... [Keep existing row mapping] ... */}
               {filteredUsers.length === 0 ? (
                 <tr>
                   <td colSpan="5" className="text-center py-16">
@@ -275,27 +278,21 @@ export default function Users() {
                         {u.roles?.[0] || "Buyer"}
                       </span>
                     </td>
+
+                    {/* NEW: Wallet Column */}
                     <td className="px-6 py-4">
-                      {u.roles?.[0] === "Admin" ? (
-                        <span className="text-xs text-gray-400 italic">N/A</span>
-                      ) : u.profile?.verificationStatus === "Verified" || u.profile?.verificationStatus === "Approved" ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-green-50 text-green-700 border border-green-200">
-                          <CheckCircle2 className="w-3.5 h-3.5" /> Verified
-                        </span>
-                      ) : u.profile?.verificationStatus === "PendingReview" ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-orange-50 text-orange-700 border border-orange-200">
-                          <Clock className="w-3.5 h-3.5" /> Pending
-                        </span>
-                      ) : u.profile?.verificationStatus === "Rejected" ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-red-50 text-red-700 border border-red-200">
-                          <XCircle className="w-3.5 h-3.5" /> Rejected
-                        </span>
+                      {u.wallet ? (
+                        <div>
+                          <p className="font-bold text-gray-900">{formatMoney(u.wallet.availableBalance)}</p>
+                          <p className="text-[11px] text-gray-500 mt-0.5">
+                            Res: {formatMoney(u.wallet.reservedBalance)}
+                          </p>
+                        </div>
                       ) : (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-gray-100 text-gray-600 border border-gray-200">
-                          Not Submitted
-                        </span>
+                        <span className="text-xs text-gray-400 italic">No Wallet</span>
                       )}
                     </td>
+
                     <td className="px-6 py-4">
                       <span className="text-sm text-gray-700 flex items-center gap-1.5">
                         <MapPin className="w-3.5 h-3.5 text-gray-400" />
@@ -303,15 +300,24 @@ export default function Users() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <button
-                        onClick={() => {
-                          setSelectedUser(u);
-                          reset({ action: "unlock", durationMinutes: "" });
-                        }}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg transition-colors"
-                      >
-                        <Lock className="w-3.5 h-3.5" /> Manage Access
-                      </button>
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => setViewDetailsTarget(u)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors"
+                          title="View Details"
+                        >
+                          <Eye className="w-3.5 h-3.5" /> View
+                        </button>
+                        <button
+                          onClick={() => {
+                            setSelectedUser(u);
+                            reset({ action: "unlock", durationMinutes: "" });
+                          }}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg transition-colors"
+                        >
+                          <Lock className="w-3.5 h-3.5" /> Manage Access
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -321,12 +327,129 @@ export default function Users() {
         </div>
       </div>
 
-      
+      {/* ========================================================= */}
+      {/* NEW: READ-ONLY USER DETAILS MODAL */}
+      {/* ========================================================= */}
+      {viewDetailsTarget && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[92vh] overflow-y-auto shadow-xl flex flex-col">
+
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50 sticky top-0 z-10">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-linear-to-br from-blue-100 to-blue-200 flex items-center justify-center shrink-0 text-blue-700 font-bold text-lg shadow-sm border border-blue-200">
+                  {getInitials(viewDetailsTarget.profile?.fullName)}
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-gray-900">{viewDetailsTarget.profile?.fullName || "Unnamed User"}</h2>
+                  <p className="text-xs text-gray-500">{viewDetailsTarget.email}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setViewDetailsTarget(null)}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6 flex-1">
+
+              {/* Wallet Overview */}
+              <div>
+                <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2 mb-3">
+                  <Wallet className="w-4 h-4 text-gray-500" /> Wallet Overview
+                </h3>
+                {viewDetailsTarget.wallet ? (
+                  <div className="grid grid-cols-3 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
+                    <div className="text-center">
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Available</p>
+                      <p className="text-xl font-bold text-green-600">{formatMoney(viewDetailsTarget.wallet.availableBalance)}</p>
+                    </div>
+                    <div className="text-center border-l border-gray-200">
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Reserved</p>
+                      <p className="text-xl font-bold text-orange-600">{formatMoney(viewDetailsTarget.wallet.reservedBalance)}</p>
+                    </div>
+                    <div className="text-center border-l border-gray-200">
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total</p>
+                      <p className="text-xl font-bold text-gray-900">{formatMoney(viewDetailsTarget.wallet.balance)}</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-gray-50 p-4 rounded-xl text-center text-gray-500 text-sm">No wallet data available.</div>
+                )}
+              </div>
+
+              {/* Account Information */}
+              <div>
+                <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2 mb-3">
+                  <Shield className="w-4 h-4 text-gray-500" /> Account Information
+                </h3>
+                <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200 text-sm">
+                  <div>
+                    <p className="text-xs text-gray-500 mb-0.5">Role</p>
+                    <p className="font-semibold text-gray-900">{viewDetailsTarget.roles?.[0] || "Buyer"}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 mb-0.5">Verification Status</p>
+                    <div>
+                      {viewDetailsTarget.roles?.[0] === "Admin" ? (
+                        <span className="text-xs text-gray-400 italic">N/A</span>
+                      ) : viewDetailsTarget.profile?.verificationStatus === "Verified" || viewDetailsTarget.profile?.verificationStatus === "Approved" ? (
+                        <span className="inline-flex items-center gap-1 text-xs font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded"><CheckCircle2 className="w-3 h-3" /> Verified</span>
+                      ) : viewDetailsTarget.profile?.verificationStatus === "PendingReview" ? (
+                        <span className="inline-flex items-center gap-1 text-xs font-bold text-orange-700 bg-orange-100 px-2 py-0.5 rounded"><Clock className="w-3 h-3" /> Pending</span>
+                      ) : viewDetailsTarget.profile?.verificationStatus === "Rejected" ? (
+                        <span className="inline-flex items-center gap-1 text-xs font-bold text-red-700 bg-red-100 px-2 py-0.5 rounded"><XCircle className="w-3 h-3" /> Rejected</span>
+                      ) : (
+                        <span className="text-xs text-gray-500">Not Submitted</span>
+                      )}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 mb-0.5">Phone Number</p>
+                    <p className="font-semibold text-gray-900 flex items-center gap-1">
+                      <Phone className="w-3.5 h-3.5 text-gray-400" /> {viewDetailsTarget.phoneNumber || "N/A"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 mb-0.5">National ID</p>
+                    <p className="font-semibold text-gray-900 flex items-center gap-1">
+                      <CreditCard className="w-3.5 h-3.5 text-gray-400" /> {viewDetailsTarget.profile?.nationalIdNumber || "N/A"}
+                    </p>
+                  </div>
+                  <div className="col-span-2">
+                    <p className="text-xs text-gray-500 mb-0.5">Address</p>
+                    <p className="font-semibold text-gray-900">{viewDetailsTarget.profile?.address || "N/A"}, {viewDetailsTarget.profile?.city || "N/A"}</p>
+                  </div>
+                  <div className="col-span-2 border-t border-gray-200 pt-2">
+                    <p className="text-xs text-gray-500 mb-0.5">Joined Date</p>
+                    <p className="font-semibold text-gray-900 flex items-center gap-1">
+                      <Calendar className="w-3.5 h-3.5 text-gray-400" />
+                      {viewDetailsTarget.profile?.createdAt ? new Date(viewDetailsTarget.profile.createdAt).toLocaleDateString() : "N/A"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex justify-end sticky bottom-0 z-10 rounded-b-2xl">
+              <button
+                onClick={() => setViewDetailsTarget(null)}
+                className="px-6 py-2.5 bg-gray-900 hover:bg-black text-white text-sm font-semibold rounded-lg transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
       {/* MANAGE LOCK MODAL (Keep existing) */}
-      
+      {/* ========================================================= */}
       {selectedUser && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
-          {/* ... [Keep entire existing modal] ... */}
           <div className="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden animate-in fade-in zoom-in-95">
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
               <div>
@@ -397,9 +520,9 @@ export default function Users() {
         </div>
       )}
 
-      
-      {/* NEW: CREATE ADMIN MODAL */}
-      
+      {/* ========================================================= */}
+      {/* CREATE ADMIN MODAL (Keep existing) */}
+      {/* ========================================================= */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
           <div className="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden animate-in fade-in zoom-in-95">
