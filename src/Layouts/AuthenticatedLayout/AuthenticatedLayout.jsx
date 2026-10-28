@@ -26,6 +26,7 @@ import authApi, {
 } from "../../services/authApi";
 import AuctionLoader from "../../components/AuctionLoader";
 import { formatDateTime } from "../../utils/date";
+import ConnectionStatus from "../../components/ConnectionStatus";
 
 function AuthenticatedLayout() {
   const navigate = useNavigate();
@@ -354,10 +355,11 @@ function AuthenticatedLayout() {
             </button>
           </div>
 
-          <div className="flex items-center gap-3 sm:gap-4">
-            <span className="hidden sm:block text-xs text-gray-400">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <span className="hidden md:block text-xs text-gray-400">
               {currentDate}
             </span>
+            <ConnectionStatus />
             {role !== "Admin" && (
               <Link
                 to="/wallet"

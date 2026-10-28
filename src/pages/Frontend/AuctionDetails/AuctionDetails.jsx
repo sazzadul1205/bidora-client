@@ -101,12 +101,29 @@ export default function AuctionDetails() {
     };
   }, [id, navigate]);
 
-  // LIVE POLLING
+  // ─── LIVE POLLING ──────────────────────────────────────────────
+  // Re-fetches bids + auction state every 4s while the auction is Active
+  // OR while it's in the transition window (status=Upcoming but StartTime
+  // has already passed and the backend worker hasn't promoted it yet).
   useEffect(() => {
     if (!auction) return;
-    if (auction.status !== "Active") return;
-    if (auction.endTime && new Date(auction.endTime).getTime() <= Date.now())
-      return;
+
+    const nowMsCheck = Date.now();
+    const startMsCheck = auction.startTime
+      ? new Date(auction.startTime).getTime()
+      : 0;
+    const endMsCheck = auction.endTime
+      ? new Date(auction.endTime).getTime()
+      : 0;
+
+    const shouldPoll =
+      auction.status === "Active" ||
+      (auction.status === "Upcoming" &&
+        startMsCheck > 0 &&
+        startMsCheck <= nowMsCheck &&
+        endMsCheck > nowMsCheck);
+
+    if (!shouldPoll) return;
 
     let isMounted = true;
 
@@ -129,14 +146,14 @@ export default function AuctionDetails() {
       }
     };
 
-    const intervalId = setInterval(pollBids, 1000);
+    const intervalId = setInterval(pollBids, 4000);
 
     return () => {
       isMounted = false;
       clearInterval(intervalId);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, auction?.status, auction?.endTime]);
+  }, [id, auction?.status, auction?.startTime, auction?.endTime]);
 
   const handlePlaceBid = async (e) => {
     e.preventDefault();
@@ -145,7 +162,6 @@ export default function AuctionDetails() {
       return navigate("/login");
     }
 
-    // Tier logic
     const startingPrice = auction.startingPrice || 0;
     const buyoutPrice = auction.buyoutPrice || 0;
     const range = buyoutPrice - startingPrice;
@@ -216,16 +232,31 @@ export default function AuctionDetails() {
     );
   }
 
+  //  STATUS DERIVATION 
   const endTimeMs = auction.endTime ? new Date(auction.endTime).getTime() : 0;
-  const isTimeUp = endTimeMs > 0 && endTimeMs <= now.getTime();
+  const startTimeMs = auction.startTime
+    ? new Date(auction.startTime).getTime()
+    : 0;
+  const nowMs = now.getTime();
+
+  const isTimeUp = endTimeMs > 0 && endTimeMs <= nowMs;
+  const hasStarted = startTimeMs > 0 && startTimeMs <= nowMs;
+
+  // Backend worker takes up to 30s to promote Upcoming → Active after
+  // StartTime passes. During that window we call it "STARTING" so the UI
+  // doesn't show a zeroed countdown alongside an "UPCOMING" badge.
+  const isStartingSoon =
+    auction.status === "Upcoming" && hasStarted && !isTimeUp;
+
   const isLive = auction.status === "Active" && !isTimeUp;
-  const isUpcoming = auction.status === "Upcoming";
+  const isUpcoming = auction.status === "Upcoming" && !isStartingSoon;
+
   const isEnded =
     auction.status === "Completed" ||
     auction.status === "Cancelled" ||
     (auction.status === "Active" && isTimeUp);
 
-  // --- 3-TIER PRICING LOGIC ---
+  // 3-TIER PRICING LOGIC
   const startingPrice = auction.startingPrice || 0;
   const buyoutPrice = auction.buyoutPrice || 0;
   const range = buyoutPrice - startingPrice;
@@ -369,15 +400,26 @@ export default function AuctionDetails() {
                   className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
                     isLive
                       ? "bg-red-100 text-red-700"
-                      : isUpcoming
-                        ? "bg-orange-100 text-orange-700"
-                        : "bg-gray-100 text-gray-700"
+                      : isStartingSoon
+                        ? "bg-blue-100 text-blue-700"
+                        : isUpcoming
+                          ? "bg-orange-100 text-orange-700"
+                          : "bg-gray-100 text-gray-700"
                   }`}
                 >
                   {isLive && (
                     <span className="w-2 h-2 bg-red-600 rounded-full animate-ping"></span>
                   )}
-                  {isLive ? "ACTIVE" : isUpcoming ? "UPCOMING" : "ENDED"}
+                  {isStartingSoon && (
+                    <span className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></span>
+                  )}
+                  {isLive
+                    ? "ACTIVE"
+                    : isStartingSoon
+                      ? "STARTING"
+                      : isUpcoming
+                        ? "UPCOMING"
+                        : "ENDED"}
                 </span>
                 <span className="text-sm font-medium text-gray-500 flex items-center gap-1">
                   <Gavel className="w-4 h-4" /> {auction.bidCount} Bids
@@ -390,10 +432,11 @@ export default function AuctionDetails() {
                     ? "Current highest bid"
                     : "Starting price"}
                 </p>
-                <p className="text-4xl font-bold text-blue-600 mb-3">
-                  $
-                  {auction.currentHighestBid?.toLocaleString() ||
-                    startingPrice.toLocaleString()}
+                <p className="text-3xl sm:text-4xl font-bold text-blue-600 mb-3 break-all">
+                  ৳
+                  {(
+                    auction.currentHighestBid ?? startingPrice
+                  ).toLocaleString()}
                 </p>
 
                 {isLive && auction.endTime && (
@@ -406,6 +449,12 @@ export default function AuctionDetails() {
                   <div className="inline-block bg-orange-50 text-orange-700 px-4 py-2 rounded-lg font-medium">
                     <Clock className="w-4 h-4 inline mr-1 -mt-0.5" /> Starts in:{" "}
                     <Countdown targetDate={auction.startTime} />
+                  </div>
+                )}
+                {isStartingSoon && (
+                  <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-lg font-medium">
+                    <span className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></span>
+                    Going live...
                   </div>
                 )}
                 {isEnded &&

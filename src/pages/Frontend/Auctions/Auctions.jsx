@@ -40,7 +40,7 @@ export default function Auctions() {
     };
   }, []);
 
-  // Filter Logic
+  // Filter + sort
   const filteredAuctions = auctions
     .filter((a) => {
       const matchesSearch = a.productTitle
@@ -163,7 +163,7 @@ export default function Auctions() {
             <h3 className="text-xl font-bold text-gray-900 mb-2">
               No auctions found
             </h3>
-            <p className="text-gray-500">
+            <p className="text-gray-500 ">
               Try adjusting your search or filters to find what you're looking
               for.
             </p>
@@ -171,11 +171,34 @@ export default function Auctions() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {filteredAuctions.map((auction) => {
-              const isLive = auction.status === "Active";
-              const isUpcoming = auction.status === "Upcoming";
+              // eslint-disable-next-line react-hooks/purity
+              const nowMs = Date.now();
+              const startMs = auction.startTime
+                ? new Date(auction.startTime).getTime()
+                : 0;
+              const endMs = auction.endTime
+                ? new Date(auction.endTime).getTime()
+                : 0;
+
+              const isTimeUp = endMs > 0 && endMs <= nowMs;
+              const hasStarted = startMs > 0 && startMs <= nowMs;
+
+              // "Starting" = Upcoming but StartTime just passed (backend worker
+              // hasn't promoted it yet, up to 30s window).
+              const isStarting =
+                auction.status === "Upcoming" && hasStarted && !isTimeUp;
+
+              const isLive = auction.status === "Active" && !isTimeUp;
+              const isUpcoming = auction.status === "Upcoming" && !isStarting;
               const isEnded =
                 auction.status === "Completed" ||
-                auction.status === "Cancelled";
+                auction.status === "Cancelled" ||
+                (auction.status === "Active" && isTimeUp);
+
+              // Price display: show highest bid when live, otherwise starting price
+              const displayPrice = isLive
+                ? (auction.currentHighestBid ?? auction.startingPrice ?? 0)
+                : (auction.startingPrice ?? 0);
 
               return (
                 <Link
@@ -203,6 +226,12 @@ export default function Auctions() {
                         LIVE
                       </span>
                     )}
+                    {isStarting && (
+                      <span className="absolute top-3 left-3 bg-blue-600 text-white text-xs font-bold px-2.5 py-1 rounded-md shadow-sm flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>{" "}
+                        STARTING
+                      </span>
+                    )}
                     {isUpcoming && (
                       <span className="absolute top-3 left-3 bg-orange-500 text-white text-xs font-bold px-2.5 py-1 rounded-md shadow-sm">
                         UPCOMING
@@ -227,21 +256,16 @@ export default function Auctions() {
 
                     <div className="mt-auto pt-4 border-t border-gray-100">
                       {isLive && (
-                        <div className="flex justify-between items-end">
-                          <div>
+                        <div className="flex justify-between items-end gap-2">
+                          <div className="min-w-0">
                             <p className="text-xs text-gray-500 mb-0.5">
                               Current Bid
                             </p>
-                            <p className="text-lg font-bold text-blue-600">
-                              ৳
-                              {(
-                                auction.currentHighestBid ??
-                                auction.startingPrice ??
-                                0
-                              ).toLocaleString()}
+                            <p className="text-base sm:text-lg font-bold text-blue-600 truncate">
+                              ৳{displayPrice.toLocaleString()}
                             </p>
                           </div>
-                          <div className="text-right">
+                          <div className="text-right shrink-0">
                             <p className="text-xs text-gray-500 mb-0.5">
                               Ends in
                             </p>
@@ -256,22 +280,33 @@ export default function Auctions() {
                         </div>
                       )}
 
-                      {isUpcoming && (
-                        <div className="flex justify-between items-end">
-                          <div>
+                      {(isUpcoming || isStarting) && (
+                        <div className="flex justify-between items-end gap-2">
+                          <div className="min-w-0">
                             <p className="text-xs text-gray-500 mb-0.5">
                               Start Price
                             </p>
-                            <p className="text-lg font-bold text-gray-900">
-                              ৳{(auction.startingPrice ?? 0).toLocaleString()}
+                            <p className="text-base sm:text-lg font-bold text-gray-900 truncate">
+                              ৳{displayPrice.toLocaleString()}
                             </p>
                           </div>
-                          <div className="text-right">
+                          <div className="text-right shrink-0">
                             <p className="text-xs text-gray-500 mb-0.5">
-                              {auction.startTime ? "Starts in" : "Schedule"}
+                              {isStarting
+                                ? "Status"
+                                : auction.startTime
+                                  ? "Starts in"
+                                  : "Schedule"}
                             </p>
-                            <p className="text-xs font-semibold text-orange-600">
-                              {auction.startTime ? (
+                            <p
+                              className={`text-xs font-semibold ${isStarting ? "text-blue-600" : "text-orange-600"}`}
+                            >
+                              {isStarting ? (
+                                <span className="flex items-center gap-1 justify-end">
+                                  <span className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-pulse"></span>
+                                  Going live
+                                </span>
+                              ) : auction.startTime ? (
                                 <Countdown targetDate={auction.startTime} />
                               ) : (
                                 "Pending"
