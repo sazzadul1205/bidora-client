@@ -17,7 +17,12 @@ export default function Auctions() {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Filters
+  // Server-side pagination
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(20);
+  const [totalCount, setTotalCount] = useState(0);
+
+  // Filters (sent to server)
   const [searchTerm, setSearchTerm] = useState("");
   const [activeStatus, setActiveStatus] = useState("All");
   const [activeCategory, setActiveCategory] = useState("All");
@@ -27,14 +32,21 @@ export default function Auctions() {
     (async () => {
       try {
         const [aucRes, catRes] = await Promise.all([
-          getAuctions(),
+          getAuctions({
+            page,
+            pageSize,
+            search: searchTerm,
+            filter: activeStatus,
+            categoryId: activeCategory === "All" ? undefined : Number(activeCategory),
+          }),
           getCategories(),
         ]);
 
         if (!mounted) return;
 
+        setAuctions(aucRes.data.data?.items || []);
+        setTotalCount(aucRes.data.data?.totalCount || 0);
         setCategories(catRes.data.data || []);
-        setAuctions(aucRes.data.data || []);
       } catch (err) {
         console.error(err);
       } finally {
@@ -44,29 +56,10 @@ export default function Auctions() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [page, pageSize, searchTerm, activeStatus, activeCategory]);
 
-  // Filter + sort
+  // Filter + sort (server handles status + search + category; sort client-side)
   const filteredAuctions = auctions
-    .filter((a) => {
-      const matchesSearch = a.productTitle
-        ?.toLowerCase()
-        .includes(searchTerm.toLowerCase());
-
-      const matchesStatus =
-        activeStatus === "All"
-          ? true
-          : activeStatus === "Live"
-            ? a.status === "Active"
-            : activeStatus === "Upcoming"
-              ? a.status === "Upcoming"
-              : a.status === "Completed" || a.status === "Cancelled";
-
-      const matchesCategory =
-        activeCategory === "All" || a.categoryId?.toString() === activeCategory;
-
-      return matchesSearch && matchesStatus && matchesCategory;
-    })
     .sort((a, b) => {
       const getPriority = (status) => {
         if (status === "Active") return 1;
@@ -84,6 +77,8 @@ export default function Auctions() {
       }
       return 0;
     });
+
+  const totalPages = Math.ceil(totalCount / pageSize);
 
   if (loading) {
     return <AuctionLoader />;
@@ -347,6 +342,40 @@ export default function Auctions() {
                 </Link>
               );
             })}
+          </div>
+        )}
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between gap-4 mt-8 px-4 sm:px-6 lg:px-8">
+            <p className="text-sm text-gray-600">
+              Showing {((page - 1) * pageSize) + 1} to{" "}
+              {Math.min(page * pageSize, totalCount)} of {totalCount} auctions
+            </p>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setPage((p) => Math.max(p - 1, 1))}
+                disabled={page === 1}
+                className={`px-3 py-1.5 rounded-lg border text-sm font-medium transition-colors ${
+                  page === 1
+                    ? "border-gray-200 text-gray-400"
+                    : "border-blue-600 text-blue-600 hover:bg-blue-50"
+                }`}
+              >
+                Prev
+              </button>
+              <button
+                onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
+                disabled={page === totalPages}
+                className={`px-3 py-1.5 rounded-lg border text-sm font-medium transition-colors ${
+                  page === totalPages
+                    ? "border-gray-200 text-gray-400"
+                    : "border-blue-600 text-blue-600 hover:bg-blue-50"
+                }`}
+              >
+                Next
+              </button>
+            </div>
           </div>
         )}
       </div>

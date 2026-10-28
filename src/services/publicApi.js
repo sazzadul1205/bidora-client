@@ -12,7 +12,8 @@ export const getCategories = () => publicApi.get("/category");
 export const getAuctionById = (id) => publicApi.get(`/auction/${id}`);
 
 // View all auctions 
-export const getAuctions = () => publicApi.get("/auction");
+export const getAuctions = (params = {}) =>
+  publicApi.get("/auction", { params });
 
 // View only auctions currently live 
 export const getActiveAuctions = () => publicApi.get("/auction/active");
