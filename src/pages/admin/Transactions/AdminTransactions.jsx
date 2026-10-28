@@ -1,8 +1,17 @@
 import { useEffect, useState } from "react";
-import { getAllTransactions, getAllReservations } from "../../../services/adminApi";
 import {
-  DollarSign, ArrowUpRight, ArrowDownRight, Lock, Search,
-  ShieldCheck, Wallet, Activity
+  getAllTransactions,
+  getAllReservations,
+} from "../../../services/adminApi";
+import {
+  DollarSign,
+  ArrowUpRight,
+  ArrowDownRight,
+  Lock,
+  Search,
+  ShieldCheck,
+  Wallet,
+  Activity,
 } from "lucide-react";
 import { Skeleton } from "../../../components/Skeleton";
 import { toast } from "../../../utils/toast";
@@ -24,7 +33,7 @@ export default function AdminTransactions() {
           getAllReservations(),
         ]);
         if (mounted) {
-          setTransactions(txRes.data.data || []);
+          setTransactions(txRes.data.data?.items || []);
           setReservations(resRes.data.data || []);
         }
       } catch (err) {
@@ -34,7 +43,9 @@ export default function AdminTransactions() {
         if (mounted) setLoading(false);
       }
     })();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const formatMoney = (num) =>
@@ -49,7 +60,9 @@ export default function AdminTransactions() {
   };
 
   // --- CALCULATE STATS (Fixed to camelCase) ---
-  const activeReservations = reservations.filter((r) => r.status === "Reserved");
+  const activeReservations = reservations.filter(
+    (r) => r.status === "Reserved",
+  );
 
   const totalEscrow = activeReservations
     .filter((r) => r.type === "SaleEscrow")
@@ -72,14 +85,14 @@ export default function AdminTransactions() {
     (t) =>
       t.userName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       t.userEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      t.reference?.toLowerCase().includes(searchTerm.toLowerCase())
+      t.reference?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const filteredReservations = reservations.filter(
     (r) =>
       r.userName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       r.productTitle?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      r.type?.toLowerCase().includes(searchTerm.toLowerCase())
+      r.type?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   if (loading) {
@@ -122,7 +135,9 @@ export default function AdminTransactions() {
           </div>
           <div>
             <p className="text-sm font-medium text-gray-500">Total Volume</p>
-            <p className="text-2xl font-bold text-gray-900">{formatMoney(totalVolume)}</p>
+            <p className="text-2xl font-bold text-gray-900">
+              {formatMoney(totalVolume)}
+            </p>
           </div>
         </div>
 
@@ -132,7 +147,9 @@ export default function AdminTransactions() {
           </div>
           <div>
             <p className="text-sm font-medium text-gray-500">Held in Escrow</p>
-            <p className="text-2xl font-bold text-gray-900">{formatMoney(totalEscrow)}</p>
+            <p className="text-2xl font-bold text-gray-900">
+              {formatMoney(totalEscrow)}
+            </p>
           </div>
         </div>
 
@@ -142,7 +159,9 @@ export default function AdminTransactions() {
           </div>
           <div>
             <p className="text-sm font-medium text-gray-500">Buyer Deposits</p>
-            <p className="text-2xl font-bold text-gray-900">{formatMoney(totalBuyerDeposits)}</p>
+            <p className="text-2xl font-bold text-gray-900">
+              {formatMoney(totalBuyerDeposits)}
+            </p>
           </div>
         </div>
 
@@ -152,32 +171,35 @@ export default function AdminTransactions() {
           </div>
           <div>
             <p className="text-sm font-medium text-gray-500">Seller Deposits</p>
-            <p className="text-2xl font-bold text-gray-900">{formatMoney(totalSellerDeposits)}</p>
+            <p className="text-2xl font-bold text-gray-900">
+              {formatMoney(totalSellerDeposits)}
+            </p>
           </div>
         </div>
       </div>
 
       {/* Main Container */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-
         {/* Toolbar & Tabs */}
         <div className="p-4 border-b border-gray-200 bg-gray-50/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-lg w-fit">
             <button
               onClick={() => setActiveTab("transactions")}
-              className={`px-4 py-2 rounded-md text-sm font-semibold transition-all ${activeTab === "transactions"
+              className={`px-4 py-2 rounded-md text-sm font-semibold transition-all ${
+                activeTab === "transactions"
                   ? "bg-white text-gray-900 shadow-sm"
                   : "text-gray-500 hover:text-gray-900"
-                }`}
+              }`}
             >
               Global Transactions
             </button>
             <button
               onClick={() => setActiveTab("reservations")}
-              className={`px-4 py-2 rounded-md text-sm font-semibold transition-all ${activeTab === "reservations"
+              className={`px-4 py-2 rounded-md text-sm font-semibold transition-all ${
+                activeTab === "reservations"
                   ? "bg-white text-gray-900 shadow-sm"
                   : "text-gray-500 hover:text-gray-900"
-                }`}
+              }`}
             >
               Active Reservations ({activeReservations.length})
             </button>
@@ -217,31 +239,58 @@ export default function AdminTransactions() {
                   </tr>
                 ) : (
                   filteredTransactions.map((t) => {
-                    const isPositive = ["Credit", "Release", "Commission"].includes(t.type);
+                    const isPositive = [
+                      "Credit",
+                      "Release",
+                      "Commission",
+                    ].includes(t.type);
                     return (
-                      <tr key={t.id} className="hover:bg-gray-50/80 transition-colors">
+                      <tr
+                        key={t.id}
+                        className="hover:bg-gray-50/80 transition-colors"
+                      >
                         <td className="px-6 py-4">
                           <div>
-                            <p className="font-semibold text-gray-900">{t.userName}</p>
-                            <p className="text-xs text-gray-500">{t.userEmail}</p>
+                            <p className="font-semibold text-gray-900">
+                              {t.userName}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {t.userEmail}
+                            </p>
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold border ${t.type === "Credit" ? "bg-green-50 text-green-700 border-green-200" :
-                              t.type === "Debit" ? "bg-red-50 text-red-700 border-red-200" :
-                                t.type === "Penalty" ? "bg-orange-50 text-orange-700 border-orange-200" :
-                                  t.type === "Commission" ? "bg-purple-50 text-purple-700 border-purple-200" :
-                                    "bg-gray-100 text-gray-700 border-gray-200"
-                            }`}>
-                            {isPositive ? <ArrowDownRight className="w-3.5 h-3.5" /> : <ArrowUpRight className="w-3.5 h-3.5" />}
+                          <span
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold border ${
+                              t.type === "Credit"
+                                ? "bg-green-50 text-green-700 border-green-200"
+                                : t.type === "Debit"
+                                  ? "bg-red-50 text-red-700 border-red-200"
+                                  : t.type === "Penalty"
+                                    ? "bg-orange-50 text-orange-700 border-orange-200"
+                                    : t.type === "Commission"
+                                      ? "bg-purple-50 text-purple-700 border-purple-200"
+                                      : "bg-gray-100 text-gray-700 border-gray-200"
+                            }`}
+                          >
+                            {isPositive ? (
+                              <ArrowDownRight className="w-3.5 h-3.5" />
+                            ) : (
+                              <ArrowUpRight className="w-3.5 h-3.5" />
+                            )}
                             {t.type}
                           </span>
                         </td>
                         <td className="px-6 py-4">
-                          <span className={`font-bold ${isPositive ? "text-green-600" : "text-red-600"}`}>
-                            {isPositive ? "+" : "-"}{formatMoney(t.amount)}
+                          <span
+                            className={`font-bold ${isPositive ? "text-green-600" : "text-red-600"}`}
+                          >
+                            {isPositive ? "+" : "-"}
+                            {formatMoney(t.amount)}
                           </span>
-                          <p className="text-[11px] text-gray-400 mt-0.5">Bal: {formatMoney(t.balanceAfter)}</p>
+                          <p className="text-[11px] text-gray-400 mt-0.5">
+                            Bal: {formatMoney(t.balanceAfter)}
+                          </p>
                         </td>
                         <td className="px-6 py-4">
                           <span className="text-xs font-mono bg-gray-50 px-2 py-1 rounded border border-gray-200">
@@ -282,33 +331,57 @@ export default function AdminTransactions() {
                   </tr>
                 ) : (
                   filteredReservations.map((r) => (
-                    <tr key={r.id} className="hover:bg-gray-50/80 transition-colors">
+                    <tr
+                      key={r.id}
+                      className="hover:bg-gray-50/80 transition-colors"
+                    >
                       <td className="px-6 py-4">
-                        <p className="font-semibold text-gray-900">{r.userName}</p>
+                        <p className="font-semibold text-gray-900">
+                          {r.userName}
+                        </p>
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold border ${r.type === "SaleEscrow" ? "bg-indigo-50 text-indigo-700 border-indigo-200" :
-                            r.type === "BuyerFunds" ? "bg-orange-50 text-orange-700 border-orange-200" :
-                              "bg-purple-50 text-purple-700 border-purple-200"
-                          }`}>
-                          {r.type === "SaleEscrow" ? <ShieldCheck className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
+                        <span
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold border ${
+                            r.type === "SaleEscrow"
+                              ? "bg-indigo-50 text-indigo-700 border-indigo-200"
+                              : r.type === "BuyerFunds"
+                                ? "bg-orange-50 text-orange-700 border-orange-200"
+                                : "bg-purple-50 text-purple-700 border-purple-200"
+                          }`}
+                        >
+                          {r.type === "SaleEscrow" ? (
+                            <ShieldCheck className="w-3.5 h-3.5" />
+                          ) : (
+                            <Lock className="w-3.5 h-3.5" />
+                          )}
                           {r.type}
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <p className="text-sm text-gray-900 line-clamp-1">{r.productTitle || "N/A"}</p>
+                        <p className="text-sm text-gray-900 line-clamp-1">
+                          {r.productTitle || "N/A"}
+                        </p>
                         <p className="text-xs text-gray-400 mt-0.5">
-                          {r.auctionId ? `Auction #${r.auctionId}` : ""} {r.saleId ? `Sale #${r.saleId}` : ""}
+                          {r.auctionId ? `Auction #${r.auctionId}` : ""}{" "}
+                          {r.saleId ? `Sale #${r.saleId}` : ""}
                         </p>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="font-bold text-gray-900">{formatMoney(r.amount)}</span>
+                        <span className="font-bold text-gray-900">
+                          {formatMoney(r.amount)}
+                        </span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${r.status === "Reserved" ? "bg-amber-100 text-amber-700" :
-                            r.status === "Forfeited" ? "bg-red-100 text-red-700" :
-                              "bg-gray-100 text-gray-700"
-                          }`}>
+                        <span
+                          className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${
+                            r.status === "Reserved"
+                              ? "bg-amber-100 text-amber-700"
+                              : r.status === "Forfeited"
+                                ? "bg-red-100 text-red-700"
+                                : "bg-gray-100 text-gray-700"
+                          }`}
+                        >
                           {r.status}
                         </span>
                       </td>

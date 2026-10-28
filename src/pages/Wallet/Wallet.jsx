@@ -9,7 +9,7 @@ import {
   X,
   Loader2,
   History,
-  Scale, // NEW ICON IMPORT
+  Scale, 
 } from "lucide-react";
 import { toast } from "../../utils/toast";
 import { Skeleton } from "../../components/Skeleton";
@@ -22,17 +22,17 @@ import {
   getMyDepositRequests,
 } from "../../services/buyerApi";
 
-// --- Tab Components ---
+// Tab Components
 import OverviewTab from "./OverviewTab/OverviewTab";
 import TransactionsTab from "./TransactionsTab/TransactionsTab";
 import ReservationsTab from "./ReservationsTab/ReservationsTab";
 import DepositRequestsTab from "./DepositRequestsTab/DepositRequestsTab";
-import DisputesTab from "./DisputesTab/DisputesTab"; // NEW TAB IMPORT
+import DisputesTab from "./DisputesTab/DisputesTab";
 
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 
-// --- Receipt Dropzone (kept local to this page) ---
+// Receipt Dropzone (kept local to this page)
 function ReceiptDropzone({ file, onFileChange }) {
   const [dragActive, setDragActive] = useState(false);
   const [previewUrl, setPreviewUrl] = useState("");
@@ -176,9 +176,9 @@ export default function Wallet() {
         getMyDepositRequests(),
       ]);
       setWallet(walletRes.data.data);
-      setTransactions(txRes.data.data || []);
-      setReservations(resRes.data.data || []);
-      setDepositRequests(depRes.data.data || []);
+      setTransactions(txRes.data.data?.items || []);
+      setReservations(resRes.data.data?.items || []);
+      setDepositRequests(depRes.data.data?.items || []);
     } catch (err) {
       console.error(err);
       toast.error("Failed to load wallet data.");
@@ -199,9 +199,9 @@ export default function Wallet() {
         ]);
         if (!mounted) return;
         setWallet(walletRes.data.data);
-        setTransactions(txRes.data.data || []);
-        setReservations(resRes.data.data || []);
-        setDepositRequests(depRes.data.data || []);
+        setTransactions(txRes.data.data?.items || []);
+        setReservations(resRes.data.data?.items || []);
+        setDepositRequests(depRes.data.data?.items || []);
       } catch (err) {
         console.error(err);
         toast.error("Failed to load wallet data.");

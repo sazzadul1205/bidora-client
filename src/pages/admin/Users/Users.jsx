@@ -35,9 +35,9 @@ export default function Users() {
 
   const fetchUsers = async () => {
     try {
-      const res = await getUsers();
-      setUsers(res.data.data || []);
-      setFilteredUsers(res.data.data || []);
+           const res = await getUsers();
+      setUsers(res.data.data?.items || []);
+      setFilteredUsers(res.data.data?.items || []);
     } catch {
       toast.error("Failed to load users.");
     } finally {
@@ -51,8 +51,8 @@ export default function Users() {
       try {
         const res = await getUsers();
         if (mounted) {
-          setUsers(res.data.data || []);
-          setFilteredUsers(res.data.data || []);
+          setUsers(res.data.data?.items || []);
+          setFilteredUsers(res.data.data?.items || []);
         }
       } catch {
         toast.error("Failed to load users.");

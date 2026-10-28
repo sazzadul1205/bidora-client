@@ -24,7 +24,7 @@ export default function MyBids() {
     (async () => {
       try {
         const res = await getMyBids();
-        if (mounted) setBids(res.data.data || []);
+         if (mounted) setBids(res.data.data?.items || []);
       } catch (err) {
         console.error(err);
       } finally {

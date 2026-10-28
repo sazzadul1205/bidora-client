@@ -24,7 +24,13 @@ export default function PlatformWallet() {
     (async () => {
       try {
         const res = await adminApi.getPlatformWallet();
-        if (mounted) setData(res.data.data);
+        if (mounted) {
+          const d = res.data.data;
+          setData({
+            wallet: d.wallet,
+            transactions: d.transactions?.items || []
+          });
+        }
       } catch (e) {
         console.error(e);
       } finally {

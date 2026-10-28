@@ -19,7 +19,7 @@ export default function AdminSales() {
     (async () => {
       try {
         const res = await getAllSales();
-        if (mounted) setSales(res.data.data || []);
+        if (mounted) setSales(res.data.data?.items || []);
       } catch (err) {
         console.error(err);
         toast.error("Failed to load sales.");
