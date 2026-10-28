@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   getPendingProducts,
   getPendingProductById,
@@ -8,6 +8,7 @@ import { Eye, Package, Calendar, Search } from "lucide-react";
 import { toast } from "../../../utils/toast";
 import { imageUrl, handleImageError } from "../../../utils/image";
 import { SkeletonRow, Skeleton } from "../../../components/Skeleton";
+import Pagination from "../../../components/Pagination/Pagination";
 
 import ReviewModal from "./ReviewModal/ReviewModal";
 
@@ -19,6 +20,32 @@ export default function AdminProducts() {
   const [zoomImage, setZoomImage] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
 
+  // Client-side pagination
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
+
+  // Effect: only reconciles the external fetch. No sync setState here.
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const res = await getPendingProducts();
+        if (cancelled) return;
+        setProducts(res.data.data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Manual refresh, used after a review action (event-handler call-chain).
   const fetchProducts = async () => {
     try {
       const res = await getPendingProducts();
@@ -30,22 +57,11 @@ export default function AdminProducts() {
     }
   };
 
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const res = await getPendingProducts();
-        if (mounted) setProducts(res.data.data);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    })();
-    return () => {
-      mounted = false;
-    };
-  }, []);
+  // Search change resets pagination — done in the handler, not an effect.
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    setPage(1);
+  };
 
   const viewProduct = async (id) => {
     try {
@@ -65,7 +81,7 @@ export default function AdminProducts() {
         RejectionReason: status === "Rejected" ? data.reason : null,
       });
       setSelectedProduct(null);
-      fetchProducts();
+      await fetchProducts();
       toast.success(
         `Product ${status === "Approved" ? "approved" : "rejected"} successfully!`,
       );
@@ -92,10 +108,22 @@ export default function AdminProducts() {
     });
   };
 
-  const filteredProducts = products.filter(
-    (p) =>
-      p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.categoryName?.toLowerCase().includes(searchTerm.toLowerCase()),
+  const filteredProducts = useMemo(
+    () =>
+      products.filter(
+        (p) =>
+          p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          p.categoryName?.toLowerCase().includes(searchTerm.toLowerCase()),
+      ),
+    [products, searchTerm],
+  );
+
+  const totalCount = filteredProducts.length;
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+  const safePage = Math.min(page, totalPages);
+  const pageItems = filteredProducts.slice(
+    (safePage - 1) * pageSize,
+    safePage * pageSize,
   );
 
   if (loading)
@@ -146,7 +174,7 @@ export default function AdminProducts() {
               type="text"
               placeholder="Search by title or category..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={handleSearchChange}
               className="pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none w-full"
             />
           </div>
@@ -169,7 +197,7 @@ export default function AdminProducts() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {filteredProducts.length === 0 ? (
+              {pageItems.length === 0 ? (
                 <tr>
                   <td colSpan="4" className="text-center py-12">
                     <Package className="w-12 h-12 text-gray-300 mx-auto mb-3" />
@@ -179,7 +207,7 @@ export default function AdminProducts() {
                   </td>
                 </tr>
               ) : (
-                filteredProducts.map((p) => (
+                pageItems.map((p) => (
                   <tr key={p.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-4">
@@ -247,6 +275,17 @@ export default function AdminProducts() {
             </tbody>
           </table>
         </div>
+
+        <Pagination
+          page={safePage}
+          pageSize={pageSize}
+          totalCount={totalCount}
+          onPageChange={setPage}
+          onPageSizeChange={(s) => {
+            setPageSize(s);
+            setPage(1);
+          }}
+        />
       </div>
 
       <ReviewModal

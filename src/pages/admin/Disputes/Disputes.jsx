@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   getAllDisputes,
   startDisputeReview,
@@ -17,8 +17,8 @@ import {
 } from "lucide-react";
 import { toast } from "../../../utils/toast";
 import { SkeletonRow, Skeleton } from "../../../components/Skeleton";
+import Pagination from "../../../components/Pagination/Pagination";
 
-// Import the extracted modals
 import DetailsModal from "./DetailsModal/DetailsModal";
 import ResolveModal from "./ResolveModal/ResolveModal";
 
@@ -31,6 +31,32 @@ export default function Disputes() {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("Open");
 
+  // Client-side pagination
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
+
+  // Effect: only reconciles the external fetch. No sync setState here.
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const res = await getAllDisputes();
+        if (cancelled) return;
+        setDisputes(res.data.data || []);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Manual refresh, used after dispute actions (event-handler call-chain).
   const fetchDisputes = async () => {
     try {
       const res = await getAllDisputes();
@@ -43,27 +69,23 @@ export default function Disputes() {
     }
   };
 
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const res = await getAllDisputes();
-        if (mounted) setDisputes(res.data.data || []);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    })();
-    return () => {
-      mounted = false;
-    };
-  }, []);
+  // Tab change resets pagination — done in the handler, not an effect.
+  const handleTabChange = (tab) => {
+    if (tab === activeTab) return;
+    setActiveTab(tab);
+    setPage(1);
+  };
+
+  // Search change also resets pagination.
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    setPage(1);
+  };
 
   const handleStartReview = async (id) => {
     try {
       await startDisputeReview(id);
-      fetchDisputes();
+      await fetchDisputes();
       toast.success("Dispute moved to Under Review");
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to start review.");
@@ -79,7 +101,7 @@ export default function Disputes() {
         applyPenalty: data.applyPenalty === "true",
       });
       setSelected(null);
-      fetchDisputes();
+      await fetchDisputes();
       toast.success("Dispute resolved successfully!");
     } catch (err) {
       const validationErrors = err.response?.data?.errors;
@@ -104,27 +126,34 @@ export default function Disputes() {
     });
   };
 
-  // --- STATS ---
   const openCount = disputes.filter((d) => d.status === "Open").length;
   const reviewingCount = disputes.filter(
     (d) => d.status === "UnderReview",
   ).length;
   const resolvedCount = disputes.filter((d) => d.status === "Resolved").length;
 
-  // --- FILTERING ---
-  const filteredDisputes = disputes.filter((d) => {
-    const matchesSearch =
-      d.complaint?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      d.id.toString().includes(searchTerm) ||
-      d.saleId.toString().includes(searchTerm) ||
-      d.raisedByName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      d.againstName?.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredDisputes = useMemo(() => {
+    return disputes.filter((d) => {
+      const matchesSearch =
+        d.complaint?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        d.id.toString().includes(searchTerm) ||
+        d.saleId.toString().includes(searchTerm) ||
+        d.raisedByName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        d.againstName?.toLowerCase().includes(searchTerm.toLowerCase());
 
-    if (!matchesSearch) return false;
+      if (!matchesSearch) return false;
+      if (activeTab === "All") return true;
+      return d.status === activeTab;
+    });
+  }, [disputes, searchTerm, activeTab]);
 
-    if (activeTab === "All") return true;
-    return d.status === activeTab;
-  });
+  const totalCount = filteredDisputes.length;
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+  const safePage = Math.min(page, totalPages);
+  const pageItems = filteredDisputes.slice(
+    (safePage - 1) * pageSize,
+    safePage * pageSize,
+  );
 
   if (loading) {
     return (
@@ -172,7 +201,6 @@ export default function Disputes() {
         </div>
       </div>
 
-      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
           <div
@@ -207,14 +235,13 @@ export default function Disputes() {
         </div>
       </div>
 
-      {/* Table Container */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <div className="p-4 border-b border-gray-200 bg-gray-50/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
             {["Open", "UnderReview", "Resolved", "All"].map((tab) => (
               <button
                 key={tab}
-                onClick={() => setActiveTab(tab)}
+                onClick={() => handleTabChange(tab)}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition whitespace-nowrap ${
                   activeTab === tab
                     ? "bg-blue-600 text-white shadow-sm"
@@ -232,13 +259,12 @@ export default function Disputes() {
               type="text"
               placeholder="Search by name, ID or complaint..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={handleSearchChange}
               className="w-full pl-9 pr-4 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
             />
           </div>
         </div>
 
-        {/* Table */}
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm text-gray-600 min-w-200">
             <thead className="bg-gray-50 border-b border-gray-200 text-gray-900">
@@ -252,7 +278,7 @@ export default function Disputes() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {filteredDisputes.length === 0 ? (
+              {pageItems.length === 0 ? (
                 <tr>
                   <td colSpan="4" className="text-center py-16">
                     <Scale className="w-12 h-12 text-gray-300 mx-auto mb-3" />
@@ -262,7 +288,7 @@ export default function Disputes() {
                   </td>
                 </tr>
               ) : (
-                filteredDisputes.map((d) => (
+                pageItems.map((d) => (
                   <tr
                     key={d.id}
                     className="hover:bg-gray-50/80 transition-colors group"
@@ -289,7 +315,13 @@ export default function Disputes() {
                             {d.raisedByName}
                           </span>
                           <span
-                            className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${d.raisedByRole === "Buyer" ? "bg-blue-100 text-blue-700" : d.raisedByRole === "Seller" ? "bg-orange-100 text-orange-700" : "bg-gray-100 text-gray-700"}`}
+                            className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                              d.raisedByRole === "Buyer"
+                                ? "bg-blue-100 text-blue-700"
+                                : d.raisedByRole === "Seller"
+                                  ? "bg-orange-100 text-orange-700"
+                                  : "bg-gray-100 text-gray-700"
+                            }`}
                           >
                             {d.raisedByRole}
                           </span>
@@ -360,9 +392,19 @@ export default function Disputes() {
             </tbody>
           </table>
         </div>
+
+        <Pagination
+          page={safePage}
+          pageSize={pageSize}
+          totalCount={totalCount}
+          onPageChange={setPage}
+          onPageSizeChange={(s) => {
+            setPageSize(s);
+            setPage(1);
+          }}
+        />
       </div>
 
-      {/* EXTRACTED MODALS */}
       <DetailsModal
         target={viewDetailsTarget}
         onClose={() => setViewDetailsTarget(null)}

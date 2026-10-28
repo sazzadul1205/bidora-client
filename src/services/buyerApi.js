@@ -20,18 +20,19 @@ export const buyoutAuction = (auctionId) =>
   authApi.post(`/bid/${auctionId}/buyout`, {}, getAuthConfig());
 
 // Buyer Activity
-export const getMyBids = () => authApi.get("/buyer/my-bids", getAuthConfig());
+export const getMyBids = (params = {}) =>
+  authApi.get("/buyer/my-bids", { ...getAuthConfig(), params });
 export const getWonAuctions = () =>
   authApi.get("/buyer/won-auctions", getAuthConfig());
 
 // Wallet
 export const getMyWallet = () => authApi.get("/wallet/me", getAuthConfig());
-export const getMyDepositRequests = () =>
-  authApi.get("/wallet/deposit-requests", getAuthConfig());
-export const getWalletTransactions = () =>
-  authApi.get("/wallet/transactions", getAuthConfig());
-export const getWalletReservations = () =>
-  authApi.get("/wallet/reservations", getAuthConfig());
+export const getMyDepositRequests = (params = {}) =>
+  authApi.get("/wallet/deposit-requests", { ...getAuthConfig(), params });
+export const getWalletTransactions = (params = {}) =>
+  authApi.get("/wallet/transactions", { ...getAuthConfig(), params });
+export const getWalletReservations = (params = {}) =>
+  authApi.get("/wallet/reservations", { ...getAuthConfig(), params });
 
 // Submit a deposit request (FormData required for receipt image)
 export const requestDeposit = (formData) =>

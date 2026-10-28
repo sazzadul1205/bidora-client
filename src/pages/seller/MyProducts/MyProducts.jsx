@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import {
   getMyProducts,
@@ -24,6 +24,7 @@ import {
 import { toast, confirmDialog } from "../../../utils/toast";
 import { imageUrl, handleImageError } from "../../../utils/image";
 import { SkeletonRow, Skeleton } from "../../../components/Skeleton";
+import Pagination from "../../../components/Pagination/Pagination";
 
 export default function MyProducts() {
   const [products, setProducts] = useState([]);
@@ -32,6 +33,32 @@ export default function MyProducts() {
   const [filterStatus, setFilterStatus] = useState("All");
   const [filterAuction, setFilterAuction] = useState("All");
 
+  // Client-side pagination
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
+
+  // Effect: only reconciles the external fetch. No sync setState here.
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const res = await getMyProducts();
+        if (cancelled) return;
+        setProducts(res.data.data || []);
+      } catch {
+        if (!cancelled) toast.error("Failed to load products.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Manual refresh, used after submit/withdraw/delete (event-handler call-chain).
   const fetchProducts = async () => {
     try {
       const res = await getMyProducts();
@@ -43,22 +70,23 @@ export default function MyProducts() {
     }
   };
 
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const res = await getMyProducts();
-        if (mounted) setProducts(res.data.data || []);
-      } catch {
-        toast.error("Failed to load products.");
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    })();
-    return () => {
-      mounted = false;
-    };
-  }, []);
+  // Filter/search handlers — reset pagination here, not in an effect.
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    setPage(1);
+  };
+
+  const handleStatusChange = (status) => {
+    if (status === filterStatus) return;
+    setFilterStatus(status);
+    setPage(1);
+  };
+
+  const handleAuctionChange = (status) => {
+    if (status === filterAuction) return;
+    setFilterAuction(status);
+    setPage(1);
+  };
 
   const handleSubmit = async (id) => {
     const confirmed = await confirmDialog(
@@ -70,7 +98,7 @@ export default function MyProducts() {
     try {
       await submitProductForApproval(id);
       toast.success("Product submitted for approval");
-      fetchProducts();
+      await fetchProducts();
     } catch (err) {
       toast.error(
         "Submission failed: " + (err.response?.data?.message || err.message),
@@ -88,7 +116,7 @@ export default function MyProducts() {
     try {
       await withdrawProductSubmission(id);
       toast.success("Product withdrawn");
-      fetchProducts();
+      await fetchProducts();
     } catch (err) {
       toast.error(err.response?.data?.message || "Withdrawal failed.");
     }
@@ -104,7 +132,7 @@ export default function MyProducts() {
     try {
       await deleteProduct(id);
       toast.success("Product deleted");
-      fetchProducts();
+      await fetchProducts();
     } catch (err) {
       toast.error(err.response?.data?.message || "Deletion failed.");
     }
@@ -119,21 +147,29 @@ export default function MyProducts() {
     });
   };
 
-  // Filter & Search Logic
-  const filteredProducts = products.filter((p) => {
-    const matchesSearch = p.title
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    const matchesStatus =
-      filterStatus === "All" || p.approvalStatus === filterStatus;
-    const matchesAuction =
-      filterAuction === "All" ||
-      (filterAuction === "No Auction" && !p.auctionStatus) ||
-      p.auctionStatus === filterAuction;
-    return matchesSearch && matchesStatus && matchesAuction;
-  });
+  const filteredProducts = useMemo(() => {
+    return products.filter((p) => {
+      const matchesSearch = p.title
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+      const matchesStatus =
+        filterStatus === "All" || p.approvalStatus === filterStatus;
+      const matchesAuction =
+        filterAuction === "All" ||
+        (filterAuction === "No Auction" && !p.auctionStatus) ||
+        p.auctionStatus === filterAuction;
+      return matchesSearch && matchesStatus && matchesAuction;
+    });
+  }, [products, searchTerm, filterStatus, filterAuction]);
 
-  // --- LOADING STATE ---
+  const totalCount = filteredProducts.length;
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+  const safePage = Math.min(page, totalPages);
+  const pageItems = filteredProducts.slice(
+    (safePage - 1) * pageSize,
+    safePage * pageSize,
+  );
+
   if (loading) {
     return (
       <div className="max-w-7xl mx-auto">
@@ -164,7 +200,6 @@ export default function MyProducts() {
 
   return (
     <div className="max-w-7xl mx-auto">
-      {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">My Products</h1>
@@ -180,7 +215,6 @@ export default function MyProducts() {
         </Link>
       </div>
 
-      {/* Filters and Search Bar */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden mb-6">
         <div className="p-4 flex flex-col gap-4 border-b border-gray-100 bg-gray-50/50">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -189,7 +223,7 @@ export default function MyProducts() {
                 (status) => (
                   <button
                     key={status}
-                    onClick={() => setFilterStatus(status)}
+                    onClick={() => handleStatusChange(status)}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition whitespace-nowrap ${
                       filterStatus === status
                         ? "bg-blue-600 text-white shadow-sm"
@@ -208,13 +242,12 @@ export default function MyProducts() {
                 type="text"
                 placeholder="Search your products..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={handleSearchChange}
                 className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white"
               />
             </div>
           </div>
 
-          {/* Auction status filter row */}
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs font-semibold text-gray-500 mr-1 flex items-center gap-1">
               <Gavel className="w-3.5 h-3.5" /> Auction:
@@ -229,7 +262,7 @@ export default function MyProducts() {
             ].map((status) => (
               <button
                 key={status}
-                onClick={() => setFilterAuction(status)}
+                onClick={() => handleAuctionChange(status)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition whitespace-nowrap ${
                   filterAuction === status
                     ? "bg-purple-600 text-white shadow-sm"
@@ -242,7 +275,6 @@ export default function MyProducts() {
           </div>
         </div>
 
-        {/* Table */}
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm text-gray-600 min-w-225">
             <thead className="bg-gray-50 border-b border-gray-200 text-gray-900">
@@ -256,7 +288,7 @@ export default function MyProducts() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {filteredProducts.length === 0 ? (
+              {pageItems.length === 0 ? (
                 <tr>
                   <td colSpan="4" className="text-center py-16">
                     <Package className="w-12 h-12 text-gray-300 mx-auto mb-3" />
@@ -273,12 +305,11 @@ export default function MyProducts() {
                   </td>
                 </tr>
               ) : (
-                filteredProducts.map((p) => (
+                pageItems.map((p) => (
                   <tr
                     key={p.id}
                     className="hover:bg-gray-50/80 transition-colors group"
                   >
-                    {/* Product Info */}
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-4">
                         {p.mainImageUrl ? (
@@ -308,7 +339,6 @@ export default function MyProducts() {
                       </div>
                     </td>
 
-                    {/* Pricing */}
                     <td className="px-6 py-4">
                       <div className="space-y-1.5">
                         <p className="text-xs text-gray-500">
@@ -326,10 +356,8 @@ export default function MyProducts() {
                       </div>
                     </td>
 
-                    {/* Status Indicators */}
                     <td className="px-6 py-4">
                       <div className="flex flex-col gap-2 items-start">
-                        {/* Approval Status */}
                         <span
                           className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold border ${
                             p.approvalStatus === "Approved"
@@ -349,7 +377,6 @@ export default function MyProducts() {
                             : p.approvalStatus}
                         </span>
 
-                        {/* Rejection Reason Alert */}
                         {p.approvalStatus === "Rejected" &&
                           p.rejectionReason && (
                             <div className="text-[11px] text-red-700 bg-red-50 p-2 rounded-md border border-red-100 max-w-55 leading-tight flex items-start gap-1">
@@ -360,7 +387,6 @@ export default function MyProducts() {
                             </div>
                           )}
 
-                        {/* Auction Status */}
                         {p.auctionStatus && (
                           <div className="space-y-1 mt-1">
                             <span
@@ -404,7 +430,6 @@ export default function MyProducts() {
                       </div>
                     </td>
 
-                    {/* Actions Group */}
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         <Link
@@ -434,14 +459,12 @@ export default function MyProducts() {
                           </Link>
                         ) : null}
 
-                        {/* Divider */}
                         {(p.approvalStatus === "Draft" ||
                           p.approvalStatus === "Rejected" ||
                           p.approvalStatus === "PendingApproval") && (
                           <div className="w-px h-6 bg-gray-200 mx-1"></div>
                         )}
 
-                        {/* Icon-Only Secondary Actions */}
                         {(p.approvalStatus === "Draft" ||
                           p.approvalStatus === "Rejected") && (
                           <Link
@@ -481,6 +504,17 @@ export default function MyProducts() {
             </tbody>
           </table>
         </div>
+
+        <Pagination
+          page={safePage}
+          pageSize={pageSize}
+          totalCount={totalCount}
+          onPageChange={setPage}
+          onPageSizeChange={(s) => {
+            setPageSize(s);
+            setPage(1);
+          }}
+        />
       </div>
     </div>
   );

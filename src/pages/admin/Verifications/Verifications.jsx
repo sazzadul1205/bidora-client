@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   getPendingVerifications,
   verifyProfile,
@@ -6,6 +6,7 @@ import {
 import { ShieldCheck, Phone, MapPin } from "lucide-react";
 import { toast } from "../../../utils/toast";
 import { SkeletonRow, Skeleton } from "../../../components/Skeleton";
+import Pagination from "../../../components/Pagination/Pagination";
 
 import ReviewModal from "./ReviewModal/ReviewModal";
 
@@ -15,6 +16,10 @@ export default function Verifications() {
   const [selected, setSelected] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [zoomImage, setZoomImage] = useState(null);
+
+  // Client-side pagination
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
 
   const fetchProfiles = async () => {
     try {
@@ -81,6 +86,14 @@ export default function Verifications() {
     });
   };
 
+  const totalCount = profiles.length;
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+  const safePage = Math.min(page, totalPages);
+  const pageItems = useMemo(
+    () => profiles.slice((safePage - 1) * pageSize, safePage * pageSize),
+    [profiles, safePage, pageSize],
+  );
+
   if (loading)
     return (
       <div>
@@ -140,7 +153,7 @@ export default function Verifications() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {profiles.length === 0 ? (
+              {pageItems.length === 0 ? (
                 <tr>
                   <td colSpan="5" className="text-center py-12">
                     <ShieldCheck className="w-12 h-12 text-gray-300 mx-auto mb-3" />
@@ -151,7 +164,7 @@ export default function Verifications() {
                   </td>
                 </tr>
               ) : (
-                profiles.map((p) => (
+                pageItems.map((p) => (
                   <tr key={p.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="font-medium text-gray-900">
@@ -161,7 +174,11 @@ export default function Verifications() {
                     </td>
                     <td className="px-6 py-4">
                       <span
-                        className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${p.role === "Seller" ? "bg-purple-50 text-purple-700" : "bg-indigo-50 text-indigo-700"}`}
+                        className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                          p.role === "Seller"
+                            ? "bg-purple-50 text-purple-700"
+                            : "bg-indigo-50 text-indigo-700"
+                        }`}
                       >
                         {p.role || "N/A"}
                       </span>
@@ -191,6 +208,17 @@ export default function Verifications() {
             </tbody>
           </table>
         </div>
+
+        <Pagination
+          page={safePage}
+          pageSize={pageSize}
+          totalCount={totalCount}
+          onPageChange={setPage}
+          onPageSizeChange={(s) => {
+            setPageSize(s);
+            setPage(1);
+          }}
+        />
       </div>
 
       <ReviewModal

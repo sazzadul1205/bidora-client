@@ -5,7 +5,8 @@ export const getAdminDashboard = () =>
   authApi.get("/admin/dashboard", getAuthConfig());
 
 // User Management
-export const getUsers = () => authApi.get("/admin/user", getAuthConfig());
+export const getUsers = (params = {}) =>
+  authApi.get("/admin/user", { ...getAuthConfig(), params });
 export const createAdmin = (data) =>
   authApi.post("/admin/create-admin", data, getAuthConfig());
 export const lockUser = (id, data) =>
@@ -48,7 +49,8 @@ export const reviewDepositRequest = (id, data) =>
   authApi.put(`/admin/deposit-requests/${id}/review`, data, getAuthConfig());
 
 // Sales
-export const getAllSales = () => authApi.get("/sale", getAuthConfig());
+export const getAllSales = (params = {}) =>
+  authApi.get("/sale", { ...getAuthConfig(), params });
 
 // Disputes
 export const getAllDisputes = () => authApi.get("/dispute", getAuthConfig());
@@ -58,10 +60,10 @@ export const resolveDispute = (id, data) =>
   authApi.put(`/dispute/${id}/resolve`, data, getAuthConfig());
 
 // Platform Wallet & Financial Ledger
-export const getPlatformWallet = () =>
-  authApi.get("/admin/platform-wallet", getAuthConfig());
-export const getAllTransactions = () =>
-  authApi.get("/admin/transactions", getAuthConfig());
+export const getPlatformWallet = (params = {}) =>
+  authApi.get("/admin/platform-wallet", { ...getAuthConfig(), params });
+export const getAllTransactions = (params = {}) =>
+  authApi.get("/admin/transactions", { ...getAuthConfig(), params });
 export const getAllReservations = () =>
   authApi.get("/admin/reservations", getAuthConfig());
 

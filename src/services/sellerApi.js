@@ -46,7 +46,8 @@ export const getAuctionByIdForSeller = (id) =>
   authApi.get(`/auction/${id}/seller`, getAuthConfig());
 
 // Sales & Delivery
-export const getMySales = () => authApi.get("/sale/my-sales", getAuthConfig());
+export const getMySales = (params = {}) =>
+  authApi.get("/sale/my-sales", { ...getAuthConfig(), params });
 
 export const dispatchSale = (id, formData) =>
   authApi.post(`/sale/${id}/dispatch`, formData, {

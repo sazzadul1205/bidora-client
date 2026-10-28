@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   getPendingDepositRequests,
   reviewDepositRequest,
@@ -7,8 +7,8 @@ import { CheckCircle2, CreditCard, Hash, Receipt, Wallet } from "lucide-react";
 import { formatDateTime } from "../../../utils/date";
 import { toast } from "../../../utils/toast";
 import { SkeletonRow, Skeleton } from "../../../components/Skeleton";
+import Pagination from "../../../components/Pagination/Pagination";
 
-// Import the extracted modal
 import ReviewModal from "./ReviewModal/ReviewModal";
 
 export default function Deposits() {
@@ -16,6 +16,10 @@ export default function Deposits() {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+
+  // Client-side pagination
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
 
   const fetchRequests = async () => {
     try {
@@ -85,6 +89,14 @@ export default function Deposits() {
     })}`;
   };
 
+  const totalCount = requests.length;
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+  const safePage = Math.min(page, totalPages);
+  const pageItems = useMemo(
+    () => requests.slice((safePage - 1) * pageSize, safePage * pageSize),
+    [requests, safePage, pageSize],
+  );
+
   if (loading)
     return (
       <div>
@@ -129,7 +141,6 @@ export default function Deposits() {
         </div>
       </div>
 
-      {/* TABLE */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm text-gray-600 min-w-175">
@@ -143,7 +154,7 @@ export default function Deposits() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {requests.length === 0 ? (
+              {pageItems.length === 0 ? (
                 <tr>
                   <td colSpan="5" className="text-center py-12">
                     <Receipt className="w-12 h-12 text-gray-300 mx-auto mb-3" />
@@ -154,7 +165,7 @@ export default function Deposits() {
                   </td>
                 </tr>
               ) : (
-                requests.map((r) => (
+                pageItems.map((r) => (
                   <tr key={r.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
@@ -196,6 +207,17 @@ export default function Deposits() {
             </tbody>
           </table>
         </div>
+
+        <Pagination
+          page={safePage}
+          pageSize={pageSize}
+          totalCount={totalCount}
+          onPageChange={setPage}
+          onPageSizeChange={(s) => {
+            setPageSize(s);
+            setPage(1);
+          }}
+        />
       </div>
 
       <ReviewModal

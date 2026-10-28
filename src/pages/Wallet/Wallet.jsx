@@ -9,10 +9,11 @@ import {
   X,
   Loader2,
   History,
-  Scale, 
+  Scale,
 } from "lucide-react";
 import { toast } from "../../utils/toast";
 import { Skeleton } from "../../components/Skeleton";
+import Pagination from "../../components/Pagination/Pagination";
 
 import {
   getMyWallet,
@@ -22,7 +23,6 @@ import {
   getMyDepositRequests,
 } from "../../services/buyerApi";
 
-// Tab Components
 import OverviewTab from "./OverviewTab/OverviewTab";
 import TransactionsTab from "./TransactionsTab/TransactionsTab";
 import ReservationsTab from "./ReservationsTab/ReservationsTab";
@@ -32,7 +32,6 @@ import DisputesTab from "./DisputesTab/DisputesTab";
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 
-// Receipt Dropzone (kept local to this page)
 function ReceiptDropzone({ file, onFileChange }) {
   const [dragActive, setDragActive] = useState(false);
   const [previewUrl, setPreviewUrl] = useState("");
@@ -102,10 +101,11 @@ function ReceiptDropzone({ file, onFileChange }) {
           setDragActive(false);
         }}
         onDrop={handleDrop}
-        className={`relative flex min-h-40 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-4 text-center transition ${dragActive
+        className={`relative flex min-h-40 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-4 text-center transition ${
+          dragActive
             ? "border-blue-500 bg-blue-50"
             : "border-gray-300 bg-gray-50 hover:border-blue-400 hover:bg-blue-50/50"
-          }`}
+        }`}
       >
         <input
           ref={inputRef}
@@ -160,6 +160,19 @@ export default function Wallet() {
   const [showDepositModal, setShowDepositModal] = useState(false);
   const [receiptFile, setReceiptFile] = useState(null);
 
+  // Per-tab pagination state
+  const [txPage, setTxPage] = useState(1);
+  const [txPageSize, setTxPageSize] = useState(20);
+  const [txTotal, setTxTotal] = useState(0);
+
+  const [resPage, setResPage] = useState(1);
+  const [resPageSize, setResPageSize] = useState(20);
+  const [resTotal, setResTotal] = useState(0);
+
+  const [depPage, setDepPage] = useState(1);
+  const [depPageSize, setDepPageSize] = useState(20);
+  const [depTotal, setDepTotal] = useState(0);
+
   const {
     register,
     handleSubmit,
@@ -167,52 +180,106 @@ export default function Wallet() {
     formState: { errors, isSubmitting },
   } = useForm();
 
-  const fetchWalletData = async () => {
-    try {
-      const [walletRes, txRes, resRes, depRes] = await Promise.all([
-        getMyWallet(),
-        getWalletTransactions(),
-        getWalletReservations(),
-        getMyDepositRequests(),
-      ]);
-      setWallet(walletRes.data.data);
-      setTransactions(txRes.data.data?.items || []);
-      setReservations(resRes.data.data?.items || []);
-      setDepositRequests(depRes.data.data?.items || []);
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to load wallet data.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // ---------- Data fetching ----------
+  // A single effect keyed on the active tab + that tab's pagination.
+  // Each branch runs only when its tab is visible, and each has its own
+  // cancellation flag so switching tabs / paging quickly doesn't let
+  // stale responses overwrite fresh ones.
   useEffect(() => {
-    let mounted = true;
+    let cancelled = false;
+
     (async () => {
       try {
-        const [walletRes, txRes, resRes, depRes] = await Promise.all([
-          getMyWallet(),
-          getWalletTransactions(),
-          getWalletReservations(),
-          getMyDepositRequests(),
-        ]);
-        if (!mounted) return;
-        setWallet(walletRes.data.data);
-        setTransactions(txRes.data.data?.items || []);
-        setReservations(resRes.data.data?.items || []);
-        setDepositRequests(depRes.data.data?.items || []);
+        if (activeTab === "overview") {
+          // Load everything the overview tab renders, in parallel.
+          const [w, t, r, d] = await Promise.all([
+            getMyWallet(),
+            getWalletTransactions({ page: txPage, pageSize: txPageSize }),
+            getWalletReservations({ page: resPage, pageSize: resPageSize }),
+            getMyDepositRequests({ page: depPage, pageSize: depPageSize }),
+          ]);
+          if (cancelled) return;
+          setWallet(w.data.data);
+          setTransactions(t.data.data?.items || []);
+          setTxTotal(t.data.data?.totalCount || 0);
+          setReservations(r.data.data?.items || []);
+          setResTotal(r.data.data?.totalCount || 0);
+          setDepositRequests(d.data.data?.items || []);
+          setDepTotal(d.data.data?.totalCount || 0);
+        } else if (activeTab === "transactions") {
+          const t = await getWalletTransactions({
+            page: txPage,
+            pageSize: txPageSize,
+          });
+          if (cancelled) return;
+          setTransactions(t.data.data?.items || []);
+          setTxTotal(t.data.data?.totalCount || 0);
+        } else if (activeTab === "reservations") {
+          const r = await getWalletReservations({
+            page: resPage,
+            pageSize: resPageSize,
+          });
+          if (cancelled) return;
+          setReservations(r.data.data?.items || []);
+          setResTotal(r.data.data?.totalCount || 0);
+        } else if (activeTab === "deposit-requests") {
+          const d = await getMyDepositRequests({
+            page: depPage,
+            pageSize: depPageSize,
+          });
+          if (cancelled) return;
+          setDepositRequests(d.data.data?.items || []);
+          setDepTotal(d.data.data?.totalCount || 0);
+        }
+        // "disputes" tab uses `transactions` which is loaded by the
+        // transactions/overview branches; if the user lands here first,
+        // load transactions too.
+        else if (activeTab === "disputes") {
+          const t = await getWalletTransactions({
+            page: txPage,
+            pageSize: txPageSize,
+          });
+          if (cancelled) return;
+          setTransactions(t.data.data?.items || []);
+          setTxTotal(t.data.data?.totalCount || 0);
+        }
       } catch (err) {
         console.error(err);
-        toast.error("Failed to load wallet data.");
+        if (!cancelled) toast.error("Failed to load wallet data.");
       } finally {
-        if (mounted) setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     })();
+
     return () => {
-      mounted = false;
+      cancelled = true;
     };
-  }, []);
+  }, [
+    activeTab,
+    txPage,
+    txPageSize,
+    resPage,
+    resPageSize,
+    depPage,
+    depPageSize,
+  ]);
+
+  // Explicit refresh used by the deposit-submit handler. Sets `loading`
+  // back on (from an event handler, which is fine) and re-fetches the
+  // deposit list for the current tab.
+  const refreshDepositRequests = async () => {
+    try {
+      const d = await getMyDepositRequests({
+        page: 1,
+        pageSize: depPageSize,
+      });
+      setDepositRequests(d.data.data?.items || []);
+      setDepTotal(d.data.data?.totalCount || 0);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to refresh deposit requests.");
+    }
+  };
 
   const onSubmitDeposit = async (data) => {
     if (!receiptFile) {
@@ -232,7 +299,15 @@ export default function Wallet() {
       setShowDepositModal(false);
       reset();
       setReceiptFile(null);
-      fetchWalletData();
+
+      // Freshly submitted request is on page 1. If we're already on page 1
+      // of the deposit-requests tab, the effect won't re-fire, so refresh
+      // manually. Otherwise just move to page 1 and let the effect handle it.
+      if (activeTab === "deposit-requests" && depPage === 1) {
+        await refreshDepositRequests();
+      } else {
+        setDepPage(1);
+      }
     } catch (err) {
       toast.error(
         err.response?.data?.message || "Failed to submit deposit request.",
@@ -280,9 +355,8 @@ export default function Wallet() {
   const safeReservedBalance = Math.max(0, wallet?.reservedBalance || 0);
   const availableBalance = (wallet?.balance || 0) - safeReservedBalance;
 
-  // NEW: Filter transactions to only show dispute-related ones
   const disputeTransactions = transactions.filter((tx) =>
-    tx.reference?.toLowerCase().includes("dispute")
+    tx.reference?.toLowerCase().includes("dispute"),
   );
 
   return (
@@ -340,51 +414,55 @@ export default function Wallet() {
           <nav className="flex overflow-x-auto">
             <button
               onClick={() => setActiveTab("overview")}
-              className={`flex items-center gap-2 px-6 py-3.5 text-sm font-medium border-b-2 transition whitespace-nowrap ${activeTab === "overview"
+              className={`flex items-center gap-2 px-6 py-3.5 text-sm font-medium border-b-2 transition whitespace-nowrap ${
+                activeTab === "overview"
                   ? "border-blue-600 text-blue-600"
                   : "border-transparent text-gray-600 hover:text-gray-900"
-                }`}
+              }`}
             >
               <WalletIcon className="w-4 h-4" /> Overview
             </button>
             <button
               onClick={() => setActiveTab("transactions")}
-              className={`flex items-center gap-2 px-6 py-3.5 text-sm font-medium border-b-2 transition whitespace-nowrap ${activeTab === "transactions"
+              className={`flex items-center gap-2 px-6 py-3.5 text-sm font-medium border-b-2 transition whitespace-nowrap ${
+                activeTab === "transactions"
                   ? "border-blue-600 text-blue-600"
                   : "border-transparent text-gray-600 hover:text-gray-900"
-                }`}
+              }`}
             >
-              <History className="w-4 h-4" /> Transactions (
-              {transactions.length})
+              <History className="w-4 h-4" /> Transactions ({txTotal})
             </button>
             <button
               onClick={() => setActiveTab("reservations")}
-              className={`flex items-center gap-2 px-6 py-3.5 text-sm font-medium border-b-2 transition whitespace-nowrap ${activeTab === "reservations"
+              className={`flex items-center gap-2 px-6 py-3.5 text-sm font-medium border-b-2 transition whitespace-nowrap ${
+                activeTab === "reservations"
                   ? "border-blue-600 text-blue-600"
                   : "border-transparent text-gray-600 hover:text-gray-900"
-                }`}
+              }`}
             >
-              <Lock className="w-4 h-4" /> Reservations ({reservations.length})
+              <Lock className="w-4 h-4" /> Reservations ({resTotal})
             </button>
             <button
               onClick={() => setActiveTab("deposit-requests")}
-              className={`flex items-center gap-2 px-6 py-3.5 text-sm font-medium border-b-2 transition whitespace-nowrap ${activeTab === "deposit-requests"
+              className={`flex items-center gap-2 px-6 py-3.5 text-sm font-medium border-b-2 transition whitespace-nowrap ${
+                activeTab === "deposit-requests"
                   ? "border-blue-600 text-blue-600"
                   : "border-transparent text-gray-600 hover:text-gray-900"
-                }`}
+              }`}
             >
               <ArrowDownToLine className="w-4 h-4" /> Deposit Requests (
-              {depositRequests.length})
+              {depTotal})
             </button>
-            {/* NEW TAB BUTTON */}
             <button
               onClick={() => setActiveTab("disputes")}
-              className={`flex items-center gap-2 px-6 py-3.5 text-sm font-medium border-b-2 transition whitespace-nowrap ${activeTab === "disputes"
+              className={`flex items-center gap-2 px-6 py-3.5 text-sm font-medium border-b-2 transition whitespace-nowrap ${
+                activeTab === "disputes"
                   ? "border-blue-600 text-blue-600"
                   : "border-transparent text-gray-600 hover:text-gray-900"
-                }`}
+              }`}
             >
-              <Scale className="w-4 h-4" /> Disputes ({disputeTransactions.length})
+              <Scale className="w-4 h-4" /> Disputes (
+              {disputeTransactions.length})
             </button>
           </nav>
         </div>
@@ -405,31 +483,69 @@ export default function Wallet() {
           )}
 
           {activeTab === "transactions" && (
-            <TransactionsTab
-              transactions={transactions}
-              formatMoney={formatMoney}
-              formatDate={formatDate}
-              getTxColor={getTxColor}
-            />
+            <>
+              <TransactionsTab
+                transactions={transactions}
+                formatMoney={formatMoney}
+                formatDate={formatDate}
+                getTxColor={getTxColor}
+              />
+              <Pagination
+                page={txPage}
+                pageSize={txPageSize}
+                totalCount={txTotal}
+                onPageChange={setTxPage}
+                onPageSizeChange={(s) => {
+                  setTxPageSize(s);
+                  setTxPage(1);
+                }}
+                className="border-t border-gray-200 mt-4 rounded-b-xl"
+              />
+            </>
           )}
 
           {activeTab === "reservations" && (
-            <ReservationsTab
-              reservations={reservations}
-              formatMoney={formatMoney}
-            />
+            <>
+              <ReservationsTab
+                reservations={reservations}
+                formatMoney={formatMoney}
+              />
+              <Pagination
+                page={resPage}
+                pageSize={resPageSize}
+                totalCount={resTotal}
+                onPageChange={setResPage}
+                onPageSizeChange={(s) => {
+                  setResPageSize(s);
+                  setResPage(1);
+                }}
+                className="border-t border-gray-200 mt-4 rounded-b-xl"
+              />
+            </>
           )}
 
           {activeTab === "deposit-requests" && (
-            <DepositRequestsTab
-              depositRequests={depositRequests}
-              onRequestDeposit={() => setShowDepositModal(true)}
-              formatMoney={formatMoney}
-              formatDate={formatDate}
-            />
+            <>
+              <DepositRequestsTab
+                depositRequests={depositRequests}
+                onRequestDeposit={() => setShowDepositModal(true)}
+                formatMoney={formatMoney}
+                formatDate={formatDate}
+              />
+              <Pagination
+                page={depPage}
+                pageSize={depPageSize}
+                totalCount={depTotal}
+                onPageChange={setDepPage}
+                onPageSizeChange={(s) => {
+                  setDepPageSize(s);
+                  setDepPage(1);
+                }}
+                className="border-t border-gray-200 mt-4 rounded-b-xl"
+              />
+            </>
           )}
 
-          {/* NEW TAB RENDER */}
           {activeTab === "disputes" && (
             <DisputesTab
               disputeTransactions={disputeTransactions}
@@ -441,7 +557,7 @@ export default function Wallet() {
         </div>
       </div>
 
-      {/* Deposit Modal (Keep existing) */}
+      {/* Deposit Modal */}
       {showDepositModal && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
           <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl">
@@ -495,7 +611,7 @@ export default function Wallet() {
                   min="1"
                   {...register("amount", {
                     required: "Amount is required",
-                      min: { value: 1, message: "Minimum ৳1" },
+                    min: { value: 1, message: "Minimum ৳1" },
                   })}
                   placeholder="100.00"
                   className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none"

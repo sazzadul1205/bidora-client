@@ -1,15 +1,20 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { getCategories } from "../../../services/publicApi";
 import { createCategory, deleteCategory } from "../../../services/adminApi";
 import { Trash2, Plus, Search, Tag, Layers, Loader2 } from "lucide-react";
 import { toast, confirmDialog } from "../../../utils/toast";
 import { Skeleton } from "../../../components/Skeleton";
+import Pagination from "../../../components/Pagination/Pagination";
 
 export default function Categories() {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+
+  // Client-side pagination
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
 
   const {
     register,
@@ -18,6 +23,29 @@ export default function Categories() {
     formState: { isSubmitting, errors },
   } = useForm();
 
+  // Effect: only reconciles the external fetch. No sync setState here.
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const res = await getCategories();
+        if (cancelled) return;
+        setCategories(res.data.data || []);
+      } catch (err) {
+        console.error(err);
+        if (!cancelled) toast.error("Failed to load categories.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Manual refresh, used after create/delete (event-handler call-chain).
   const fetchCategories = async () => {
     try {
       const res = await getCategories();
@@ -30,29 +58,17 @@ export default function Categories() {
     }
   };
 
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const res = await getCategories();
-        if (mounted) setCategories(res.data.data || []);
-      } catch (err) {
-        console.error(err);
-        toast.error("Failed to load categories.");
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    })();
-    return () => {
-      mounted = false;
-    };
-  }, []);
+  // Search change resets pagination — done in the handler, not an effect.
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    setPage(1);
+  };
 
   const onSubmit = async (data) => {
     try {
       await createCategory(data);
       reset();
-      fetchCategories();
+      await fetchCategories();
       toast.success("Category added successfully!");
     } catch (err) {
       const msg = err.response?.data?.message || "Failed to add category.";
@@ -71,7 +87,7 @@ export default function Categories() {
     if (confirmed) {
       try {
         await deleteCategory(id);
-        fetchCategories();
+        await fetchCategories();
         toast.success("Category deleted successfully!");
       } catch (err) {
         const msg =
@@ -82,12 +98,22 @@ export default function Categories() {
     }
   };
 
-  // Filter categories based on search
-  const filteredCategories = categories.filter((c) =>
-    c.name.toLowerCase().includes(searchTerm.toLowerCase()),
+  const filteredCategories = useMemo(
+    () =>
+      categories.filter((c) =>
+        c.name.toLowerCase().includes(searchTerm.toLowerCase()),
+      ),
+    [categories, searchTerm],
   );
 
-  // --- LOADING STATE ---
+  const totalCount = filteredCategories.length;
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+  const safePage = Math.min(page, totalPages);
+  const pageItems = filteredCategories.slice(
+    (safePage - 1) * pageSize,
+    safePage * pageSize,
+  );
+
   if (loading) {
     return (
       <div className="max-w-5xl mx-auto space-y-6">
@@ -113,7 +139,6 @@ export default function Categories() {
 
   return (
     <div className="max-w-5xl mx-auto">
-      {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Categories</h1>
@@ -123,19 +148,17 @@ export default function Categories() {
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full sm:w-auto">
-          {/* Search Bar */}
           <div className="relative w-full sm:w-64">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
               placeholder="Search categories..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={handleSearchChange}
               className="pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none w-full bg-white"
             />
           </div>
 
-          {/* Count Badge */}
           <div className="bg-blue-50 text-blue-700 px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 shrink-0 self-start sm:self-auto">
             <Layers className="w-4 h-4" />
             {categories.length} Total
@@ -143,7 +166,6 @@ export default function Categories() {
         </div>
       </div>
 
-      {/* Add Category Form */}
       <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm mb-8">
         <div className="flex items-center gap-2 mb-4 border-b border-gray-100 pb-3">
           <Tag className="w-5 h-5 text-blue-600" />
@@ -185,13 +207,12 @@ export default function Categories() {
         </form>
       </div>
 
-      {/* Category List */}
       <div>
         <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4">
           Existing Categories
         </h2>
 
-        {filteredCategories.length === 0 ? (
+        {pageItems.length === 0 ? (
           <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-12 text-center">
             <Tag className="w-12 h-12 text-gray-300 mx-auto mb-3" />
             <p className="text-gray-500 font-medium">No categories found.</p>
@@ -203,7 +224,7 @@ export default function Categories() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {filteredCategories.map((c) => (
+            {pageItems.map((c) => (
               <div
                 key={c.id}
                 className="group bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:border-blue-300 hover:shadow-md transition-all flex items-center justify-between"
@@ -232,6 +253,22 @@ export default function Categories() {
           </div>
         )}
       </div>
+
+      {totalCount > 0 && (
+        <div className="mt-6 bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+          <Pagination
+            page={safePage}
+            pageSize={pageSize}
+            totalCount={totalCount}
+            onPageChange={setPage}
+            onPageSizeChange={(s) => {
+              setPageSize(s);
+              setPage(1);
+            }}
+            className="border-t-0"
+          />
+        </div>
+      )}
     </div>
   );
 }

@@ -12,6 +12,7 @@ import {
 import { SkeletonRow, Skeleton } from "../../../components/Skeleton";
 import { imageUrl, handleImageError } from "../../../utils/image";
 import { formatDateTime } from "../../../utils/date";
+import Pagination from "../../../components/Pagination/Pagination";
 
 export default function MyBids() {
   const [bids, setBids] = useState([]);
@@ -19,27 +20,53 @@ export default function MyBids() {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("All");
 
+  // Server-side pagination
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
+  const [totalCount, setTotalCount] = useState(0);
+
+  // Effect: only reconciles the result of the external fetch.
+  // `loading` starts true and is only flipped off here (after await);
+  // event handlers flip it back on when pagination changes.
   useEffect(() => {
-    let mounted = true;
+    let cancelled = false;
+
     (async () => {
       try {
-        const res = await getMyBids();
-         if (mounted) setBids(res.data.data?.items || []);
+        const res = await getMyBids({ page, pageSize });
+        if (cancelled) return;
+        setBids(res.data.data?.items || []);
+        setTotalCount(res.data.data?.totalCount || 0);
       } catch (err) {
         console.error(err);
       } finally {
-        if (mounted) setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     })();
-    return () => {
-      mounted = false;
-    };
-  }, []);
 
+    return () => {
+      cancelled = true;
+    };
+  }, [page, pageSize]);
+
+  // Pagination handlers — set loading here (event handler, not effect).
+  const goToPage = (p) => {
+    if (p === page) return;
+    setLoading(true);
+    setPage(p);
+  };
+
+  const changePageSize = (s) => {
+    if (s === pageSize) return;
+    setLoading(true);
+    setPageSize(s);
+    setPage(1);
+  };
+
+  // Page-scoped stats
   const activeBidsCount = bids.filter(
     (b) => b.auctionStatus === "Active",
   ).length;
-  const totalBidsCount = bids.length;
   const highestBidsCount = bids.filter((b) => b.isHighest).length;
 
   const filteredBids = bids.filter((b) => {
@@ -55,7 +82,7 @@ export default function MyBids() {
     return true;
   });
 
-  if (loading) {
+  if (loading && bids.length === 0) {
     return (
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-6">
@@ -92,7 +119,6 @@ export default function MyBids() {
 
   return (
     <div className="max-w-7xl mx-auto">
-      {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
@@ -113,14 +139,16 @@ export default function MyBids() {
         </div>
       </div>
 
-      {/* Stats Row */}
+      {/* Page-scoped stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
           <div className="p-3 bg-green-50 text-green-600 rounded-lg shrink-0">
             <Clock className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-500">Active Bids</p>
+            <p className="text-sm font-medium text-gray-500">
+              Active Bids <span className="text-xs text-gray-400">(page)</span>
+            </p>
             <p className="text-2xl font-bold text-gray-900">
               {activeBidsCount}
             </p>
@@ -131,10 +159,8 @@ export default function MyBids() {
             <Gavel className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-500">
-              Total Bids Placed
-            </p>
-            <p className="text-2xl font-bold text-gray-900">{totalBidsCount}</p>
+            <p className="text-sm font-medium text-gray-500">Total Bids</p>
+            <p className="text-2xl font-bold text-gray-900">{totalCount}</p>
           </div>
         </div>
         <div className="bg-white p-5 rounded-xl border border-green-200 shadow-sm flex items-center gap-4">
@@ -143,7 +169,7 @@ export default function MyBids() {
           </div>
           <div>
             <p className="text-sm font-medium text-gray-500">
-              Currently Winning
+              Winning <span className="text-xs text-gray-400">(page)</span>
             </p>
             <p className="text-2xl font-bold text-green-700">
               {highestBidsCount}
@@ -152,10 +178,8 @@ export default function MyBids() {
         </div>
       </div>
 
-      {/* Filters Bar */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <div className="border-b border-gray-200 bg-gray-50/50 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          {/* Tabs */}
           <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
             {["All", "Live", "Ended"].map((tab) => (
               <button
@@ -176,12 +200,11 @@ export default function MyBids() {
             ))}
           </div>
 
-          {/* Search */}
           <div className="relative w-full sm:w-64">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
-              placeholder="Search products..."
+              placeholder="Search current page..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-9 pr-4 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
@@ -189,7 +212,6 @@ export default function MyBids() {
           </div>
         </div>
 
-        {/* Table — now scrolls horizontally on mobile */}
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm text-gray-600 min-w-200">
             <thead className="bg-gray-50 border-b border-gray-200 text-gray-900">
@@ -240,12 +262,7 @@ export default function MyBids() {
                         <div>
                           <p className="font-semibold text-gray-900 line-clamp-1 flex items-center gap-2">
                             {b.productTitle}
-                            {b.isHighest && b.auctionStatus === "Active" && (
-                              <span className="text-[10px] font-bold text-green-700 bg-green-100 px-1.5 py-0.5 rounded shrink-0">
-                                WINNING
-                              </span>
-                            )}
-                            {b.isHighest && b.auctionStatus !== "Active" && (
+                            {b.isHighest && (
                               <span className="text-[10px] font-bold text-green-700 bg-green-100 px-1.5 py-0.5 rounded shrink-0">
                                 WINNING
                               </span>
@@ -319,6 +336,14 @@ export default function MyBids() {
             </tbody>
           </table>
         </div>
+
+        <Pagination
+          page={page}
+          pageSize={pageSize}
+          totalCount={totalCount}
+          onPageChange={goToPage}
+          onPageSizeChange={changePageSize}
+        />
       </div>
     </div>
   );

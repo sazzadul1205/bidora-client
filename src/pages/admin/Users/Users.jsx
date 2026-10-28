@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { toast } from "../../../utils/toast";
 import { SkeletonRow, Skeleton } from "../../../components/Skeleton";
+import Pagination from "../../../components/Pagination/Pagination";
 
 import UserDetailsModal from "./UserDetailsModal/UserDetailsModal";
 import ManageLockModal from "./ManageLockModal/ManageLockModal";
@@ -21,60 +22,88 @@ import CreateAdminModal from "./CreateAdminModal/CreateAdminModal";
 
 export default function Users() {
   const [users, setUsers] = useState([]);
-  const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Modals State
+  // Pagination state (server-side)
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
+  const [totalCount, setTotalCount] = useState(0);
+
+  // Modals
   const [selectedUser, setSelectedUser] = useState(null);
   const [viewDetailsTarget, setViewDetailsTarget] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [initialLockAction, setInitialLockAction] = useState("unlock");
-
   const [submitting, setSubmitting] = useState(false);
 
-  const fetchUsers = async () => {
+  // Effect: only reconciles the result of the external fetch.
+  // State that *initiates* loading is set from event handlers, not here.
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const res = await getUsers({ page, pageSize });
+        if (cancelled) return;
+        const payload = res.data.data;
+        setUsers(payload?.items || []);
+        setTotalCount(payload?.totalCount || 0);
+      } catch {
+        if (!cancelled) toast.error("Failed to load users.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [page, pageSize]);
+
+  // Pagination handlers — set loading here (event handler, not effect)
+  const goToPage = (p) => {
+    if (p === page) return;
+    setLoading(true);
+    setPage(p);
+  };
+
+  const changePageSize = (s) => {
+    if (s === pageSize) return;
+    setLoading(true);
+    setPageSize(s);
+    setPage(1);
+  };
+
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value.toLowerCase());
+    setPage(1);
+  };
+
+  const filteredUsers = users.filter((u) => {
+    if (!searchTerm) return true;
+    return (
+      u.email?.toLowerCase().includes(searchTerm) ||
+      u.profile?.fullName?.toLowerCase().includes(searchTerm) ||
+      u.userId?.toLowerCase().includes(searchTerm)
+    );
+  });
+
+  // Manual refresh helper used by event handlers (not the effect).
+  const refreshUsers = async (opts = {}) => {
+    const targetPage = opts.page ?? page;
+    const targetSize = opts.pageSize ?? pageSize;
+    setLoading(true);
     try {
-           const res = await getUsers();
-      setUsers(res.data.data?.items || []);
-      setFilteredUsers(res.data.data?.items || []);
+      const res = await getUsers({ page: targetPage, pageSize: targetSize });
+      const payload = res.data.data;
+      setUsers(payload?.items || []);
+      setTotalCount(payload?.totalCount || 0);
     } catch {
       toast.error("Failed to load users.");
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const res = await getUsers();
-        if (mounted) {
-          setUsers(res.data.data?.items || []);
-          setFilteredUsers(res.data.data?.items || []);
-        }
-      } catch {
-        toast.error("Failed to load users.");
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    })();
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  const handleSearch = (e) => {
-    const term = e.target.value.toLowerCase();
-    setSearchTerm(term);
-    const filtered = users.filter(
-      (u) =>
-        u.email?.toLowerCase().includes(term) ||
-        u.profile?.fullName?.toLowerCase().includes(term) ||
-        u.userId?.toLowerCase().includes(term),
-    );
-    setFilteredUsers(filtered);
   };
 
   const onLockSubmit = async (data) => {
@@ -91,7 +120,7 @@ export default function Users() {
       });
 
       setSelectedUser(null);
-      fetchUsers();
+      refreshUsers();
       toast.success(
         `User account ${isUnlock ? "unlocked" : "locked"} successfully!`,
       );
@@ -109,13 +138,20 @@ export default function Users() {
       await createAdmin(data);
       toast.success("Admin account created successfully!");
       setShowCreateModal(false);
-      fetchUsers();
+
+      // Jump to first page so the new admin is visible at the top of the list.
+      // If we're already on page 1, the effect won't re-fire, so fetch manually.
+      if (page === 1) {
+        await refreshUsers({ page: 1, pageSize });
+      } else {
+        setLoading(true);
+        setPage(1);
+      }
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to create admin.");
     }
   };
 
-  const totalUsers = users.length;
   const adminCount = users.filter((u) => u.roles?.[0] === "Admin").length;
   const sellerCount = users.filter((u) => u.roles?.[0] === "Seller").length;
   const buyerCount = users.filter(
@@ -158,7 +194,7 @@ export default function Users() {
     };
   };
 
-  if (loading) {
+  if (loading && users.length === 0) {
     return (
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-6">
@@ -208,7 +244,7 @@ export default function Users() {
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
-              placeholder="Search by name, email, or ID..."
+              placeholder="Search current page..."
               value={searchTerm}
               onChange={handleSearch}
               className="w-full pl-9 pr-4 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
@@ -230,7 +266,7 @@ export default function Users() {
           </div>
           <div>
             <p className="text-sm font-medium text-gray-500">Total Users</p>
-            <p className="text-2xl font-bold text-gray-900">{totalUsers}</p>
+            <p className="text-2xl font-bold text-gray-900">{totalCount}</p>
           </div>
         </div>
         <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
@@ -238,7 +274,9 @@ export default function Users() {
             <Shield className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-500">Admins</p>
+            <p className="text-sm font-medium text-gray-500">
+              Admins <span className="text-xs text-gray-400">(this page)</span>
+            </p>
             <p className="text-2xl font-bold text-gray-900">{adminCount}</p>
           </div>
         </div>
@@ -247,7 +285,9 @@ export default function Users() {
             <Store className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-500">Sellers</p>
+            <p className="text-sm font-medium text-gray-500">
+              Sellers <span className="text-xs text-gray-400">(this page)</span>
+            </p>
             <p className="text-2xl font-bold text-gray-900">{sellerCount}</p>
           </div>
         </div>
@@ -256,7 +296,9 @@ export default function Users() {
             <ShoppingBag className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-500">Buyers</p>
+            <p className="text-sm font-medium text-gray-500">
+              Buyers <span className="text-xs text-gray-400">(this page)</span>
+            </p>
             <p className="text-2xl font-bold text-gray-900">{buyerCount}</p>
           </div>
         </div>
@@ -280,6 +322,11 @@ export default function Users() {
                   <td colSpan="5" className="text-center py-16">
                     <UsersIcon className="w-12 h-12 text-gray-300 mx-auto mb-3" />
                     <p className="text-gray-500 font-medium">No users found.</p>
+                    <p className="text-gray-400 text-xs mt-1">
+                      {searchTerm
+                        ? "Try adjusting your search."
+                        : "This page is empty."}
+                    </p>
                   </td>
                 </tr>
               ) : (
@@ -288,13 +335,21 @@ export default function Users() {
                   return (
                     <tr
                       key={u.userId}
-                      className={`transition-colors ${lockInfo ? "bg-red-50/40 hover:bg-red-50/60 border-l-4 border-l-red-500" : "hover:bg-gray-50/80 border-l-4 border-l-transparent"}`}
+                      className={`transition-colors ${
+                        lockInfo
+                          ? "bg-red-50/40 hover:bg-red-50/60 border-l-4 border-l-red-500"
+                          : "hover:bg-gray-50/80 border-l-4 border-l-transparent"
+                      }`}
                     >
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="relative shrink-0">
                             <div
-                              className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs shadow-sm border ${lockInfo ? "bg-linear-to-br from-red-100 to-red-200 text-red-700 border-red-300" : "bg-linear-to-br from-blue-100 to-blue-200 text-blue-700 border-blue-200"}`}
+                              className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs shadow-sm border ${
+                                lockInfo
+                                  ? "bg-linear-to-br from-red-100 to-red-200 text-red-700 border-red-300"
+                                  : "bg-linear-to-br from-blue-100 to-blue-200 text-blue-700 border-blue-200"
+                              }`}
                             >
                               {getInitials(u.profile?.fullName)}
                             </div>
@@ -324,7 +379,13 @@ export default function Users() {
                       </td>
                       <td className="px-6 py-4">
                         <span
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold border ${u.roles?.[0] === "Admin" ? "bg-purple-50 text-purple-700 border-purple-200" : u.roles?.[0] === "Seller" ? "bg-orange-50 text-orange-700 border-orange-200" : "bg-blue-50 text-blue-700 border-blue-200"}`}
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold border ${
+                            u.roles?.[0] === "Admin"
+                              ? "bg-purple-50 text-purple-700 border-purple-200"
+                              : u.roles?.[0] === "Seller"
+                                ? "bg-orange-50 text-orange-700 border-orange-200"
+                                : "bg-blue-50 text-blue-700 border-blue-200"
+                          }`}
                         >
                           {u.roles?.[0] === "Admin" && (
                             <Shield className="w-3.5 h-3.5" />
@@ -378,7 +439,11 @@ export default function Users() {
                                 setInitialLockAction("temporary");
                               else setInitialLockAction("unlock");
                             }}
-                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold border rounded-lg transition-colors ${lockInfo ? "text-red-700 bg-red-50 hover:bg-red-100 border-red-200" : "text-gray-700 bg-white hover:bg-gray-50 border-gray-300"}`}
+                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold border rounded-lg transition-colors ${
+                              lockInfo
+                                ? "text-red-700 bg-red-50 hover:bg-red-100 border-red-200"
+                                : "text-gray-700 bg-white hover:bg-gray-50 border-gray-300"
+                            }`}
                           >
                             <Lock className="w-3.5 h-3.5" /> Manage Access
                           </button>
@@ -391,9 +456,16 @@ export default function Users() {
             </tbody>
           </table>
         </div>
+
+        <Pagination
+          page={page}
+          pageSize={pageSize}
+          totalCount={totalCount}
+          onPageChange={goToPage}
+          onPageSizeChange={changePageSize}
+        />
       </div>
 
-      {/* EXTRACTED MODALS */}
       <UserDetailsModal
         target={viewDetailsTarget}
         onClose={() => setViewDetailsTarget(null)}
