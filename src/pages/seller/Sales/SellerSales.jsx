@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { toast, confirmDialog } from "../../../utils/toast";
 import { imageUrl, handleImageError } from "../../../utils/image";
-import { SkeletonRow, Skeleton } from "../../../components/Skeleton";
+import { SkeletonRow } from "../../../components/Skeleton";
 import Countdown from "../../../components/Countdown";
 import Pagination from "../../../components/Pagination/Pagination";
 
@@ -41,6 +41,9 @@ export default function SellerSales() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [totalCount, setTotalCount] = useState(0);
+  const [totalSalesCount, setTotalSalesCount] = useState(0);
+  const [serverAwaitingDispatch, setServerAwaitingDispatch] = useState(0);
+  const [serverTotalRevenue, setServerTotalRevenue] = useState(0);
 
   // Debounce the search box
   useEffect(() => {
@@ -63,6 +66,9 @@ export default function SellerSales() {
         if (cancelled) return;
         setSales(res.data.data?.items || []);
         setTotalCount(res.data.data?.totalCount || 0);
+        setTotalSalesCount(res.data.data?.totalSalesCount || 0);
+        setServerAwaitingDispatch(res.data.data?.awaitingDispatchCount || 0);
+        setServerTotalRevenue(res.data.data?.totalRevenue || 0);
       } catch (err) {
         console.error(err);
         if (!cancelled) toast.error("Failed to load sales.");
@@ -89,6 +95,9 @@ export default function SellerSales() {
       });
       setSales(res.data.data?.items || []);
       setTotalCount(res.data.data?.totalCount || 0);
+      setTotalSalesCount(res.data.data?.totalSalesCount || 0);
+      setServerAwaitingDispatch(res.data.data?.awaitingDispatchCount || 0);
+      setServerTotalRevenue(res.data.data?.totalRevenue || 0);
     } catch (err) {
       console.error(err);
       toast.error("Failed to load sales.");
@@ -142,17 +151,6 @@ export default function SellerSales() {
     return Math.floor(diffMs / (1000 * 60 * 60 * 24));
   };
 
-  // Page-scoped stats
-  const awaitingDispatchCount = sales.filter((s) => s.status === "Paid").length;
-  const totalRevenue = sales
-    .filter(
-      (s) =>
-        s.status === "Completed" ||
-        s.status === "Dispatched" ||
-        s.status === "Paid",
-    )
-    .reduce((sum, s) => sum + (s.sellerProceeds || s.finalAmount || 0), 0);
-
   const handleReportNonDelivery = async (saleId) => {
     const confirmed = await confirmDialog(
       "Report Non-Delivery?",
@@ -172,38 +170,9 @@ export default function SellerSales() {
     }
   };
 
-  if (loading && sales.length === 0) {
-    return (
-      <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
-          <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-10 w-64 rounded-lg" />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <Skeleton className="h-24 rounded-xl" />
-          <Skeleton className="h-24 rounded-xl" />
-          <Skeleton className="h-24 rounded-xl" />
-        </div>
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-          <table className="w-full text-left text-sm text-gray-600">
-            <thead className="bg-gray-50 border-b border-gray-200 text-gray-900">
-              <tr>
-                <th className="px-6 py-4 font-medium">Product</th>
-                <th className="px-6 py-4 font-medium">Final Amount</th>
-                <th className="px-6 py-4 font-medium">Status</th>
-                <th className="px-6 py-4 font-medium text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              <SkeletonRow cols={4} />
-              <SkeletonRow cols={4} />
-              <SkeletonRow cols={4} />
-            </tbody>
-          </table>
-        </div>
-      </div>
-    );
-  }
+  // NOTE: no early return for the loading state here.
+  // Returning a different tree while loading unmounts the search input
+  // (losing focus). Loading is handled inside <tbody> below instead.
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -226,13 +195,13 @@ export default function SellerSales() {
           </div>
           <div>
             <p className="text-sm font-medium text-gray-500">Total Sales</p>
-            <p className="text-2xl font-bold text-gray-900">{totalCount}</p>
+            <p className="text-2xl font-bold text-gray-900">{totalSalesCount}</p>
           </div>
         </div>
         <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
           <div
             className={`p-3 rounded-lg shrink-0 ${
-              awaitingDispatchCount > 0
+              serverAwaitingDispatch > 0
                 ? "bg-orange-50 text-orange-600"
                 : "bg-gray-50 text-gray-400"
             }`}
@@ -241,11 +210,10 @@ export default function SellerSales() {
           </div>
           <div>
             <p className="text-sm font-medium text-gray-500">
-              Awaiting Dispatch{" "}
-              <span className="text-xs text-gray-400">(page)</span>
+              Awaiting Dispatch
             </p>
             <p className="text-2xl font-bold text-gray-900">
-              {awaitingDispatchCount}
+              {serverAwaitingDispatch}
             </p>
           </div>
         </div>
@@ -254,12 +222,10 @@ export default function SellerSales() {
             <DollarSign className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-500">
-              Revenue <span className="text-xs text-gray-400">(page)</span>
-            </p>
+            <p className="text-sm font-medium text-gray-500">Revenue</p>
             <p className="text-2xl font-bold text-gray-900">
               ৳
-              {totalRevenue.toLocaleString("en-US", {
+              {serverTotalRevenue.toLocaleString("en-US", {
                 minimumFractionDigits: 2,
               })}
             </p>
@@ -314,7 +280,13 @@ export default function SellerSales() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {sales.length === 0 ? (
+              {loading ? (
+                <>
+                  <SkeletonRow cols={4} />
+                  <SkeletonRow cols={4} />
+                  <SkeletonRow cols={4} />
+                </>
+              ) : sales.length === 0 ? (
                 <tr>
                   <td colSpan="4" className="text-center py-16">
                     <ShoppingCart className="w-12 h-12 text-gray-300 mx-auto mb-3" />

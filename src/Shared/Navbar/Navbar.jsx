@@ -1,4 +1,4 @@
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { getCurrentUser, logout } from "../../services/authApi";
 import { getMyWallet } from "../../services/buyerApi";
@@ -10,6 +10,7 @@ function Navbar() {
   const [walletBalance, setWalletBalance] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -46,7 +47,7 @@ function Navbar() {
     setWalletBalance(null);
     setIsMobileMenuOpen(false);
     toast.success("Logged out successfully!");
-    window.location.href = "/";
+    navigate("/login");
   };
 
   const getDashboardPath = () => {

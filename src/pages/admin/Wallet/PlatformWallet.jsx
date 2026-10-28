@@ -132,8 +132,7 @@ export default function PlatformWallet() {
   const balance = wallet?.balance ?? wallet?.Balance ?? 0;
   const reserved = wallet?.reservedBalance ?? wallet?.ReservedBalance ?? 0;
 
-  // Filter tabs derived from what's currently loaded on the page.
-  const uniqueTypes = ["All", ...new Set(txs.map((t) => t.type))];
+  const tabTypes = ["All", "Penalty", "Commission"];
 
   const getTxStyle = (type) => {
     switch (type) {
@@ -217,7 +216,7 @@ export default function PlatformWallet() {
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <div className="p-4 border-b border-gray-200 bg-gray-50/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0 scrollbar-hide">
-            {uniqueTypes.map((type) => (
+            {tabTypes.map((type) => (
               <button
                 key={type}
                 onClick={() => handleTypeChange(type)}

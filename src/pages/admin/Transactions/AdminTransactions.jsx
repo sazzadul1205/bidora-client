@@ -13,7 +13,7 @@ import {
   Wallet,
   Activity,
 } from "lucide-react";
-import { Skeleton } from "../../../components/Skeleton";
+import { SkeletonRow } from "../../../components/Skeleton";
 import { toast } from "../../../utils/toast";
 import { formatDateTime } from "../../../utils/date";
 import Pagination from "../../../components/Pagination/Pagination";
@@ -30,12 +30,21 @@ export default function AdminTransactions() {
   const [txSearchTerm, setTxSearchTerm] = useState("");
   const [txDebouncedSearch, setTxDebouncedSearch] = useState("");
 
-  // Reservations
+  // Reservations (client-side filtered on the current fetch)
   const [reservations, setReservations] = useState([]);
   const [resPage, setResPage] = useState(1);
   const [resPageSize, setResPageSize] = useState(20);
   const [resSearchTerm, setResSearchTerm] = useState("");
   const [resDebouncedSearch, setResDebouncedSearch] = useState("");
+
+  // Global stats (returned by the backend — NOT computed from the current page)
+  const [stats, setStats] = useState({
+    totalVolume: 0,
+    totalEscrow: 0,
+    totalBuyerDeposits: 0,
+    totalSellerDeposits: 0,
+    totalActiveReservations: 0,
+  });
 
   const [loading, setLoading] = useState(true);
 
@@ -53,8 +62,7 @@ export default function AdminTransactions() {
     return () => clearTimeout(t);
   }, [resSearchTerm]);
 
-  // Effect: fetch. Transactions depend on pagination/search/filter; reservations
-  // are fetched once and re-fetched only when the tab changes to "reservations".
+  // Fetch transactions (paginated) + reservations (full list) + global stats.
   useEffect(() => {
     let cancelled = false;
 
@@ -70,8 +78,19 @@ export default function AdminTransactions() {
           getAllReservations(),
         ]);
         if (cancelled) return;
-        setTransactions(txRes.data.data?.items || []);
-        setTxTotal(txRes.data.data?.totalCount || 0);
+
+        const txData = txRes.data.data || {};
+
+        setTransactions(txData.items || []);
+        setTxTotal(txData.totalCount || 0);
+        setStats({
+          totalVolume: txData.totalVolume ?? 0,
+          totalEscrow: txData.totalEscrow ?? 0,
+          totalBuyerDeposits: txData.totalBuyerDeposits ?? 0,
+          totalSellerDeposits: txData.totalSellerDeposits ?? 0,
+          totalActiveReservations: txData.totalActiveReservations ?? 0,
+        });
+
         setReservations(resRes.data.data || []);
       } catch (err) {
         console.error(err);
@@ -136,28 +155,12 @@ export default function AdminTransactions() {
     return formatDateTime(dateString);
   };
 
+  // Reservations stay client-side (endpoint returns full array) —
+  // still filter locally by the reservations tab search.
   const activeReservations = reservations.filter(
     (r) => r.status === "Reserved",
   );
 
-  const totalEscrow = activeReservations
-    .filter((r) => r.type === "SaleEscrow")
-    .reduce((sum, r) => sum + r.amount, 0);
-
-  const totalBuyerDeposits = activeReservations
-    .filter((r) => r.type === "BuyerFunds")
-    .reduce((sum, r) => sum + r.amount, 0);
-
-  const totalSellerDeposits = activeReservations
-    .filter((r) => r.type === "SellerDeposit")
-    .reduce((sum, r) => sum + r.amount, 0);
-
-  const totalVolume = transactions
-    .filter((t) => t.type === "Credit" || t.type === "Debit")
-    .reduce((sum, t) => sum + t.amount, 0);
-
-  // Reservations stay client-side (endpoint returns full array) —
-  // still filter locally by the reservations tab search.
   const filteredReservations = activeReservations.filter(
     (r) =>
       !resDebouncedSearch ||
@@ -176,24 +179,6 @@ export default function AdminTransactions() {
     safeResPage * resPageSize,
   );
 
-  if (loading && transactions.length === 0 && reservations.length === 0) {
-    return (
-      <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex justify-between items-center mb-6">
-          <Skeleton className="h-8 w-64" />
-          <Skeleton className="h-10 w-64 rounded-lg" />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <Skeleton className="h-28 rounded-xl" />
-          <Skeleton className="h-28 rounded-xl" />
-          <Skeleton className="h-28 rounded-xl" />
-          <Skeleton className="h-28 rounded-xl" />
-        </div>
-        <Skeleton className="h-96 rounded-xl" />
-      </div>
-    );
-  }
-
   return (
     <div className="max-w-7xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
@@ -207,17 +192,16 @@ export default function AdminTransactions() {
         </div>
       </div>
 
+      {/* Global stat cards — sourced from the backend */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
           <div className="p-3 bg-blue-50 text-blue-600 rounded-lg shrink-0">
             <DollarSign className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-500">
-              Total Volume <span className="text-xs text-gray-400">(page)</span>
-            </p>
+            <p className="text-sm font-medium text-gray-500">Total Volume</p>
             <p className="text-2xl font-bold text-gray-900">
-              {formatMoney(totalVolume)}
+              {formatMoney(stats.totalVolume)}
             </p>
           </div>
         </div>
@@ -229,7 +213,7 @@ export default function AdminTransactions() {
           <div>
             <p className="text-sm font-medium text-gray-500">Held in Escrow</p>
             <p className="text-2xl font-bold text-gray-900">
-              {formatMoney(totalEscrow)}
+              {formatMoney(stats.totalEscrow)}
             </p>
           </div>
         </div>
@@ -241,7 +225,7 @@ export default function AdminTransactions() {
           <div>
             <p className="text-sm font-medium text-gray-500">Buyer Deposits</p>
             <p className="text-2xl font-bold text-gray-900">
-              {formatMoney(totalBuyerDeposits)}
+              {formatMoney(stats.totalBuyerDeposits)}
             </p>
           </div>
         </div>
@@ -253,7 +237,7 @@ export default function AdminTransactions() {
           <div>
             <p className="text-sm font-medium text-gray-500">Seller Deposits</p>
             <p className="text-2xl font-bold text-gray-900">
-              {formatMoney(totalSellerDeposits)}
+              {formatMoney(stats.totalSellerDeposits)}
             </p>
           </div>
         </div>
@@ -280,7 +264,7 @@ export default function AdminTransactions() {
                   : "text-gray-500 hover:text-gray-900"
               }`}
             >
-              Active Reservations ({activeReservations.length})
+              Active Reservations ({stats.totalActiveReservations})
             </button>
           </div>
 
@@ -337,7 +321,13 @@ export default function AdminTransactions() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {transactions.length === 0 ? (
+                  {loading ? (
+                    <>
+                      <SkeletonRow cols={5} />
+                      <SkeletonRow cols={5} />
+                      <SkeletonRow cols={5} />
+                    </>
+                  ) : transactions.length === 0 ? (
                     <tr>
                       <td
                         colSpan="5"
@@ -442,7 +432,13 @@ export default function AdminTransactions() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {resPageItems.length === 0 ? (
+                  {loading ? (
+                    <>
+                      <SkeletonRow cols={5} />
+                      <SkeletonRow cols={5} />
+                      <SkeletonRow cols={5} />
+                    </>
+                  ) : resPageItems.length === 0 ? (
                     <tr>
                       <td
                         colSpan="5"

@@ -696,7 +696,7 @@ export default function Wallet() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Amount (USD) <span className="text-red-500">*</span>
+                  Amount (BDT) <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="number"

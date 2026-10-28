@@ -10,7 +10,7 @@ import {
   AlertCircle,
   Scale,
 } from "lucide-react";
-import { SkeletonRow, Skeleton } from "../../../components/Skeleton";
+import { SkeletonRow } from "../../../components/Skeleton";
 import { imageUrl, handleImageError } from "../../../utils/image";
 import { toast } from "../../../utils/toast";
 import Pagination from "../../../components/Pagination/Pagination";
@@ -29,6 +29,14 @@ export default function AdminSales() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [totalCount, setTotalCount] = useState(0);
+
+  // Global card stats — returned by the backend, unaffected by search/filter
+  const [stats, setStats] = useState({
+    totalSalesCount: 0,
+    awaitingPaymentCount: 0,
+    activeDeliveriesCount: 0,
+    completedCount: 0,
+  });
 
   // Debounce the search box
   useEffect(() => {
@@ -58,8 +66,17 @@ export default function AdminSales() {
           deliveryStatus: deliveryFilter !== "All" ? deliveryFilter : undefined,
         });
         if (cancelled) return;
-        setSales(res.data.data?.items || []);
-        setTotalCount(res.data.data?.totalCount || 0);
+
+        const data = res.data.data || {};
+
+        setSales(data.items || []);
+        setTotalCount(data.totalCount || 0);
+        setStats({
+          totalSalesCount: data.totalSalesCount ?? 0,
+          awaitingPaymentCount: data.awaitingPaymentCount ?? 0,
+          activeDeliveriesCount: data.activeDeliveriesCount ?? 0,
+          completedCount: data.completedCount ?? 0,
+        });
       } catch (err) {
         console.error(err);
         if (!cancelled) toast.error("Failed to load sales.");
@@ -116,49 +133,9 @@ export default function AdminSales() {
     });
   };
 
-  // Page-scoped stats
-  const awaitingPayment = sales.filter(
-    (s) => s.status === "AwaitingPayment" || s.status === "PaymentOverdue",
-  ).length;
-  const activeDeliveries = sales.filter(
-    (s) => s.status === "Paid" || s.status === "Dispatched",
-  ).length;
-  const completed = sales.filter((s) => s.status === "Completed").length;
-
-  if (loading && sales.length === 0) {
-    return (
-      <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex justify-between items-center mb-6">
-          <Skeleton className="h-8 w-64" />
-          <Skeleton className="h-10 w-72 rounded-lg" />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <Skeleton className="h-24 rounded-xl" />
-          <Skeleton className="h-24 rounded-xl" />
-          <Skeleton className="h-24 rounded-xl" />
-          <Skeleton className="h-24 rounded-xl" />
-        </div>
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-          <table className="w-full text-left text-sm text-gray-600">
-            <thead className="bg-gray-50 border-b border-gray-200 text-gray-900">
-              <tr>
-                <th className="px-6 py-4 font-medium">Product</th>
-                <th className="px-6 py-4 font-medium">Amount</th>
-                <th className="px-6 py-4 font-medium">Payment</th>
-                <th className="px-6 py-4 font-medium">Delivery</th>
-                <th className="px-6 py-4 font-medium text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              <SkeletonRow cols={5} />
-              <SkeletonRow cols={5} />
-              <SkeletonRow cols={5} />
-            </tbody>
-          </table>
-        </div>
-      </div>
-    );
-  }
+  // NOTE: no early return for the loading state here.
+  // Returning a different tree while loading unmounts the search input
+  // (losing focus). Loading is handled inside <tbody> below instead.
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -182,14 +159,16 @@ export default function AdminSales() {
           </div>
           <div>
             <p className="text-sm font-medium text-gray-500">Total Sales</p>
-            <p className="text-2xl font-bold text-gray-900">{totalCount}</p>
+            <p className="text-2xl font-bold text-gray-900">
+              {stats.totalSalesCount}
+            </p>
           </div>
         </div>
 
         <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
           <div
             className={`p-3 rounded-lg shrink-0 ${
-              awaitingPayment > 0
+              stats.awaitingPaymentCount > 0
                 ? "bg-orange-50 text-orange-600"
                 : "bg-gray-50 text-gray-400"
             }`}
@@ -198,11 +177,10 @@ export default function AdminSales() {
           </div>
           <div>
             <p className="text-sm font-medium text-gray-500">
-              Awaiting Payment{" "}
-              <span className="text-xs text-gray-400">(page)</span>
+              Awaiting Payment
             </p>
             <p className="text-2xl font-bold text-gray-900">
-              {awaitingPayment}
+              {stats.awaitingPaymentCount}
             </p>
           </div>
         </div>
@@ -210,7 +188,7 @@ export default function AdminSales() {
         <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
           <div
             className={`p-3 rounded-lg shrink-0 ${
-              activeDeliveries > 0
+              stats.activeDeliveriesCount > 0
                 ? "bg-indigo-50 text-indigo-600"
                 : "bg-gray-50 text-gray-400"
             }`}
@@ -219,11 +197,10 @@ export default function AdminSales() {
           </div>
           <div>
             <p className="text-sm font-medium text-gray-500">
-              Active Deliveries{" "}
-              <span className="text-xs text-gray-400">(page)</span>
+              Active Deliveries
             </p>
             <p className="text-2xl font-bold text-gray-900">
-              {activeDeliveries}
+              {stats.activeDeliveriesCount}
             </p>
           </div>
         </div>
@@ -233,10 +210,10 @@ export default function AdminSales() {
             <CheckCircle className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-500">
-              Completed <span className="text-xs text-gray-400">(page)</span>
+            <p className="text-sm font-medium text-gray-500">Completed</p>
+            <p className="text-2xl font-bold text-gray-900">
+              {stats.completedCount}
             </p>
-            <p className="text-2xl font-bold text-gray-900">{completed}</p>
           </div>
         </div>
       </div>
@@ -306,13 +283,21 @@ export default function AdminSales() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {sales.length === 0 ? (
+              {loading ? (
+                <>
+                  <SkeletonRow cols={5} />
+                  <SkeletonRow cols={5} />
+                  <SkeletonRow cols={5} />
+                </>
+              ) : sales.length === 0 ? (
                 <tr>
                   <td colSpan="5" className="text-center py-16">
                     <ShoppingCart className="w-12 h-12 text-gray-300 mx-auto mb-3" />
                     <p className="text-gray-500 font-medium">No sales found.</p>
                     <p className="text-gray-400 text-xs mt-1">
-                      {debouncedSearch || filterStatus !== "All" || deliveryFilter !== "All"
+                      {debouncedSearch ||
+                      filterStatus !== "All" ||
+                      deliveryFilter !== "All"
                         ? "Try adjusting your search or filters."
                         : "This page is empty."}
                     </p>

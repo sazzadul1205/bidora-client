@@ -24,7 +24,7 @@ import {
   ChevronRight,
   Tag,
 } from "lucide-react";
-import { Skeleton } from "../../../components/Skeleton";
+import AuctionLoader from "../../../components/AuctionLoader";
 
 const ICON_POOL = [
   Laptop,
@@ -131,18 +131,7 @@ export default function Home() {
     .slice(0, 3);
 
   if (loading) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
-        <Skeleton className="h-16 w-full rounded-xl" />
-        <Skeleton className="h-100 w-full rounded-2xl" />
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Skeleton className="h-24 rounded-xl" />
-          <Skeleton className="h-24 rounded-xl" />
-          <Skeleton className="h-24 rounded-xl" />
-          <Skeleton className="h-24 rounded-xl" />
-        </div>
-      </div>
-    );
+    return <AuctionLoader />;
   }
 
   return (

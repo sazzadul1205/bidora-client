@@ -3,8 +3,14 @@ import { Link } from "react-router-dom";
 import { getAuctions, getCategories } from "../../../services/publicApi";
 import { imageUrl, handleImageError } from "../../../utils/image";
 import Countdown from "../../../components/Countdown";
-import { Search, Gavel, Package, ArrowRight } from "lucide-react";
-import { Skeleton } from "../../../components/Skeleton";
+import AuctionLoader from "../../../components/AuctionLoader";
+import {
+  Search,
+  Gavel,
+  Package,
+  ArrowRight,
+  Tag,
+} from "lucide-react";
 
 export default function Auctions() {
   const [auctions, setAuctions] = useState([]);
@@ -80,22 +86,7 @@ export default function Auctions() {
     });
 
   if (loading) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 py-12 space-y-8">
-        <Skeleton className="h-10 w-64" />
-        <div className="flex gap-4">
-          <Skeleton className="h-10 w-24 rounded-full" />
-          <Skeleton className="h-10 w-24 rounded-full" />
-          <Skeleton className="h-10 w-24 rounded-full" />
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Skeleton className="h-80 rounded-2xl" />
-          <Skeleton className="h-80 rounded-2xl" />
-          <Skeleton className="h-80 rounded-2xl" />
-          <Skeleton className="h-80 rounded-2xl" />
-        </div>
-      </div>
-    );
+    return <AuctionLoader />;
   }
 
   return (
@@ -204,9 +195,9 @@ export default function Auctions() {
                 <Link
                   to={`/auction/${auction.id}`}
                   key={auction.id}
-                  className="group bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow flex flex-col"
+                  className="group bg-white rounded-2xl border border-gray-200 overflow-hidden hover:-translate-y-1 hover:shadow-xl transition-all duration-200 flex flex-col"
                 >
-                  <div className="relative aspect-4/3 bg-gray-100 overflow-hidden">
+                  <div className="relative aspect-4/3 bg-gray-100 overflow-hidden group-hover:scale-105 transition-transform duration-200">
                     {auction.mainImageUrl ? (
                       <img
                         src={imageUrl(auction.mainImageUrl)}
@@ -238,18 +229,38 @@ export default function Auctions() {
                       </span>
                     )}
                     {isEnded && (
-                      <span className="absolute top-3 left-3 bg-gray-700 text-white text-xs font-bold px-2.5 py-1 rounded-md shadow-sm">
-                        ENDED
-                      </span>
+                      <>
+                        <span className="absolute top-3 left-3 bg-gray-700 text-white text-xs font-bold px-2.5 py-1 rounded-md shadow-sm">
+                          ENDED
+                        </span>
+                        <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
+                          <div className="relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-red-600 text-white shadow-2xl transform -rotate-6">
+                            <svg
+                              className="w-4 h-4 shrink-0"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 14.682l3.682-3.682a4.5 4.5 0 00-6.364-6.364L10 8.318 6.318 4.636z" />
+                            </svg>
+                            <span className="text-xs font-bold tracking-tight leading-none">
+                              Auction Ended
+                            </span>
+                          </div>
+                        </div>
+                      </>
                     )}
                   </div>
 
                   <div className="p-5 flex flex-col flex-1">
-                    <p className="text-xs text-gray-500 mb-1">
+                    <p className="text-xs text-blue-600 font-medium mb-1 flex items-center gap-1">
+                      <Tag className="w-3 h-3" />{" "}
+                      {auction.categoryName || "Uncategorized"}
+                    </p>
+                    {/* <p className="text-xs text-gray-500 mb-1">
                       {auction.status === "Cancelled"
                         ? "Cancelled Auction"
                         : "Auction"}
-                    </p>
+                    </p> */}
                     <h3 className="font-bold text-gray-900 text-lg line-clamp-1 mb-1 group-hover:text-blue-600 transition-colors">
                       {auction.productTitle}
                     </h3>

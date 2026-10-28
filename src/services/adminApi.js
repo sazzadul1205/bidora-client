@@ -7,6 +7,11 @@ export const getAdminDashboard = () =>
 // User Management
 export const getUsers = (params = {}) =>
   authApi.get("/admin/user", { ...getAuthConfig(), params });
+
+// global per-role user counts (Admin / Seller / Buyer)
+export const getUserRoleCounts = () =>
+  authApi.get("/admin/user/role-counts", getAuthConfig());
+
 export const createAdmin = (data) =>
   authApi.post("/admin/create-admin", data, getAuthConfig());
 export const lockUser = (id, data) =>
@@ -27,8 +32,8 @@ export const deleteCategory = (id) =>
   authApi.delete(`/category/${id}`, getAuthConfig());
 
 // Auctions
-export const getAllAuctions = () =>
-  authApi.get("/admin/auctions", getAuthConfig());
+export const getAllAuctions = (params = {}) =>
+  authApi.get("/admin/auctions", { ...getAuthConfig(), params });
 export const configureAuction = (id, data) =>
   authApi.put(`/auction/${id}/configure`, data, getAuthConfig());
 export const cancelAuction = (id, data) =>
@@ -70,6 +75,7 @@ export const getAllReservations = () =>
 export default {
   getAdminDashboard,
   getUsers,
+  getUserRoleCounts,
   createAdmin,
   lockUser,
   getPendingProducts,

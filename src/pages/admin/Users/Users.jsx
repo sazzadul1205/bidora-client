@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
-import { getUsers, lockUser, createAdmin } from "../../../services/adminApi";
+import {
+  getUsers,
+  getUserRoleCounts,
+  lockUser,
+  createAdmin,
+} from "../../../services/adminApi";
 import {
   Lock,
   Search,
@@ -28,13 +33,20 @@ export default function Users() {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
-  // Role filter 
+  // Role filter
   const [roleFilter, setRoleFilter] = useState("All");
 
-  // Pagination state 
+  // Pagination state
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [totalCount, setTotalCount] = useState(0);
+
+  // Global role counts
+  const [roleCounts, setRoleCounts] = useState({
+    admin: 0,
+    seller: 0,
+    buyer: 0,
+  });
 
   // Modals
   const [selectedUser, setSelectedUser] = useState(null);
@@ -43,13 +55,17 @@ export default function Users() {
   const [initialLockAction, setInitialLockAction] = useState("unlock");
   const [submitting, setSubmitting] = useState(false);
 
+  // Global total users = sum of the three role counts.
+  const globalTotalUsers =
+    roleCounts.admin + roleCounts.seller + roleCounts.buyer;
+
   // Debounce the search box → 300ms
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(searchTerm.trim()), 300);
     return () => clearTimeout(t);
   }, [searchTerm]);
 
-  // Effect: fetch from the server whenever page / size / search / filter changes.
+  // Fetch the paginated user list whenever page / size / search / filter changes.
   useEffect(() => {
     let cancelled = false;
 
@@ -76,6 +92,49 @@ export default function Users() {
       cancelled = true;
     };
   }, [page, pageSize, debouncedSearch, roleFilter]);
+
+  // Load global role counts once on mount.
+  // Kept as an inline IIFE (not calling an outside function) so the
+  // react-hooks/set-state-in-effect lint rule stays happy — the setState
+  // calls only run after the async await resolves.
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const res = await getUserRoleCounts();
+        if (cancelled) return;
+        const data = res.data.data || {};
+        setRoleCounts({
+          admin: data.admin ?? 0,
+          seller: data.seller ?? 0,
+          buyer: data.buyer ?? 0,
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Manual refresh of the role counts — used by event handlers only
+  // (called after creating a new admin, for example).
+  const fetchRoleCounts = async () => {
+    try {
+      const res = await getUserRoleCounts();
+      const data = res.data.data || {};
+      setRoleCounts({
+        admin: data.admin ?? 0,
+        seller: data.seller ?? 0,
+        buyer: data.buyer ?? 0,
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   // Pagination handlers
   const goToPage = (p) => {
@@ -105,7 +164,7 @@ export default function Users() {
     setLoading(true);
   };
 
-  // Manual refresh helper used by event handlers (not the effect).
+  // Manual refresh for the table (used after lock / create-admin).
   const refreshUsers = async (opts = {}) => {
     const targetPage = opts.page ?? page;
     const targetSize = opts.pageSize ?? pageSize;
@@ -142,6 +201,7 @@ export default function Users() {
 
       setSelectedUser(null);
       await refreshUsers();
+      // Locking doesn't change role counts, so no need to refetch them.
       toast.success(
         `User account ${isUnlock ? "unlocked" : "locked"} successfully!`,
       );
@@ -160,8 +220,10 @@ export default function Users() {
       toast.success("Admin account created successfully!");
       setShowCreateModal(false);
 
+      // New admin added → role counts changed, refresh them.
+      await fetchRoleCounts();
+
       // Jump to first page so the new admin is visible at the top of the list.
-      // If we're already on page 1, the effect won't re-fire, so fetch manually.
       if (page === 1) {
         await refreshUsers({ page: 1, pageSize });
       } else {
@@ -172,13 +234,6 @@ export default function Users() {
       toast.error(err.response?.data?.message || "Failed to create admin.");
     }
   };
-
-  // Page-scoped role counts (label says "this page" to avoid confusion).
-  const adminCount = users.filter((u) => u.roles?.[0] === "Admin").length;
-  const sellerCount = users.filter((u) => u.roles?.[0] === "Seller").length;
-  const buyerCount = users.filter(
-    (u) => u.roles?.[0] === "Buyer" || !u.roles?.[0],
-  ).length;
 
   const getInitials = (name) => {
     if (!name) return "?";
@@ -300,7 +355,9 @@ export default function Users() {
           </div>
           <div>
             <p className="text-sm font-medium text-gray-500">Total Users</p>
-            <p className="text-2xl font-bold text-gray-900">{totalCount}</p>
+            <p className="text-2xl font-bold text-gray-900">
+              {globalTotalUsers}
+            </p>
           </div>
         </div>
         <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
@@ -308,10 +365,10 @@ export default function Users() {
             <Shield className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-500">
-              Admins <span className="text-xs text-gray-400">(this page)</span>
+            <p className="text-sm font-medium text-gray-500">Admins</p>
+            <p className="text-2xl font-bold text-gray-900">
+              {roleCounts.admin}
             </p>
-            <p className="text-2xl font-bold text-gray-900">{adminCount}</p>
           </div>
         </div>
         <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
@@ -319,10 +376,10 @@ export default function Users() {
             <Store className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-500">
-              Sellers <span className="text-xs text-gray-400">(this page)</span>
+            <p className="text-sm font-medium text-gray-500">Sellers</p>
+            <p className="text-2xl font-bold text-gray-900">
+              {roleCounts.seller}
             </p>
-            <p className="text-2xl font-bold text-gray-900">{sellerCount}</p>
           </div>
         </div>
         <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
@@ -330,10 +387,10 @@ export default function Users() {
             <ShoppingBag className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-500">
-              Buyers <span className="text-xs text-gray-400">(this page)</span>
+            <p className="text-sm font-medium text-gray-500">Buyers</p>
+            <p className="text-2xl font-bold text-gray-900">
+              {roleCounts.buyer}
             </p>
-            <p className="text-2xl font-bold text-gray-900">{buyerCount}</p>
           </div>
         </div>
       </div>

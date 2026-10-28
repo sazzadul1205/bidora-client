@@ -9,7 +9,7 @@ import {
   Package,
   Trophy,
 } from "lucide-react";
-import { SkeletonRow, Skeleton } from "../../../components/Skeleton";
+import { SkeletonRow } from "../../../components/Skeleton";
 import { imageUrl, handleImageError } from "../../../utils/image";
 import { formatDateTime } from "../../../utils/date";
 import Pagination from "../../../components/Pagination/Pagination";
@@ -27,6 +27,9 @@ export default function MyBids() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [totalCount, setTotalCount] = useState(0);
+  const [totalBidsCount, setTotalBidsCount] = useState(0);
+  const [serverActiveBids, setServerActiveBids] = useState(0);
+  const [serverHighestBids, setServerHighestBids] = useState(0);
 
   // Debounce the search box
   useEffect(() => {
@@ -49,6 +52,9 @@ export default function MyBids() {
         if (cancelled) return;
         setBids(res.data.data?.items || []);
         setTotalCount(res.data.data?.totalCount || 0);
+        setTotalBidsCount(res.data.data?.totalBidsCount || 0);
+        setServerActiveBids(res.data.data?.activeBidsCount || 0);
+        setServerHighestBids(res.data.data?.highestBidsCount || 0);
       } catch (err) {
         console.error(err);
       } finally {
@@ -89,46 +95,9 @@ export default function MyBids() {
     setLoading(true);
   };
 
-  // Page-scoped stats
-  const activeBidsCount = bids.filter(
-    (b) => b.auctionStatus === "Active",
-  ).length;
-  const highestBidsCount = bids.filter((b) => b.isHighest).length;
-
-  if (loading && bids.length === 0) {
-    return (
-      <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
-          <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-10 w-64 rounded-lg" />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <Skeleton className="h-24 rounded-xl" />
-          <Skeleton className="h-24 rounded-xl" />
-          <Skeleton className="h-24 rounded-xl" />
-        </div>
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-gray-600 min-w-200">
-              <thead className="bg-gray-50 border-b border-gray-200 text-gray-900">
-                <tr>
-                  <th className="px-6 py-4 font-medium">Product</th>
-                  <th className="px-6 py-4 font-medium">My Bid</th>
-                  <th className="px-6 py-4 font-medium">Status</th>
-                  <th className="px-6 py-4 font-medium">End Time</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                <SkeletonRow cols={4} />
-                <SkeletonRow cols={4} />
-                <SkeletonRow cols={4} />
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // NOTE: no early return for the loading state here.
+  // Returning a different tree while loading unmounts the search input
+  // (losing focus). Loading is handled inside <tbody> below instead.
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -152,18 +121,16 @@ export default function MyBids() {
         </div>
       </div>
 
-      {/* Page-scoped stats */}
+      {/* Server-scoped stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
           <div className="p-3 bg-green-50 text-green-600 rounded-lg shrink-0">
             <Clock className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-500">
-              Active Bids <span className="text-xs text-gray-400">(page)</span>
-            </p>
+            <p className="text-sm font-medium text-gray-500">Active Bids</p>
             <p className="text-2xl font-bold text-gray-900">
-              {activeBidsCount}
+              {serverActiveBids}
             </p>
           </div>
         </div>
@@ -173,7 +140,7 @@ export default function MyBids() {
           </div>
           <div>
             <p className="text-sm font-medium text-gray-500">Total Bids</p>
-            <p className="text-2xl font-bold text-gray-900">{totalCount}</p>
+            <p className="text-2xl font-bold text-gray-900">{totalBidsCount}</p>
           </div>
         </div>
         <div className="bg-white p-5 rounded-xl border border-green-200 shadow-sm flex items-center gap-4">
@@ -181,11 +148,9 @@ export default function MyBids() {
             <Trophy className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-500">
-              Winning <span className="text-xs text-gray-400">(page)</span>
-            </p>
+            <p className="text-sm font-medium text-gray-500">Winning</p>
             <p className="text-2xl font-bold text-green-700">
-              {highestBidsCount}
+              {serverHighestBids}
             </p>
           </div>
         </div>
@@ -195,7 +160,8 @@ export default function MyBids() {
         <div className="border-b border-gray-200 bg-gray-50/50 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
             {["All", "Live", "Ended"].map((tab) => {
-              const backendValue = tab === "Live" ? "Active" : tab === "Ended" ? "Ended" : "All";
+              const backendValue =
+                tab === "Live" ? "Active" : tab === "Ended" ? "Ended" : "All";
               return (
                 <button
                   key={tab}
@@ -240,7 +206,13 @@ export default function MyBids() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {bids.length === 0 ? (
+              {loading ? (
+                <>
+                  <SkeletonRow cols={5} />
+                  <SkeletonRow cols={5} />
+                  <SkeletonRow cols={5} />
+                </>
+              ) : bids.length === 0 ? (
                 <tr>
                   <td colSpan="5" className="text-center py-16">
                     <Gavel className="w-12 h-12 text-gray-300 mx-auto mb-3" />

@@ -132,24 +132,18 @@ export default function SellerDashboard() {
       </div>
 
       {/* ALERTS / ACTION REQUIRED */}
-      {(data?.awaitingDispatch > 0 || data?.pendingApproval > 0) && (
+      {(data?.awaitingDispatch > 0) && (
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-start gap-3">
             <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
             <div>
               <h3 className="text-sm font-bold text-amber-900">Action Required</h3>
               <p className="text-sm text-amber-800 mt-0.5">
-                {data.pendingApproval > 0 && `${data.pendingApproval} product(s) pending approval. `}
                 {data.awaitingDispatch > 0 && `${data.awaitingDispatch} sale(s) awaiting dispatch.`}
               </p>
             </div>
           </div>
           <div className="flex gap-2 shrink-0">
-            {data.pendingApproval > 0 && (
-              <Link to="/seller/products" className="px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-800 text-xs font-semibold rounded-lg transition-colors">
-                View Products
-              </Link>
-            )}
             {data.awaitingDispatch > 0 && (
               <Link to="/seller/sales" className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-sm">
                 Dispatch Sales

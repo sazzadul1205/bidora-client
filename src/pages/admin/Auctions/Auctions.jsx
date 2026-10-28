@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { toast } from "../../../utils/toast";
 import { formatDateTime } from "../../../utils/date";
-import { SkeletonRow, Skeleton } from "../../../components/Skeleton";
+import { SkeletonRow } from "../../../components/Skeleton";
 import Pagination from "../../../components/Pagination/Pagination";
 
 import ActionModal from "./ActionModal/ActionModal";
@@ -175,36 +175,6 @@ export default function Auctions() {
     return formatDateTime(dateString);
   };
 
-  if (loading && auctions.length === 0) {
-    return (
-      <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-10 w-full sm:w-64 rounded-lg" />
-        </div>
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-gray-600 min-w-200">
-              <thead className="bg-gray-50 border-b border-gray-200 text-gray-900">
-                <tr>
-                  <th className="px-6 py-4 font-medium">Product</th>
-                  <th className="px-6 py-4 font-medium">Status</th>
-                  <th className="px-6 py-4 font-medium">Schedule</th>
-                  <th className="px-6 py-4 font-medium text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                <SkeletonRow cols={4} />
-                <SkeletonRow cols={4} />
-                <SkeletonRow cols={4} />
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="max-w-7xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
@@ -269,7 +239,13 @@ export default function Auctions() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {auctions.length === 0 ? (
+              {loading ? (
+                <>
+                  <SkeletonRow cols={4} />
+                  <SkeletonRow cols={4} />
+                  <SkeletonRow cols={4} />
+                </>
+              ) : auctions.length === 0 ? (
                 <tr>
                   <td colSpan="4" className="text-center py-12">
                     <Package className="w-12 h-12 text-gray-300 mx-auto mb-3" />

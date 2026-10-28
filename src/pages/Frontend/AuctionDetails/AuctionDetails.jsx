@@ -8,6 +8,7 @@ import {
 } from "../../../services/buyerApi";
 import { imageUrl, handleImageError } from "../../../utils/image";
 import Countdown from "../../../components/Countdown";
+import AuctionLoader from "../../../components/AuctionLoader";
 import { toast } from "../../../utils/toast";
 import {
   Gavel,
@@ -225,11 +226,7 @@ export default function AuctionDetails() {
   };
 
   if (loading || !auction) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-gray-500">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600 mb-2" />
-      </div>
-    );
+    return <AuctionLoader />;
   }
 
   //  STATUS DERIVATION 
