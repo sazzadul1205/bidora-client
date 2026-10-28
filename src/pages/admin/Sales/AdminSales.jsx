@@ -18,23 +18,45 @@ import Pagination from "../../../components/Pagination/Pagination";
 export default function AdminSales() {
   const [sales, setSales] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Search + payment-status filter + delivery-status filter
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
+  const [deliveryFilter, setDeliveryFilter] = useState("All");
 
   // Server-side pagination
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [totalCount, setTotalCount] = useState(0);
 
-  // Effect: only reconciles the result of the external fetch.
-  // `loading` starts true and is only flipped off here (after await);
-  // event handlers flip it back on when pagination changes.
+  // Debounce the search box
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchTerm.trim()), 300);
+    return () => clearTimeout(t);
+  }, [searchTerm]);
+
+  // Fetch whenever any of the query params change
   useEffect(() => {
     let cancelled = false;
 
     (async () => {
       try {
-        const res = await getAllSales({ page, pageSize });
+        const res = await getAllSales({
+          page,
+          pageSize,
+          search: debouncedSearch || undefined,
+          filter:
+            filterStatus !== "All"
+              ? // map frontend tab label to backend filter value
+                filterStatus === "Awaiting Payment"
+                ? "Awaiting Payment"
+                : filterStatus === "In Progress"
+                  ? "InProgress"
+                  : filterStatus
+              : undefined,
+          deliveryStatus: deliveryFilter !== "All" ? deliveryFilter : undefined,
+        });
         if (cancelled) return;
         setSales(res.data.data?.items || []);
         setTotalCount(res.data.data?.totalCount || 0);
@@ -49,9 +71,9 @@ export default function AdminSales() {
     return () => {
       cancelled = true;
     };
-  }, [page, pageSize]);
+  }, [page, pageSize, debouncedSearch, filterStatus, deliveryFilter]);
 
-  // Pagination handlers — set loading here (event handler, not effect).
+  // Pagination handlers
   const goToPage = (p) => {
     if (p === page) return;
     setLoading(true);
@@ -63,6 +85,26 @@ export default function AdminSales() {
     setLoading(true);
     setPageSize(s);
     setPage(1);
+  };
+
+  // Search / filter handlers reset page inline
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+    setPage(1);
+    setLoading(true);
+  };
+
+  const handleStatusChange = (tab) => {
+    if (tab === filterStatus) return;
+    setFilterStatus(tab);
+    setPage(1);
+    setLoading(true);
+  };
+
+  const handleDeliveryChange = (e) => {
+    setDeliveryFilter(e.target.value);
+    setPage(1);
+    setLoading(true);
   };
 
   const formatDate = (dateString) => {
@@ -82,25 +124,6 @@ export default function AdminSales() {
     (s) => s.status === "Paid" || s.status === "Dispatched",
   ).length;
   const completed = sales.filter((s) => s.status === "Completed").length;
-
-  const filteredSales = sales.filter((s) => {
-    const matchesSearch =
-      s.productTitle?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.buyerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.sellerName?.toLowerCase().includes(searchTerm.toLowerCase());
-
-    if (!matchesSearch) return false;
-
-    if (filterStatus === "All") return true;
-    if (filterStatus === "Awaiting Payment")
-      return s.status === "AwaitingPayment" || s.status === "PaymentOverdue";
-    if (filterStatus === "In Progress")
-      return s.status === "Paid" || s.status === "Dispatched";
-    if (filterStatus === "Completed") return s.status === "Completed";
-    if (filterStatus === "Disputed")
-      return s.status === "Disputed" || s.status === "Refunded";
-    return true;
-  });
 
   if (loading && sales.length === 0) {
     return (
@@ -219,7 +242,8 @@ export default function AdminSales() {
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-gray-200 bg-gray-50/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="p-4 border-b border-gray-200 bg-gray-50/50 flex flex-col gap-3">
+          {/* Row 1 — payment status tabs */}
           <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
             {[
               "All",
@@ -230,7 +254,7 @@ export default function AdminSales() {
             ].map((tab) => (
               <button
                 key={tab}
-                onClick={() => setFilterStatus(tab)}
+                onClick={() => handleStatusChange(tab)}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition whitespace-nowrap ${
                   filterStatus === tab
                     ? "bg-blue-600 text-white shadow-sm"
@@ -242,15 +266,31 @@ export default function AdminSales() {
             ))}
           </div>
 
-          <div className="relative w-full md:w-72">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search current page..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-            />
+          {/* search + delivery status */}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+            <select
+              value={deliveryFilter}
+              onChange={handleDeliveryChange}
+              className="px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+            >
+              <option value="All">All Delivery Statuses</option>
+              <option value="AwaitingDispatch">Awaiting Dispatch</option>
+              <option value="Dispatched">Dispatched</option>
+              <option value="DispatchOverdue">Dispatch Overdue</option>
+              <option value="ReceiptConfirmed">Receipt Confirmed</option>
+              <option value="NonDeliveryReported">Non-Delivery Reported</option>
+            </select>
+
+            <div className="relative flex-1 sm:w-72">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search all sales..."
+                value={searchTerm}
+                onChange={handleSearch}
+                className="w-full pl-9 pr-4 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              />
+            </div>
           </div>
         </div>
 
@@ -266,20 +306,20 @@ export default function AdminSales() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {filteredSales.length === 0 ? (
+              {sales.length === 0 ? (
                 <tr>
                   <td colSpan="5" className="text-center py-16">
                     <ShoppingCart className="w-12 h-12 text-gray-300 mx-auto mb-3" />
                     <p className="text-gray-500 font-medium">No sales found.</p>
                     <p className="text-gray-400 text-xs mt-1">
-                      {searchTerm || filterStatus !== "All"
+                      {debouncedSearch || filterStatus !== "All" || deliveryFilter !== "All"
                         ? "Try adjusting your search or filters."
                         : "This page is empty."}
                     </p>
                   </td>
                 </tr>
               ) : (
-                filteredSales.map((s) => (
+                sales.map((s) => (
                   <tr
                     key={s.id}
                     className="hover:bg-gray-50/80 transition-colors"

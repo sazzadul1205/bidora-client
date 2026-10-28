@@ -152,26 +152,37 @@ function ReceiptDropzone({ file, onFileChange }) {
 
 export default function Wallet() {
   const [wallet, setWallet] = useState(null);
-  const [transactions, setTransactions] = useState([]);
-  const [reservations, setReservations] = useState([]);
-  const [depositRequests, setDepositRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
   const [showDepositModal, setShowDepositModal] = useState(false);
   const [receiptFile, setReceiptFile] = useState(null);
 
-  // Per-tab pagination state
+  // Transactions
+  const [transactions, setTransactions] = useState([]);
   const [txPage, setTxPage] = useState(1);
   const [txPageSize, setTxPageSize] = useState(20);
   const [txTotal, setTxTotal] = useState(0);
+  const [txTypeFilter, setTxTypeFilter] = useState("All");
+  const [txSearchTerm, setTxSearchTerm] = useState("");
+  const [txDebouncedSearch, setTxDebouncedSearch] = useState("");
 
+  // Reservations
+  const [reservations, setReservations] = useState([]);
   const [resPage, setResPage] = useState(1);
   const [resPageSize, setResPageSize] = useState(20);
   const [resTotal, setResTotal] = useState(0);
+  const [resStatusFilter, setResStatusFilter] = useState("All");
+  const [resSearchTerm, setResSearchTerm] = useState("");
+  const [resDebouncedSearch, setResDebouncedSearch] = useState("");
 
+  // Deposit requests
+  const [depositRequests, setDepositRequests] = useState([]);
   const [depPage, setDepPage] = useState(1);
   const [depPageSize, setDepPageSize] = useState(20);
   const [depTotal, setDepTotal] = useState(0);
+  const [depStatusFilter, setDepStatusFilter] = useState("All");
+  const [depSearchTerm, setDepSearchTerm] = useState("");
+  const [depDebouncedSearch, setDepDebouncedSearch] = useState("");
 
   const {
     register,
@@ -180,69 +191,65 @@ export default function Wallet() {
     formState: { errors, isSubmitting },
   } = useForm();
 
-  // ---------- Data fetching ----------
-  // A single effect keyed on the active tab + that tab's pagination.
-  // Each branch runs only when its tab is visible, and each has its own
-  // cancellation flag so switching tabs / paging quickly doesn't let
-  // stale responses overwrite fresh ones.
+  // Debounce the 3 search boxes independently
+  useEffect(() => {
+    const t = setTimeout(() => setTxDebouncedSearch(txSearchTerm.trim()), 300);
+    return () => clearTimeout(t);
+  }, [txSearchTerm]);
+
+  useEffect(() => {
+    const t = setTimeout(
+      () => setResDebouncedSearch(resSearchTerm.trim()),
+      300,
+    );
+    return () => clearTimeout(t);
+  }, [resSearchTerm]);
+
+  useEffect(() => {
+    const t = setTimeout(
+      () => setDepDebouncedSearch(depSearchTerm.trim()),
+      300,
+    );
+    return () => clearTimeout(t);
+  }, [depSearchTerm]);
+
+  // Fetch wallet + the 3 lists in parallel on mount, and whenever any of the
+  // 3 lists' params change. Each list is independent, but firing them all
+  // together keeps things simple and ensures the badge counts stay fresh.
   useEffect(() => {
     let cancelled = false;
 
     (async () => {
       try {
-        if (activeTab === "overview") {
-          // Load everything the overview tab renders, in parallel.
-          const [w, t, r, d] = await Promise.all([
-            getMyWallet(),
-            getWalletTransactions({ page: txPage, pageSize: txPageSize }),
-            getWalletReservations({ page: resPage, pageSize: resPageSize }),
-            getMyDepositRequests({ page: depPage, pageSize: depPageSize }),
-          ]);
-          if (cancelled) return;
-          setWallet(w.data.data);
-          setTransactions(t.data.data?.items || []);
-          setTxTotal(t.data.data?.totalCount || 0);
-          setReservations(r.data.data?.items || []);
-          setResTotal(r.data.data?.totalCount || 0);
-          setDepositRequests(d.data.data?.items || []);
-          setDepTotal(d.data.data?.totalCount || 0);
-        } else if (activeTab === "transactions") {
-          const t = await getWalletTransactions({
+        const [w, t, r, d] = await Promise.all([
+          getMyWallet(),
+          getWalletTransactions({
             page: txPage,
             pageSize: txPageSize,
-          });
-          if (cancelled) return;
-          setTransactions(t.data.data?.items || []);
-          setTxTotal(t.data.data?.totalCount || 0);
-        } else if (activeTab === "reservations") {
-          const r = await getWalletReservations({
+            search: txDebouncedSearch || undefined,
+            filter: txTypeFilter !== "All" ? txTypeFilter : undefined,
+          }),
+          getWalletReservations({
             page: resPage,
             pageSize: resPageSize,
-          });
-          if (cancelled) return;
-          setReservations(r.data.data?.items || []);
-          setResTotal(r.data.data?.totalCount || 0);
-        } else if (activeTab === "deposit-requests") {
-          const d = await getMyDepositRequests({
+            search: resDebouncedSearch || undefined,
+            filter: resStatusFilter !== "All" ? resStatusFilter : undefined,
+          }),
+          getMyDepositRequests({
             page: depPage,
             pageSize: depPageSize,
-          });
-          if (cancelled) return;
-          setDepositRequests(d.data.data?.items || []);
-          setDepTotal(d.data.data?.totalCount || 0);
-        }
-        // "disputes" tab uses `transactions` which is loaded by the
-        // transactions/overview branches; if the user lands here first,
-        // load transactions too.
-        else if (activeTab === "disputes") {
-          const t = await getWalletTransactions({
-            page: txPage,
-            pageSize: txPageSize,
-          });
-          if (cancelled) return;
-          setTransactions(t.data.data?.items || []);
-          setTxTotal(t.data.data?.totalCount || 0);
-        }
+            search: depDebouncedSearch || undefined,
+            filter: depStatusFilter !== "All" ? depStatusFilter : undefined,
+          }),
+        ]);
+        if (cancelled) return;
+        setWallet(w.data.data);
+        setTransactions(t.data.data?.items || []);
+        setTxTotal(t.data.data?.totalCount || 0);
+        setReservations(r.data.data?.items || []);
+        setResTotal(r.data.data?.totalCount || 0);
+        setDepositRequests(d.data.data?.items || []);
+        setDepTotal(d.data.data?.totalCount || 0);
       } catch (err) {
         console.error(err);
         if (!cancelled) toast.error("Failed to load wallet data.");
@@ -255,23 +262,28 @@ export default function Wallet() {
       cancelled = true;
     };
   }, [
-    activeTab,
     txPage,
     txPageSize,
+    txDebouncedSearch,
+    txTypeFilter,
     resPage,
     resPageSize,
+    resDebouncedSearch,
+    resStatusFilter,
     depPage,
     depPageSize,
+    depDebouncedSearch,
+    depStatusFilter,
   ]);
 
-  // Explicit refresh used by the deposit-submit handler. Sets `loading`
-  // back on (from an event handler, which is fine) and re-fetches the
-  // deposit list for the current tab.
+  // Refresh only the deposit list (used after a new deposit is submitted)
   const refreshDepositRequests = async () => {
     try {
       const d = await getMyDepositRequests({
         page: 1,
         pageSize: depPageSize,
+        search: depDebouncedSearch || undefined,
+        filter: depStatusFilter !== "All" ? depStatusFilter : undefined,
       });
       setDepositRequests(d.data.data?.items || []);
       setDepTotal(d.data.data?.totalCount || 0);
@@ -300,9 +312,6 @@ export default function Wallet() {
       reset();
       setReceiptFile(null);
 
-      // Freshly submitted request is on page 1. If we're already on page 1
-      // of the deposit-requests tab, the effect won't re-fire, so refresh
-      // manually. Otherwise just move to page 1 and let the effect handle it.
       if (activeTab === "deposit-requests" && depPage === 1) {
         await refreshDepositRequests();
       } else {
@@ -484,6 +493,36 @@ export default function Wallet() {
 
           {activeTab === "transactions" && (
             <>
+              {/* Filter row */}
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
+                <select
+                  value={txTypeFilter}
+                  onChange={(e) => {
+                    setTxTypeFilter(e.target.value);
+                    setTxPage(1);
+                  }}
+                  className="px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                >
+                  <option value="All">All Types</option>
+                  <option value="Credit">Credit</option>
+                  <option value="Debit">Debit</option>
+                  <option value="Release">Release</option>
+                  <option value="Penalty">Penalty</option>
+                  <option value="Commission">Commission</option>
+                </select>
+
+                <input
+                  type="text"
+                  placeholder="Search all transactions..."
+                  value={txSearchTerm}
+                  onChange={(e) => {
+                    setTxSearchTerm(e.target.value);
+                    setTxPage(1);
+                  }}
+                  className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
+
               <TransactionsTab
                 transactions={transactions}
                 formatMoney={formatMoney}
@@ -506,6 +545,33 @@ export default function Wallet() {
 
           {activeTab === "reservations" && (
             <>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
+                <select
+                  value={resStatusFilter}
+                  onChange={(e) => {
+                    setResStatusFilter(e.target.value);
+                    setResPage(1);
+                  }}
+                  className="px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                >
+                  <option value="All">All Statuses</option>
+                  <option value="Reserved">Reserved</option>
+                  <option value="Released">Released</option>
+                  <option value="Forfeited">Forfeited</option>
+                </select>
+
+                <input
+                  type="text"
+                  placeholder="Search all reservations..."
+                  value={resSearchTerm}
+                  onChange={(e) => {
+                    setResSearchTerm(e.target.value);
+                    setResPage(1);
+                  }}
+                  className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
+
               <ReservationsTab
                 reservations={reservations}
                 formatMoney={formatMoney}
@@ -526,6 +592,33 @@ export default function Wallet() {
 
           {activeTab === "deposit-requests" && (
             <>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
+                <select
+                  value={depStatusFilter}
+                  onChange={(e) => {
+                    setDepStatusFilter(e.target.value);
+                    setDepPage(1);
+                  }}
+                  className="px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                >
+                  <option value="All">All Statuses</option>
+                  <option value="PendingVerification">Pending</option>
+                  <option value="Approved">Approved</option>
+                  <option value="Rejected">Rejected</option>
+                </select>
+
+                <input
+                  type="text"
+                  placeholder="Search all deposit requests..."
+                  value={depSearchTerm}
+                  onChange={(e) => {
+                    setDepSearchTerm(e.target.value);
+                    setDepPage(1);
+                  }}
+                  className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
+
               <DepositRequestsTab
                 depositRequests={depositRequests}
                 onRequestDeposit={() => setShowDepositModal(true)}

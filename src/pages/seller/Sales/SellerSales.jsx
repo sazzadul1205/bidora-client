@@ -26,11 +26,14 @@ import DisputeDetailsModal from "./modals/DisputeDetailsModal/DisputeDetailsModa
 export default function SellerSales() {
   const [sales, setSales] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Search + status filter
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
 
   // Modal targets
-  const [selected, setSelected] = useState(null); // dispatch target
+  const [selected, setSelected] = useState(null);
   const [disputeTarget, setDisputeTarget] = useState(null);
   const [selectedDispute, setSelectedDispute] = useState(null);
 
@@ -39,13 +42,24 @@ export default function SellerSales() {
   const [pageSize, setPageSize] = useState(20);
   const [totalCount, setTotalCount] = useState(0);
 
-  // Effect: only reconciles the external fetch. No sync setState here.
+  // Debounce the search box
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchTerm.trim()), 300);
+    return () => clearTimeout(t);
+  }, [searchTerm]);
+
+  // Fetch whenever any query param changes
   useEffect(() => {
     let cancelled = false;
 
     (async () => {
       try {
-        const res = await getMySales({ page, pageSize });
+        const res = await getMySales({
+          page,
+          pageSize,
+          search: debouncedSearch || undefined,
+          filter: filterStatus !== "All" ? filterStatus : undefined,
+        });
         if (cancelled) return;
         setSales(res.data.data?.items || []);
         setTotalCount(res.data.data?.totalCount || 0);
@@ -60,14 +74,19 @@ export default function SellerSales() {
     return () => {
       cancelled = true;
     };
-  }, [page, pageSize]);
+  }, [page, pageSize, debouncedSearch, filterStatus]);
 
-  // Manual refresh, used by action handlers (event-handler call-chain).
+  // Manual refresh used by action handlers (dispatch, dispute, report)
   const fetchSales = async (opts = {}) => {
     const p = opts.page ?? page;
     const s = opts.pageSize ?? pageSize;
     try {
-      const res = await getMySales({ page: p, pageSize: s });
+      const res = await getMySales({
+        page: p,
+        pageSize: s,
+        search: debouncedSearch || undefined,
+        filter: filterStatus !== "All" ? filterStatus : undefined,
+      });
       setSales(res.data.data?.items || []);
       setTotalCount(res.data.data?.totalCount || 0);
     } catch (err) {
@@ -78,7 +97,7 @@ export default function SellerSales() {
     }
   };
 
-  // Pagination handlers — set loading here (event handler, not effect).
+  // Pagination handlers
   const goToPage = (p) => {
     if (p === page) return;
     setLoading(true);
@@ -90,6 +109,20 @@ export default function SellerSales() {
     setLoading(true);
     setPageSize(s);
     setPage(1);
+  };
+
+  // Search / filter reset page inline
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    setPage(1);
+    setLoading(true);
+  };
+
+  const handleFilterChange = (tab) => {
+    if (tab === filterStatus) return;
+    setFilterStatus(tab);
+    setPage(1);
+    setLoading(true);
   };
 
   const formatDate = (dateString) => {
@@ -119,22 +152,6 @@ export default function SellerSales() {
         s.status === "Paid",
     )
     .reduce((sum, s) => sum + (s.sellerProceeds || s.finalAmount || 0), 0);
-
-  const filteredSales = sales.filter((s) => {
-    const matchesSearch = s.productTitle
-      ?.toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    const matchesStatus =
-      filterStatus === "All" ||
-      (filterStatus === "Awaiting Payment" &&
-        (s.status === "AwaitingPayment" || s.status === "PaymentOverdue")) ||
-      (filterStatus === "Awaiting Dispatch" && s.status === "Paid") ||
-      (filterStatus === "Dispatched" && s.status === "Dispatched") ||
-      (filterStatus === "Completed" && s.status === "Completed") ||
-      (filterStatus === "Disputed" &&
-        (s.status === "Disputed" || s.status === "Refunded"));
-    return matchesSearch && matchesStatus;
-  });
 
   const handleReportNonDelivery = async (saleId) => {
     const confirmed = await confirmDialog(
@@ -263,7 +280,7 @@ export default function SellerSales() {
             ].map((tab) => (
               <button
                 key={tab}
-                onClick={() => setFilterStatus(tab)}
+                onClick={() => handleFilterChange(tab)}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition whitespace-nowrap ${
                   filterStatus === tab
                     ? "bg-blue-600 text-white shadow-sm"
@@ -278,9 +295,9 @@ export default function SellerSales() {
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
-              placeholder="Search current page..."
+              placeholder="Search all sales..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={handleSearchChange}
               className="w-full pl-9 pr-4 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
             />
           </div>
@@ -297,15 +314,20 @@ export default function SellerSales() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {filteredSales.length === 0 ? (
+              {sales.length === 0 ? (
                 <tr>
                   <td colSpan="4" className="text-center py-16">
                     <ShoppingCart className="w-12 h-12 text-gray-300 mx-auto mb-3" />
                     <p className="text-gray-500 font-medium">No sales found.</p>
+                    <p className="text-gray-400 text-xs mt-1">
+                      {debouncedSearch || filterStatus !== "All"
+                        ? "Try adjusting your search or filters."
+                        : "This page is empty."}
+                    </p>
                   </td>
                 </tr>
               ) : (
-                filteredSales.map((s) => (
+                sales.map((s) => (
                   <tr
                     key={s.id}
                     className="hover:bg-gray-50/80 transition-colors group"

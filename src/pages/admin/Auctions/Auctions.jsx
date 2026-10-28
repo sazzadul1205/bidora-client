@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import {
   getAllAuctions,
   configureAuction,
@@ -27,27 +27,44 @@ import BidsModal from "./BidsModal/BidsModal";
 export default function Auctions() {
   const [auctions, setAuctions] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Tab + search
   const [activeTab, setActiveTab] = useState("NeedsSchedule");
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
+  // Server-side pagination
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
+  const [totalCount, setTotalCount] = useState(0);
+
+  // Modals
   const [selected, setSelected] = useState(null);
   const [action, setAction] = useState("");
   const [bidsData, setBidsData] = useState(null);
   const [bidsLoading, setBidsLoading] = useState(false);
 
-  // Client-side pagination
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
+  // Debounce the search box
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchTerm.trim()), 300);
+    return () => clearTimeout(t);
+  }, [searchTerm]);
 
-  // Effect: only reconciles the external fetch. Nothing sync-setState'd here.
+  // Fetch whenever any query param changes
   useEffect(() => {
     let cancelled = false;
 
     (async () => {
       try {
-        const res = await getAllAuctions();
+        const res = await getAllAuctions({
+          page,
+          pageSize,
+          search: debouncedSearch || undefined,
+          filter: activeTab !== "All" ? activeTab : undefined,
+        });
         if (cancelled) return;
-        setAuctions(res.data.data || []);
+        setAuctions(res.data.data?.items || []);
+        setTotalCount(res.data.data?.totalCount || 0);
       } catch (err) {
         console.error(err);
         if (!cancelled) toast.error("Failed to load auctions.");
@@ -59,14 +76,19 @@ export default function Auctions() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [page, pageSize, debouncedSearch, activeTab]);
 
-  // Manual refresh, used after configure/cancel. Sets loading from an
-  // event-handler call-chain (never from the effect body).
+  // Manual refresh used by action handlers
   const fetchAuctions = async () => {
     try {
-      const res = await getAllAuctions();
-      setAuctions(res.data.data || []);
+      const res = await getAllAuctions({
+        page,
+        pageSize,
+        search: debouncedSearch || undefined,
+        filter: activeTab !== "All" ? activeTab : undefined,
+      });
+      setAuctions(res.data.data?.items || []);
+      setTotalCount(res.data.data?.totalCount || 0);
     } catch (err) {
       console.error(err);
       toast.error("Failed to load auctions.");
@@ -89,17 +111,32 @@ export default function Auctions() {
     }
   };
 
-  // Tab change resets pagination — done in the handler, not an effect.
+  // Pagination handlers
+  const goToPage = (p) => {
+    if (p === page) return;
+    setLoading(true);
+    setPage(p);
+  };
+
+  const changePageSize = (s) => {
+    if (s === pageSize) return;
+    setLoading(true);
+    setPageSize(s);
+    setPage(1);
+  };
+
+  // Search / tab handlers reset page inline
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    setPage(1);
+    setLoading(true);
+  };
+
   const handleTabChange = (tab) => {
     if (tab === activeTab) return;
     setActiveTab(tab);
     setPage(1);
-  };
-
-  // Search change also resets pagination — same reason.
-  const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);
-    setPage(1);
+    setLoading(true);
   };
 
   const openModal = (auction, type) => {
@@ -138,37 +175,7 @@ export default function Auctions() {
     return formatDateTime(dateString);
   };
 
-  const filteredAuctions = useMemo(() => {
-    return auctions.filter((a) => {
-      if (
-        searchTerm &&
-        !a.productTitle.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-        return false;
-      if (activeTab === "NeedsSchedule")
-        return a.status === "Upcoming" && !a.startTime;
-      if (activeTab === "Scheduled")
-        return a.status === "Upcoming" && a.startTime;
-      if (activeTab === "Active") return a.status === "Active";
-      if (activeTab === "History")
-        return a.status === "Completed" || a.status === "Cancelled";
-      return true;
-    });
-  }, [auctions, searchTerm, activeTab]);
-
-  const totalCount = filteredAuctions.length;
-  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
-  const safePage = Math.min(page, totalPages);
-  const pageItems = filteredAuctions.slice(
-    (safePage - 1) * pageSize,
-    safePage * pageSize,
-  );
-
-  const needsScheduleCount = auctions.filter(
-    (a) => a.status === "Upcoming" && !a.startTime,
-  ).length;
-
-  if (loading)
+  if (loading && auctions.length === 0) {
     return (
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-6">
@@ -196,6 +203,7 @@ export default function Auctions() {
         </div>
       </div>
     );
+  }
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -213,7 +221,7 @@ export default function Auctions() {
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
-            placeholder="Search by product title..."
+            placeholder="Search all auctions..."
             value={searchTerm}
             onChange={handleSearchChange}
             className="pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none w-full sm:w-72 bg-white"
@@ -225,12 +233,7 @@ export default function Auctions() {
         <div className="border-b border-gray-200 bg-gray-50/50">
           <nav className="flex overflow-x-auto">
             {[
-              {
-                id: "NeedsSchedule",
-                label: "Needs Schedule",
-                icon: Clock,
-                badge: needsScheduleCount,
-              },
+              { id: "NeedsSchedule", label: "Needs Schedule", icon: Clock },
               { id: "Scheduled", label: "Scheduled", icon: Calendar },
               { id: "Active", label: "Active", icon: Gavel },
               {
@@ -250,11 +253,6 @@ export default function Auctions() {
               >
                 <tab.icon className="w-4 h-4" />
                 {tab.label}
-                {tab.badge !== undefined && tab.badge > 0 && (
-                  <span className="bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded-full ml-1">
-                    {tab.badge}
-                  </span>
-                )}
               </button>
             ))}
           </nav>
@@ -271,7 +269,7 @@ export default function Auctions() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {pageItems.length === 0 ? (
+              {auctions.length === 0 ? (
                 <tr>
                   <td colSpan="4" className="text-center py-12">
                     <Package className="w-12 h-12 text-gray-300 mx-auto mb-3" />
@@ -279,14 +277,14 @@ export default function Auctions() {
                       No auctions found.
                     </p>
                     <p className="text-gray-400 text-xs mt-1">
-                      {searchTerm
+                      {debouncedSearch
                         ? "Try adjusting your search."
                         : "This tab is currently empty."}
                     </p>
                   </td>
                 </tr>
               ) : (
-                pageItems.map((a) => (
+                auctions.map((a) => (
                   <tr
                     key={a.auctionId}
                     className="hover:bg-gray-50 transition-colors"
@@ -398,14 +396,11 @@ export default function Auctions() {
         </div>
 
         <Pagination
-          page={safePage}
+          page={page}
           pageSize={pageSize}
           totalCount={totalCount}
-          onPageChange={setPage}
-          onPageSizeChange={(s) => {
-            setPageSize(s);
-            setPage(1);
-          }}
+          onPageChange={goToPage}
+          onPageSizeChange={changePageSize}
         />
       </div>
 

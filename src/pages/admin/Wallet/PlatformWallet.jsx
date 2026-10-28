@@ -17,7 +17,10 @@ import Pagination from "../../../components/Pagination/Pagination";
 export default function PlatformWallet() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // Search + type filter
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [filterType, setFilterType] = useState("All");
 
   // Server-side pagination for transactions
@@ -25,15 +28,24 @@ export default function PlatformWallet() {
   const [pageSize, setPageSize] = useState(20);
   const [totalTx, setTotalTx] = useState(0);
 
-  // Effect: only reconciles the result of the external fetch.
-  // `loading` is flipped off here (after await) and back on only from
-  // event handlers, which avoids a sync setState in the effect body.
+  // Debounce the search box
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchTerm.trim()), 300);
+    return () => clearTimeout(t);
+  }, [searchTerm]);
+
+  // Fetch whenever page / size / search / filter changes
   useEffect(() => {
     let cancelled = false;
 
     (async () => {
       try {
-        const res = await adminApi.getPlatformWallet({ page, pageSize });
+        const res = await adminApi.getPlatformWallet({
+          page,
+          pageSize,
+          search: debouncedSearch || undefined,
+          filter: filterType !== "All" ? filterType : undefined,
+        });
         if (cancelled) return;
         const d = res.data.data;
         setData({
@@ -51,9 +63,9 @@ export default function PlatformWallet() {
     return () => {
       cancelled = true;
     };
-  }, [page, pageSize]);
+  }, [page, pageSize, debouncedSearch, filterType]);
 
-  // Pagination handlers — set loading here (event handler, not effect).
+  // Pagination handlers
   const goToPage = (p) => {
     if (p === page) return;
     setLoading(true);
@@ -65,6 +77,20 @@ export default function PlatformWallet() {
     setLoading(true);
     setPageSize(s);
     setPage(1);
+  };
+
+  // Search / filter reset page inline
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+    setPage(1);
+    setLoading(true);
+  };
+
+  const handleTypeChange = (type) => {
+    if (type === filterType) return;
+    setFilterType(type);
+    setPage(1);
+    setLoading(true);
   };
 
   const formatMoney = (n) =>
@@ -106,16 +132,7 @@ export default function PlatformWallet() {
   const balance = wallet?.balance ?? wallet?.Balance ?? 0;
   const reserved = wallet?.reservedBalance ?? wallet?.ReservedBalance ?? 0;
 
-  const filteredTxs = txs.filter((t) => {
-    const matchesSearch =
-      t.reference?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      t.type?.toLowerCase().includes(searchTerm.toLowerCase());
-
-    if (!matchesSearch) return false;
-    if (filterType !== "All") return t.type === filterType;
-    return true;
-  });
-
+  // Filter tabs derived from what's currently loaded on the page.
   const uniqueTypes = ["All", ...new Set(txs.map((t) => t.type))];
 
   const getTxStyle = (type) => {
@@ -203,7 +220,7 @@ export default function PlatformWallet() {
             {uniqueTypes.map((type) => (
               <button
                 key={type}
-                onClick={() => setFilterType(type)}
+                onClick={() => handleTypeChange(type)}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition whitespace-nowrap ${
                   filterType === type
                     ? "bg-blue-600 text-white shadow-sm"
@@ -219,9 +236,9 @@ export default function PlatformWallet() {
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
-              placeholder="Search current page..."
+              placeholder="Search all transactions..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={handleSearch}
               className="w-full pl-9 pr-4 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
             />
           </div>
@@ -239,7 +256,7 @@ export default function PlatformWallet() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {filteredTxs.length === 0 ? (
+              {txs.length === 0 ? (
                 <tr>
                   <td colSpan="5" className="text-center py-16">
                     <Receipt className="w-12 h-12 text-gray-300 mx-auto mb-3" />
@@ -247,14 +264,14 @@ export default function PlatformWallet() {
                       No transactions found.
                     </p>
                     <p className="text-gray-400 text-xs mt-1">
-                      {searchTerm || filterType !== "All"
+                      {debouncedSearch || filterType !== "All"
                         ? "Try adjusting your search or filters."
                         : "The platform wallet has no history yet."}
                     </p>
                   </td>
                 </tr>
               ) : (
-                filteredTxs.map((t) => {
+                txs.map((t) => {
                   const style = getTxStyle(t.type);
                   const Icon = style.icon;
                   const isPositive = style.sign === "+";

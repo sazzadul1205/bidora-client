@@ -17,7 +17,10 @@ import Pagination from "../../../components/Pagination/Pagination";
 export default function MyBids() {
   const [bids, setBids] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Search + auction-status filter
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [activeTab, setActiveTab] = useState("All");
 
   // Server-side pagination
@@ -25,15 +28,24 @@ export default function MyBids() {
   const [pageSize, setPageSize] = useState(20);
   const [totalCount, setTotalCount] = useState(0);
 
-  // Effect: only reconciles the result of the external fetch.
-  // `loading` starts true and is only flipped off here (after await);
-  // event handlers flip it back on when pagination changes.
+  // Debounce the search box
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchTerm.trim()), 300);
+    return () => clearTimeout(t);
+  }, [searchTerm]);
+
+  // Fetch whenever any query param changes
   useEffect(() => {
     let cancelled = false;
 
     (async () => {
       try {
-        const res = await getMyBids({ page, pageSize });
+        const res = await getMyBids({
+          page,
+          pageSize,
+          search: debouncedSearch || undefined,
+          filter: activeTab !== "All" ? activeTab : undefined,
+        });
         if (cancelled) return;
         setBids(res.data.data?.items || []);
         setTotalCount(res.data.data?.totalCount || 0);
@@ -47,9 +59,9 @@ export default function MyBids() {
     return () => {
       cancelled = true;
     };
-  }, [page, pageSize]);
+  }, [page, pageSize, debouncedSearch, activeTab]);
 
-  // Pagination handlers — set loading here (event handler, not effect).
+  // Pagination handlers
   const goToPage = (p) => {
     if (p === page) return;
     setLoading(true);
@@ -63,24 +75,25 @@ export default function MyBids() {
     setPage(1);
   };
 
+  // Search / filter handlers reset page inline
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    setPage(1);
+    setLoading(true);
+  };
+
+  const handleTabChange = (tab) => {
+    if (tab === activeTab) return;
+    setActiveTab(tab);
+    setPage(1);
+    setLoading(true);
+  };
+
   // Page-scoped stats
   const activeBidsCount = bids.filter(
     (b) => b.auctionStatus === "Active",
   ).length;
   const highestBidsCount = bids.filter((b) => b.isHighest).length;
-
-  const filteredBids = bids.filter((b) => {
-    if (
-      searchTerm &&
-      !b.productTitle.toLowerCase().includes(searchTerm.toLowerCase())
-    ) {
-      return false;
-    }
-    if (activeTab === "Live") return b.auctionStatus === "Active";
-    if (activeTab === "Ended")
-      return b.auctionStatus === "Completed" || b.auctionStatus === "Cancelled";
-    return true;
-  });
 
   if (loading && bids.length === 0) {
     return (
@@ -181,32 +194,35 @@ export default function MyBids() {
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <div className="border-b border-gray-200 bg-gray-50/50 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
-            {["All", "Live", "Ended"].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition whitespace-nowrap ${
-                  activeTab === tab
-                    ? "bg-blue-600 text-white shadow-sm"
-                    : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                {tab === "Live"
-                  ? "Live Auctions"
-                  : tab === "Ended"
-                    ? "Ended"
-                    : "All Bids"}
-              </button>
-            ))}
+            {["All", "Live", "Ended"].map((tab) => {
+              const backendValue = tab === "Live" ? "Active" : tab === "Ended" ? "Ended" : "All";
+              return (
+                <button
+                  key={tab}
+                  onClick={() => handleTabChange(backendValue)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition whitespace-nowrap ${
+                    activeTab === backendValue
+                      ? "bg-blue-600 text-white shadow-sm"
+                      : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
+                  }`}
+                >
+                  {tab === "Live"
+                    ? "Live Auctions"
+                    : tab === "Ended"
+                      ? "Ended"
+                      : "All Bids"}
+                </button>
+              );
+            })}
           </div>
 
           <div className="relative w-full sm:w-64">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
-              placeholder="Search current page..."
+              placeholder="Search all bids..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={handleSearchChange}
               className="w-full pl-9 pr-4 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
             />
           </div>
@@ -224,20 +240,20 @@ export default function MyBids() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {filteredBids.length === 0 ? (
+              {bids.length === 0 ? (
                 <tr>
                   <td colSpan="5" className="text-center py-16">
                     <Gavel className="w-12 h-12 text-gray-300 mx-auto mb-3" />
                     <p className="text-gray-500 font-medium">No bids found.</p>
                     <p className="text-gray-400 text-xs mt-1">
-                      {searchTerm
-                        ? "Try adjusting your search."
+                      {debouncedSearch || activeTab !== "All"
+                        ? "Try adjusting your search or filter."
                         : "Start exploring auctions to place your first bid!"}
                     </p>
                   </td>
                 </tr>
               ) : (
-                filteredBids.map((b) => (
+                bids.map((b) => (
                   <tr
                     key={b.bidId}
                     className="hover:bg-gray-50 transition-colors cursor-pointer"

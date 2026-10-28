@@ -23,9 +23,15 @@ import CreateAdminModal from "./CreateAdminModal/CreateAdminModal";
 export default function Users() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
 
-  // Pagination state (server-side)
+  // Search input + debounced search
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  // Role filter 
+  const [roleFilter, setRoleFilter] = useState("All");
+
+  // Pagination state 
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [totalCount, setTotalCount] = useState(0);
@@ -37,14 +43,24 @@ export default function Users() {
   const [initialLockAction, setInitialLockAction] = useState("unlock");
   const [submitting, setSubmitting] = useState(false);
 
-  // Effect: only reconciles the result of the external fetch.
-  // State that *initiates* loading is set from event handlers, not here.
+  // Debounce the search box → 300ms
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchTerm.trim()), 300);
+    return () => clearTimeout(t);
+  }, [searchTerm]);
+
+  // Effect: fetch from the server whenever page / size / search / filter changes.
   useEffect(() => {
     let cancelled = false;
 
     (async () => {
       try {
-        const res = await getUsers({ page, pageSize });
+        const res = await getUsers({
+          page,
+          pageSize,
+          search: debouncedSearch || undefined,
+          filter: roleFilter !== "All" ? roleFilter : undefined,
+        });
         if (cancelled) return;
         const payload = res.data.data;
         setUsers(payload?.items || []);
@@ -59,9 +75,9 @@ export default function Users() {
     return () => {
       cancelled = true;
     };
-  }, [page, pageSize]);
+  }, [page, pageSize, debouncedSearch, roleFilter]);
 
-  // Pagination handlers — set loading here (event handler, not effect)
+  // Pagination handlers
   const goToPage = (p) => {
     if (p === page) return;
     setLoading(true);
@@ -75,19 +91,19 @@ export default function Users() {
     setPage(1);
   };
 
+  // Search: reset page inline (the debounced value drives the fetch).
   const handleSearch = (e) => {
-    setSearchTerm(e.target.value.toLowerCase());
+    setSearchTerm(e.target.value);
     setPage(1);
+    setLoading(true);
   };
 
-  const filteredUsers = users.filter((u) => {
-    if (!searchTerm) return true;
-    return (
-      u.email?.toLowerCase().includes(searchTerm) ||
-      u.profile?.fullName?.toLowerCase().includes(searchTerm) ||
-      u.userId?.toLowerCase().includes(searchTerm)
-    );
-  });
+  // Role filter: same reset pattern.
+  const handleRoleChange = (e) => {
+    setRoleFilter(e.target.value);
+    setPage(1);
+    setLoading(true);
+  };
 
   // Manual refresh helper used by event handlers (not the effect).
   const refreshUsers = async (opts = {}) => {
@@ -95,7 +111,12 @@ export default function Users() {
     const targetSize = opts.pageSize ?? pageSize;
     setLoading(true);
     try {
-      const res = await getUsers({ page: targetPage, pageSize: targetSize });
+      const res = await getUsers({
+        page: targetPage,
+        pageSize: targetSize,
+        search: debouncedSearch || undefined,
+        filter: roleFilter !== "All" ? roleFilter : undefined,
+      });
       const payload = res.data.data;
       setUsers(payload?.items || []);
       setTotalCount(payload?.totalCount || 0);
@@ -120,7 +141,7 @@ export default function Users() {
       });
 
       setSelectedUser(null);
-      refreshUsers();
+      await refreshUsers();
       toast.success(
         `User account ${isUnlock ? "unlocked" : "locked"} successfully!`,
       );
@@ -152,6 +173,7 @@ export default function Users() {
     }
   };
 
+  // Page-scoped role counts (label says "this page" to avoid confusion).
   const adminCount = users.filter((u) => u.roles?.[0] === "Admin").length;
   const sellerCount = users.filter((u) => u.roles?.[0] === "Seller").length;
   const buyerCount = users.filter(
@@ -240,16 +262,28 @@ export default function Users() {
         </div>
 
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+          <select
+            value={roleFilter}
+            onChange={handleRoleChange}
+            className="w-full sm:w-32 px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+          >
+            <option value="All">All Roles</option>
+            <option value="Admin">Admin</option>
+            <option value="Seller">Seller</option>
+            <option value="Buyer">Buyer</option>
+          </select>
+
           <div className="relative w-full sm:w-72">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
-              placeholder="Search current page..."
+              placeholder="Search all users..."
               value={searchTerm}
               onChange={handleSearch}
               className="w-full pl-9 pr-4 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
             />
           </div>
+
           <button
             onClick={() => setShowCreateModal(true)}
             className="inline-flex items-center justify-center gap-2 bg-gray-900 hover:bg-black text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors shadow-sm shrink-0 w-full sm:w-auto"
@@ -317,20 +351,20 @@ export default function Users() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {filteredUsers.length === 0 ? (
+              {users.length === 0 ? (
                 <tr>
                   <td colSpan="5" className="text-center py-16">
                     <UsersIcon className="w-12 h-12 text-gray-300 mx-auto mb-3" />
                     <p className="text-gray-500 font-medium">No users found.</p>
                     <p className="text-gray-400 text-xs mt-1">
-                      {searchTerm
-                        ? "Try adjusting your search."
+                      {debouncedSearch || roleFilter !== "All"
+                        ? "Try adjusting your search or filter."
                         : "This page is empty."}
                     </p>
                   </td>
                 </tr>
               ) : (
-                filteredUsers.map((u) => {
+                users.map((u) => {
                   const lockInfo = getLockInfo(u);
                   return (
                     <tr

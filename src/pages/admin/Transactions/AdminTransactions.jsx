@@ -20,30 +20,53 @@ import Pagination from "../../../components/Pagination/Pagination";
 
 export default function AdminTransactions() {
   const [activeTab, setActiveTab] = useState("transactions");
-  const [transactions, setTransactions] = useState([]);
-  const [reservations, setReservations] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
 
-  // Server-side pagination (transactions only)
+  // Transactions
+  const [transactions, setTransactions] = useState([]);
   const [txPage, setTxPage] = useState(1);
   const [txPageSize, setTxPageSize] = useState(20);
   const [txTotal, setTxTotal] = useState(0);
+  const [txTypeFilter, setTxTypeFilter] = useState("All");
+  const [txSearchTerm, setTxSearchTerm] = useState("");
+  const [txDebouncedSearch, setTxDebouncedSearch] = useState("");
 
-  // Client-side pagination (reservations — endpoint returns full array)
+  // Reservations
+  const [reservations, setReservations] = useState([]);
   const [resPage, setResPage] = useState(1);
   const [resPageSize, setResPageSize] = useState(20);
+  const [resSearchTerm, setResSearchTerm] = useState("");
+  const [resDebouncedSearch, setResDebouncedSearch] = useState("");
 
-  // Effect: only reconciles the result of the external fetch.
-  // `loading` is set to false (and back to true by event handlers) — never
-  // set synchronously here, which avoids cascading renders.
+  const [loading, setLoading] = useState(true);
+
+  // Debounce both search boxes independently.
+  useEffect(() => {
+    const t = setTimeout(() => setTxDebouncedSearch(txSearchTerm.trim()), 300);
+    return () => clearTimeout(t);
+  }, [txSearchTerm]);
+
+  useEffect(() => {
+    const t = setTimeout(
+      () => setResDebouncedSearch(resSearchTerm.trim()),
+      300,
+    );
+    return () => clearTimeout(t);
+  }, [resSearchTerm]);
+
+  // Effect: fetch. Transactions depend on pagination/search/filter; reservations
+  // are fetched once and re-fetched only when the tab changes to "reservations".
   useEffect(() => {
     let cancelled = false;
 
     (async () => {
       try {
         const [txRes, resRes] = await Promise.all([
-          getAllTransactions({ page: txPage, pageSize: txPageSize }),
+          getAllTransactions({
+            page: txPage,
+            pageSize: txPageSize,
+            search: txDebouncedSearch || undefined,
+            filter: txTypeFilter !== "All" ? txTypeFilter : undefined,
+          }),
           getAllReservations(),
         ]);
         if (cancelled) return;
@@ -61,9 +84,9 @@ export default function AdminTransactions() {
     return () => {
       cancelled = true;
     };
-  }, [txPage, txPageSize]);
+  }, [txPage, txPageSize, txDebouncedSearch, txTypeFilter]);
 
-  // Pagination handlers — set loading here (event handler, not effect).
+  // Pagination handlers — transactions
   const goToTxPage = (p) => {
     if (p === txPage) return;
     setLoading(true);
@@ -77,8 +100,25 @@ export default function AdminTransactions() {
     setTxPage(1);
   };
 
-  // Tab switch also resets client-side reservation page. Both updates
-  // happen in the event handler so no effect is needed for the reset.
+  // Search / filter handlers reset page inline
+  const handleTxSearch = (e) => {
+    setTxSearchTerm(e.target.value);
+    setTxPage(1);
+    setLoading(true);
+  };
+
+  const handleTxTypeChange = (e) => {
+    setTxTypeFilter(e.target.value);
+    setTxPage(1);
+    setLoading(true);
+  };
+
+  const handleResSearch = (e) => {
+    setResSearchTerm(e.target.value);
+    setResPage(1);
+  };
+
+  // Tab switch also resets client-side reservation page.
   const handleTabChange = (tab) => {
     if (tab === activeTab) return;
     setActiveTab(tab);
@@ -116,18 +156,16 @@ export default function AdminTransactions() {
     .filter((t) => t.type === "Credit" || t.type === "Debit")
     .reduce((sum, t) => sum + t.amount, 0);
 
-  const filteredTransactions = transactions.filter(
-    (t) =>
-      t.userName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      t.userEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      t.reference?.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
-
+  // Reservations stay client-side (endpoint returns full array) —
+  // still filter locally by the reservations tab search.
   const filteredReservations = activeReservations.filter(
     (r) =>
-      r.userName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      r.productTitle?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      r.type?.toLowerCase().includes(searchTerm.toLowerCase()),
+      !resDebouncedSearch ||
+      r.userName?.toLowerCase().includes(resDebouncedSearch.toLowerCase()) ||
+      r.productTitle
+        ?.toLowerCase()
+        .includes(resDebouncedSearch.toLowerCase()) ||
+      r.type?.toLowerCase().includes(resDebouncedSearch.toLowerCase()),
   );
 
   const resTotal = filteredReservations.length;
@@ -246,15 +284,42 @@ export default function AdminTransactions() {
             </button>
           </div>
 
-          <div className="relative w-full md:w-72">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search current page..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-            />
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full md:w-auto">
+            {activeTab === "transactions" && (
+              <select
+                value={txTypeFilter}
+                onChange={handleTxTypeChange}
+                className="px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              >
+                <option value="All">All Types</option>
+                <option value="Credit">Credit</option>
+                <option value="Debit">Debit</option>
+                <option value="Release">Release</option>
+                <option value="Penalty">Penalty</option>
+                <option value="Commission">Commission</option>
+              </select>
+            )}
+
+            <div className="relative w-full md:w-72">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder={
+                  activeTab === "transactions"
+                    ? "Search all transactions..."
+                    : "Search reservations..."
+                }
+                value={
+                  activeTab === "transactions" ? txSearchTerm : resSearchTerm
+                }
+                onChange={
+                  activeTab === "transactions"
+                    ? handleTxSearch
+                    : handleResSearch
+                }
+                className="w-full pl-9 pr-4 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              />
+            </div>
           </div>
         </div>
 
@@ -272,7 +337,7 @@ export default function AdminTransactions() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {filteredTransactions.length === 0 ? (
+                  {transactions.length === 0 ? (
                     <tr>
                       <td
                         colSpan="5"
@@ -282,7 +347,7 @@ export default function AdminTransactions() {
                       </td>
                     </tr>
                   ) : (
-                    filteredTransactions.map((t) => {
+                    transactions.map((t) => {
                       const isPositive = [
                         "Credit",
                         "Release",
