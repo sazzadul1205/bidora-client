@@ -234,6 +234,7 @@ export default function Auctions() {
               <tr>
                 <th className="px-6 py-4 font-medium">Product</th>
                 <th className="px-6 py-4 font-medium">Status</th>
+                <th className="px-6 py-4 font-medium">Result / Winner</th>
                 <th className="px-6 py-4 font-medium">Schedule</th>
                 <th className="px-6 py-4 font-medium text-right">Actions</th>
               </tr>
@@ -241,13 +242,13 @@ export default function Auctions() {
             <tbody className="divide-y divide-gray-200">
               {loading ? (
                 <>
-                  <SkeletonRow cols={4} />
-                  <SkeletonRow cols={4} />
-                  <SkeletonRow cols={4} />
+                  <SkeletonRow cols={5} />
+                  <SkeletonRow cols={5} />
+                  <SkeletonRow cols={5} />
                 </>
               ) : auctions.length === 0 ? (
                 <tr>
-                  <td colSpan="4" className="text-center py-12">
+                  <td colSpan="5" className="text-center py-12">
                     <Package className="w-12 h-12 text-gray-300 mx-auto mb-3" />
                     <p className="text-gray-500 font-medium">
                       No auctions found.
@@ -284,7 +285,7 @@ export default function Auctions() {
                             {a.productTitle}
                           </p>
                           <p className="text-xs text-gray-500 mt-0.5 truncate max-w-37.5">
-                            Seller ID: {a.sellerId}
+                            Seller: {a.sellerName || `User_${a.sellerId.slice(0, 8)}`}
                           </p>
                         </div>
                       </div>
@@ -304,11 +305,37 @@ export default function Auctions() {
                       >
                         {a.status}
                       </span>
-                      {a.status === "Active" && (
-                        <p className="text-xs text-gray-500 mt-1 font-medium">
-                          {a.bidCount} Bids
-                        </p>
+                    </td>
+
+                    <td className="px-6 py-4">
+                      {a.status === "Completed" && (
+                        <div className="text-xs space-y-1">
+                          {a.result === "Sold" ? (
+                            <>
+                              <p className="text-green-700 font-medium flex items-center gap-1">
+                                <CheckCircle className="w-3 h-3" /> Sold
+                              </p>
+                              <p className="text-gray-600">Winner: {a.winnerName || `User_${(a.winnerId || "").slice(0, 8)}`}</p>
+                              <p className="text-gray-600">Winning bid: ৳{a.currentHighestBid?.toLocaleString() || "0.00"}</p>
+                            </>
+                          ) : (
+                            <p className="text-gray-600">No winner — deposit released</p>
+                          )}
+                        </div>
                       )}
+                      {a.status === "Cancelled" && (
+                        <div className="text-xs space-y-1">
+                          <p className="text-red-600 font-medium flex items-center gap-1">
+                            <XCircle className="w-3 h-3" /> Cancelled
+                          </p>
+                          {a.cancellationReason ? (
+                            <p className="text-gray-600">{a.cancellationReason}</p>
+                          ) : (
+                            <p className="text-gray-600">No reason provided</p>
+                          )}
+                        </div>
+                      )}
+                      {a.status !== "Completed" && a.status !== "Cancelled" && <span className="text-gray-300">—</span>}
                     </td>
 
                     <td className="px-6 py-4">
@@ -338,7 +365,7 @@ export default function Auctions() {
                       </div>
                     </td>
 
-                    <td className="px-6 py-4 text-right space-x-2 whitespace-nowrap">
+                    <td className="flex justify-end items-center px-6 py-4 text-right space-x-2 whitespace-nowrap">
                       {a.status === "Upcoming" && (
                         <button
                           onClick={() => openModal(a, "configure")}
@@ -356,13 +383,20 @@ export default function Auctions() {
                           <XCircle className="w-4 h-4" /> Cancel
                         </button>
                       )}
-                      <button
-                        onClick={() => openBidsModal(a)}
-                        className="inline-flex items-center gap-1.5 text-purple-600 hover:text-purple-800 font-medium bg-purple-50 hover:bg-purple-100 px-3 py-1.5 rounded-lg transition-colors"
-                        title="View all bids for this auction"
-                      >
-                        <Eye className="w-4 h-4" /> Bids
-                      </button>
+                      <div className="relative">
+                        <button
+                          onClick={() => openBidsModal(a)}
+                          className="inline-flex items-center gap-1.5 text-purple-600 hover:text-purple-800 font-medium bg-purple-50 hover:bg-purple-100 px-3 py-1.5 rounded-lg transition-colors"
+                          title="View all bids for this auction"
+                        >
+                          <Eye className="w-4 h-4" /> Bids
+                          {a.status === "Active" && a.bidCount > 0 && (
+                            <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center">
+                              {a.bidCount}
+                            </span>
+                          )}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
