@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { formatCurrency as formatMoney } from "../../../utils/currency";
+import { formatCurrency as formatMoney } from "../../utils/currency";
 import { useForm } from "react-hook-form";
 import {
   Wallet as WalletIcon,

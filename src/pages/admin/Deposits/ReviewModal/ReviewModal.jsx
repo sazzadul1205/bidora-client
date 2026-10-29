@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { imageUrl, handleImageError } from "../../../../utils/image";
 import { formatDateTime } from "../../../../utils/date";
-import { formatCurrency as formatMoney } from "../../../utils/currency";
+import { formatCurrency as formatMoney } from "../../../../utils/currency";
 
 export default function ReviewModal({
   selected,
