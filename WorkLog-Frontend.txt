@@ -1,0 +1,17 @@
+Frontend Work Log - bidora-client (React)
+Updated: Thursday, 29 October 2026 08:20 AM
+
+Project: bidora-client (React + Vite)
+Location: bidora-client/src/pages/
+
+--------------------------------------------------
+29 October 2026 - 08:00 AM
+--------------------------------------------------
+- SellerSales.jsx: Confirmed all 3 dashboard cards (Total Sales, Awaiting Dispatch, Revenue) render server-side counts from backend (no client-side filtering or "(page)" labels).
+- WonAuctions.jsx: Updated to read res.data.data?.items instead of res.data.data after backend wrapped response in { items: [...] } object for consistency.
+- Auctions.jsx (Admin Auction Management):
+  * Added "Result / Winner" column to history table showing Sold/NoWinner status, winner name, winning bid amount, and bid count for Completed/Cancelled auctions.
+  * Changed "Seller ID" to "Seller" name (looks up full name from backend, falls back to truncated ID).
+  * Moved bid count from under status badge to red notification bubble on the Bids button for Active auctions.
+  * Extended red bid-count notification bubble to show on Completed/Cancelled tabs too (not just Active).
+- ESLint: Passed with 0 errors.
