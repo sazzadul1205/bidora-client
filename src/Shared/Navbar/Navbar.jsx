@@ -125,7 +125,7 @@ function Navbar() {
                     >
                       <Wallet className="w-4 h-4 text-blue-600" />
                       <span className="font-bold text-blue-800 text-sm">
-                        $
+                        ৳
                         {walletBalance.toLocaleString(undefined, {
                           minimumFractionDigits: 2,
                           maximumFractionDigits: 2,

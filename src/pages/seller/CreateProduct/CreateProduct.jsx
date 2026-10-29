@@ -472,18 +472,18 @@ export default function CreateProduct() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Starting Price ($) <span className="text-red-500">*</span>
+                Starting Price (৳) <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
-                  $
+                  ৳
                 </span>
                 <input
                   type="number"
                   step="0.01"
                   {...register("startingPrice", {
-                    required: "Starting price is required",
-                    min: { value: 100, message: "Minimum is $100" },
+                    required: "Required",
+                    min: { value: 100, message: "Min ৳100" },
                   })}
                   placeholder="100.00"
                   className={`w-full border p-2.5 pl-8 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition ${errors.startingPrice ? "border-red-500" : "border-gray-300"}`}
@@ -498,18 +498,18 @@ export default function CreateProduct() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Buyout Price ($) <span className="text-red-500">*</span>
+                Buyout Price (৳) <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
-                  $
+                  ৳
                 </span>
                 <input
                   type="number"
                   step="0.01"
                   {...register("buyoutPrice", {
                     required: "Buyout price is required",
-                    min: { value: 100, message: "Minimum is $100" },
+                    min: { value: 100, message: "Minimum is ৳100" },
                   })}
                   placeholder="500.00"
                   className={`w-full border p-2.5 pl-8 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition ${errors.buyoutPrice ? "border-red-500" : "border-gray-300"}`}

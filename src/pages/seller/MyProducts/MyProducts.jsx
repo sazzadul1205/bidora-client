@@ -420,7 +420,7 @@ export default function MyProducts() {
                               p.auctionBidCount > 0 && (
                                 <p className="text-[11px] text-gray-600 font-medium flex items-center gap-1">
                                   <Gavel className="w-3 h-3 text-gray-400" />
-                                  {p.auctionBidCount} bids · $
+                                  {p.auctionBidCount} bids · ৳
                                   {p.auctionCurrentHighestBid?.toLocaleString() ||
                                     "0"}
                                 </p>
