@@ -83,3 +83,7 @@ FULL COMMIT HISTORY (INCEPTION TO PRESENT)
   * Changed $ to ৳ in BuyerDashboard, AdminDashboard, Users, BidsModal.
   * Added missing ৳ symbol in ViewProduct, MyProducts, SellerAuctionView, AdminProducts ReviewModal.
   * ESLint: Passed with 0 errors.
+
+11:00 AM
+- ResolveModal.jsx: Removed "System" fault type radio option since backend rejects System + Apply Penalty combination. Removed unused ShieldAlert import.
+  * ESLint: Passed with 0 errors.

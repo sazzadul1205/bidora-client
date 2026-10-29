@@ -2,7 +2,6 @@ import { useForm, useWatch } from "react-hook-form";
 import {
   Scale,
   User,
-  ShieldAlert,
   FileText,
   Link as LinkIcon,
   AlertTriangle,
@@ -116,24 +115,6 @@ export default function ResolveModal({
                     className={`text-xs font-bold ${faultType === "Seller" ? "text-red-800" : "text-gray-700"}`}
                   >
                     Seller
-                  </p>
-                </label>
-                <label
-                  className={`cursor-pointer border-2 rounded-xl p-3 text-center transition ${faultType === "System" ? "border-gray-500 bg-gray-100" : "border-gray-200 hover:border-gray-300"}`}
-                >
-                  <input
-                    type="radio"
-                    value="System"
-                    {...register("faultType")}
-                    className="hidden"
-                  />
-                  <ShieldAlert
-                    className={`w-5 h-5 mx-auto mb-1 ${faultType === "System" ? "text-gray-800" : "text-gray-400"}`}
-                  />
-                  <p
-                    className={`text-xs font-bold ${faultType === "System" ? "text-gray-900" : "text-gray-700"}`}
-                  >
-                    System
                   </p>
                 </label>
               </div>
