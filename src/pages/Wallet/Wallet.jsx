@@ -362,7 +362,7 @@ export default function Wallet() {
   }
 
   const safeReservedBalance = Math.max(0, wallet?.reservedBalance || 0);
-  const availableBalance = (wallet?.balance || 0) - safeReservedBalance;
+  const availableBalance = Math.max(0, (wallet?.balance || 0) - safeReservedBalance);
 
   const disputeTransactions = transactions.filter((tx) =>
     tx.reference?.toLowerCase().includes("dispute"),

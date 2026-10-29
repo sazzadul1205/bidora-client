@@ -110,7 +110,7 @@ export default function BuyerDashboard() {
           </div>
           <div>
             <p className="text-sm font-medium text-blue-100">Available Balance</p>
-            <p className="text-2xl font-bold">{formatMoney(data?.availableBalance)}</p>
+            <p className="text-2xl font-bold">{formatMoney(Math.max(0, data?.availableBalance || 0))}</p>
           </div>
         </div>
       </div>

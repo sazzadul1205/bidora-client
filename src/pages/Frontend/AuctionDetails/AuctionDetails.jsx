@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { getAuctionById } from "../../../services/publicApi";
 import {
   getAuctionBids,
@@ -278,12 +278,12 @@ export default function AuctionDetails() {
   return (
     <div className="bg-gray-50 min-h-screen pb-20 pt-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <Link
-          to="/auctions"
+        <button
+          onClick={() => navigate(-1)}
           className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 mb-6"
         >
-          <ArrowLeft className="w-4 h-4" /> Back to Auctions
-        </Link>
+          <ArrowLeft className="w-4 h-4" /> Back
+        </button>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* LEFT COLUMN: Images & Description */}

@@ -129,7 +129,7 @@ export default function PlatformWallet() {
   const wallet = data?.wallet || {};
   const txs = data?.transactions || [];
 
-  const balance = wallet?.balance ?? wallet?.Balance ?? 0;
+  const balance = Math.max(0, wallet?.balance ?? wallet?.Balance ?? 0);
   const reserved = wallet?.reservedBalance ?? wallet?.ReservedBalance ?? 0;
 
   const tabTypes = ["All", "Penalty", "Commission"];

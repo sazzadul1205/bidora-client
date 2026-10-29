@@ -46,7 +46,7 @@ function AuthenticatedLayout() {
         if (currentRole !== "Admin") {
           try {
             const walletRes = await authApi.get("/wallet/me", getAuthConfig());
-            setBalance(walletRes.data.data.balance || 0);
+            setBalance(Math.max(0, walletRes.data.data.balance || 0));
           } catch (walletErr) {
             console.warn(
               "Wallet not found or could not be fetched:",
