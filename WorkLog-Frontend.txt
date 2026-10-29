@@ -1,5 +1,5 @@
 Frontend Work Log - bidora-client (React)
-Updated: Thursday, 29 October 2026 08:23 AM
+Updated: Thursday, 29 October 2026 10:40 AM
 
 Project: bidora-client (React + Vite)
 Repository: D:\Sazzadul_PTSL_236_Intern\Sazzadul React\Bidora Project\bidora-client
@@ -75,3 +75,11 @@ FULL COMMIT HISTORY (INCEPTION TO PRESENT)
   * Moved bid count from under status badge to red notification bubble on the Bids button for Active auctions.
   * Extended red bid-count notification bubble to show on Completed/Cancelled tabs too (not just Active).
 - ESLint: Passed with 0 errors.
+
+10:40 AM
+- Fixed currency inconsistency across the app:
+  * Created shared formatCurrency() util at src/utils/currency.js (returns ৳ symbol).
+  * Replaced local formatMoney() reimplementations in 8 files with shared import.
+  * Changed $ to ৳ in BuyerDashboard, AdminDashboard, Users, BidsModal.
+  * Added missing ৳ symbol in ViewProduct, MyProducts, SellerAuctionView, AdminProducts ReviewModal.
+  * ESLint: Passed with 0 errors.

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { formatCurrency as formatMoney } from "../../../utils/currency";
 import {
   Wallet as WalletIcon,
   History,
@@ -92,12 +93,6 @@ export default function PlatformWallet() {
     setPage(1);
     setLoading(true);
   };
-
-  const formatMoney = (n) =>
-    `৳${Number(n || 0).toLocaleString("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}`;
 
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";

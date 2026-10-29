@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
 import {
+  formatCurrency as formatMoney,
+} from "../../../utils/currency";
+import {
   getUsers,
   getUserRoleCounts,
   lockUser,
   createAdmin,
 } from "../../../services/adminApi";
 import {
-  Lock,
-  Search,
   Users as UsersIcon,
+  Search,
   Shield,
   Store,
   ShoppingBag,
@@ -244,12 +246,6 @@ export default function Users() {
       .substring(0, 2)
       .toUpperCase();
   };
-
-  const formatMoney = (num) =>
-    `$${Number(num || 0).toLocaleString("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}`;
 
   const getLockInfo = (user) => {
     if (!user?.isLocked) return null;

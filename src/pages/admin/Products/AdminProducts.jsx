@@ -248,15 +248,15 @@ export default function AdminProducts() {
                       <div className="space-y-1">
                         <p className="text-xs text-gray-500">
                           Start:{" "}
-                          <span className="font-medium text-gray-900">
-                            ${p.startingPrice?.toLocaleString()}
-                          </span>
+                            <span className="font-medium text-gray-900">
+                              ৳${p.startingPrice?.toLocaleString()}
+                            </span>
                         </p>
                         <p className="text-xs text-gray-500">
                           Buyout:{" "}
-                          <span className="font-medium text-gray-900">
-                            ${p.buyoutPrice?.toLocaleString()}
-                          </span>
+                            <span className="font-medium text-gray-900">
+                              ৳${p.buyoutPrice?.toLocaleString()}
+                            </span>
                         </p>
                       </div>
                     </td>

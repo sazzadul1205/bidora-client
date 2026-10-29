@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { formatCurrency as formatMoney } from "../../../utils/currency";
 import { useForm } from "react-hook-form";
 import {
   Wallet as WalletIcon,
@@ -323,13 +324,6 @@ export default function Wallet() {
       );
     }
   };
-
-  const formatMoney = (num) =>
-    `৳${Number(num || 0).toLocaleString("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}`;
-
   const formatDate = (date) =>
     new Date(date).toLocaleDateString("en-GB", {
       day: "2-digit",

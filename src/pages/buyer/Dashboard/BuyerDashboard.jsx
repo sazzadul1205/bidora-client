@@ -6,6 +6,7 @@ import {
   Search, ArrowRight, CheckCircle2
 } from "lucide-react";
 import { Skeleton } from "../../../components/Skeleton";
+import { formatCurrency as formatMoney } from "../../../utils/currency";
 
 export default function BuyerDashboard() {
   const navigate = useNavigate();
@@ -46,12 +47,6 @@ export default function BuyerDashboard() {
       </div>
     );
   }
-
-  const formatMoney = (num) =>
-    `$${Number(num || 0).toLocaleString("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}`;
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">

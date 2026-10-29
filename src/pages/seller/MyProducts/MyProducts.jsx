@@ -343,15 +343,15 @@ export default function MyProducts() {
                       <div className="space-y-1.5">
                         <p className="text-xs text-gray-500">
                           Start:{" "}
-                          <span className="font-bold text-gray-900 text-sm">
-                            ${p.startingPrice?.toLocaleString()}
-                          </span>
+                            <span className="font-bold text-gray-900 text-sm">
+                              ৳${p.startingPrice?.toLocaleString()}
+                            </span>
                         </p>
                         <p className="text-xs text-gray-500">
                           Buyout:{" "}
-                          <span className="font-bold text-gray-900 text-sm">
-                            ${p.buyoutPrice?.toLocaleString()}
-                          </span>
+                            <span className="font-bold text-gray-900 text-sm">
+                              ৳${p.buyoutPrice?.toLocaleString()}
+                            </span>
                         </p>
                       </div>
                     </td>

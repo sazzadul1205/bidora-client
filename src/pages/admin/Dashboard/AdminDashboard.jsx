@@ -6,6 +6,7 @@ import {
   Gavel, Scale, Wallet, AlertCircle, ArrowRight
 } from "lucide-react";
 import { Skeleton } from "../../../components/Skeleton";
+import { formatCurrency as formatMoney } from "../../../utils/currency";
 
 export default function AdminDashboard() {
   const [data, setData] = useState(null);
@@ -40,12 +41,6 @@ export default function AdminDashboard() {
       </div>
     );
   }
-
-  const formatMoney = (num) =>
-    `$${Number(num || 0).toLocaleString("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}`;
 
   const totalPendingTasks =
     (data?.pendingProducts || 0) +

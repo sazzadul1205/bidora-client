@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { imageUrl, handleImageError } from "../../../../utils/image";
 import { formatDateTime } from "../../../../utils/date";
+import { formatCurrency as formatMoney } from "../../../utils/currency";
 
 export default function ReviewModal({
   selected,
@@ -25,13 +26,6 @@ export default function ReviewModal({
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
     return formatDateTime(dateString);
-  };
-
-  const formatMoney = (amount) => {
-    return `৳${Number(amount || 0).toLocaleString("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}`;
   };
 
   if (!selected) return null;

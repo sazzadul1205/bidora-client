@@ -6,6 +6,7 @@ import {
 import { CheckCircle2, CreditCard, Hash, Receipt, Wallet } from "lucide-react";
 import { formatDateTime } from "../../../utils/date";
 import { toast } from "../../../utils/toast";
+import { formatCurrency as formatMoney } from "../../../utils/currency";
 import { SkeletonRow, Skeleton } from "../../../components/Skeleton";
 import Pagination from "../../../components/Pagination/Pagination";
 
@@ -80,13 +81,6 @@ export default function Deposits() {
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
     return formatDateTime(dateString);
-  };
-
-  const formatMoney = (amount) => {
-    return `৳${Number(amount || 0).toLocaleString("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}`;
   };
 
   const totalCount = requests.length;

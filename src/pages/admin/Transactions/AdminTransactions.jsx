@@ -3,6 +3,7 @@ import {
   getAllTransactions,
   getAllReservations,
 } from "../../../services/adminApi";
+import { formatCurrency as formatMoney } from "../../../utils/currency";
 import {
   DollarSign,
   ArrowUpRight,
@@ -143,12 +144,6 @@ export default function AdminTransactions() {
     setActiveTab(tab);
     if (tab === "reservations") setResPage(1);
   };
-
-  const formatMoney = (num) =>
-    `৳${Number(num || 0).toLocaleString("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}`;
 
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";

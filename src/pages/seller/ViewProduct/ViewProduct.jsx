@@ -216,19 +216,19 @@ export default function ViewProduct() {
               <div className="bg-gray-50 p-4 rounded-lg">
                 <p className="text-xs text-gray-500 mb-1">Starting Price</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  ${product.startingPrice?.toLocaleString()}
+                  ৳${product.startingPrice?.toLocaleString()}
                 </p>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <p className="text-xs text-gray-500 mb-1">Buyout Price</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  ${product.buyoutPrice?.toLocaleString()}
+                  ৳${product.buyoutPrice?.toLocaleString()}
                 </p>
               </div>
             </div>
             <p className="text-xs text-gray-500 mt-4 bg-blue-50 p-2 rounded border border-blue-100">
               A reserved deposit of{" "}
-              <strong>${(product.startingPrice * 0.25).toFixed(2)}</strong>{" "}
+              <strong>৳${(product.startingPrice * 0.25).toFixed(2)}</strong>{" "}
               (25%) is required when you submit this for approval.
             </p>
           </div>

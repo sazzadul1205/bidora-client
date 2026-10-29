@@ -54,7 +54,7 @@ export default function BidsModal({ bidsData, bidsLoading, onClose }) {
             <p className="text-xs text-gray-500">Current Highest</p>
             <p className="text-sm font-bold text-green-700">
               {bidsData.currentHighestBid != null
-                ? `$${bidsData.currentHighestBid.toLocaleString()}`
+                ? `৳${bidsData.currentHighestBid.toLocaleString()}`
                 : "None"}
             </p>
           </div>
@@ -101,7 +101,7 @@ export default function BidsModal({ bidsData, bidsLoading, onClose }) {
                       </div>
                     </td>
                     <td className="px-6 py-3 text-right font-bold text-blue-600">
-                      ${b.amount?.toLocaleString()}
+                      ৳{b.amount?.toLocaleString()}
                       {b.isBuyout && (
                         <span className="ml-1 text-[10px] font-semibold text-purple-700">
                           (buyout)

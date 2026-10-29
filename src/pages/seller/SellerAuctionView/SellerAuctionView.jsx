@@ -224,7 +224,7 @@ export default function SellerAuctionView() {
                     Starting Price
                   </p>
                   <p className="text-lg sm:text-xl font-bold text-gray-900">
-                    ${auction.startingPrice?.toLocaleString()}
+                    ৳${auction.startingPrice?.toLocaleString()}
                   </p>
                 </div>
                 <div>
@@ -379,7 +379,7 @@ export default function SellerAuctionView() {
                 If sold at current bid:
               </p>
               <p className="text-2xl sm:text-3xl font-bold mb-2">
-                ${((auction.currentHighestBid || 0) * 0.9).toLocaleString()}
+                ৳${((auction.currentHighestBid || 0) * 0.9).toLocaleString()}
               </p>
               <p className="text-xs text-gray-400">
                 * 10% platform commission will be deducted.

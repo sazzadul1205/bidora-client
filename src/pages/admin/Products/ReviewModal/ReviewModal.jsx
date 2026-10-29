@@ -125,7 +125,7 @@ export default function ReviewModal({
                       Starting Price
                     </span>
                     <span className="font-bold text-blue-950 text-xl">
-                      ${selectedProduct.startingPrice?.toLocaleString()}
+                      ৳${selectedProduct.startingPrice?.toLocaleString()}
                     </span>
                   </div>
                   <div>
@@ -133,7 +133,7 @@ export default function ReviewModal({
                       Buyout Price
                     </span>
                     <span className="font-bold text-blue-950 text-xl">
-                      ${selectedProduct.buyoutPrice?.toLocaleString()}
+                      ৳${selectedProduct.buyoutPrice?.toLocaleString()}
                     </span>
                   </div>
                   <p className="text-xs text-blue-700 mt-2 bg-white/60 p-2 rounded border border-blue-200">
