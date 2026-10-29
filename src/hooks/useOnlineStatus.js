@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import publicApi from "../services/publicApi";
+import { toast } from "../utils/toast";
 
 export default function useOnlineStatus() {
   const [status, setStatus] = useState(() =>
@@ -93,18 +94,15 @@ export default function useOnlineStatus() {
   useEffect(() => {
     if (prevStatus.current === status) return;
 
-    // Lazy import — avoids a circular import at module load
-    import("../utils/toast").then(({ toast }) => {
-      if (status === "offline") {
-        toast.error("You're offline. Some features may not work.");
-      } else if (
-        status === "online" &&
-        (prevStatus.current === "offline" ||
-          prevStatus.current === "reconnecting")
-      ) {
-        toast.success("Back online.");
-      }
-    });
+    if (status === "offline") {
+      toast.error("You're offline. Some features may not work.");
+    } else if (
+      status === "online" &&
+      (prevStatus.current === "offline" ||
+        prevStatus.current === "reconnecting")
+    ) {
+      toast.success("Back online.");
+    }
 
     prevStatus.current = status;
   }, [status]);
