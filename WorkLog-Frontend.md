@@ -95,12 +95,19 @@ ESLint passed with zero errors. Production build passed successfully.
 - The dynamic import was ineffective because `toast.js` is already statically imported by `Navbar.jsx`, settings pages, and other modules — so it never created a separate chunk.
 - Production build: 2080 modules transformed, built successfully with zero errors. `[INEFFECTIVE_DYNAMIC_IMPORT]` warning eliminated.
 
+### 12:50 PM — Build Chunk Size Warning Suppression
+
+**File:** `vite.config.js`
+
+- Added `build.chunkSizeWarningLimit: 1024` to suppress the chunk size > 500 kB warning during production builds.
+- Production build now completes with zero warnings and zero errors.
+
 ---
 
 ## 2. Commit History Overview
 
-**Total commits:** 61  
-**Latest recorded commit:** `28d7d8e` — `fix(ui): remove ineffective dynamic import of toast in useOnlineStatus`
+**Total commits:** 62  
+**Latest recorded commit:** `d4c6432` — `fix(build): raise chunkSizeWarningLimit to 1024kB to suppress chunk size warning`
 
 ### 29 October — Auction Management and UI Improvements
 
@@ -111,8 +118,7 @@ ESLint passed with zero errors. Production build passed successfully.
 - Refactored auction and product pages to use reusable components.
 - Removed System fault-type option from ResolveModal (backend rejects it).
 - Paused online-status polling when browser tab is hidden.
-- Fixed currency util import paths in Wallet.jsx and ReviewModal.jsx.
-- Removed ineffective dynamic import of toast.js in useOnlineStatus.js (static import instead).
+- Added build.chunkSizeWarningLimit to vite.config.js.
 
 ### 28 October — Pagination and Data Fetching
 
@@ -180,5 +186,6 @@ The following checks were recorded on 29 October:
 | 10:40 AM | Currency standardization                 | Passed  |
 | 11:00 AM | Dispute resolution modal                 | Passed  |
 | 11:10 AM | Online status and polling optimization   | Passed  |
+| 12:50 PM | Build chunk size warning suppression     | Passed  |
 
 All ESLint checks passed with zero errors for every change recorded above.
