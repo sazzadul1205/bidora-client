@@ -66,19 +66,26 @@ export default function useOnlineStatus() {
       window.removeEventListener("offline", handleOffline);
     };
   }, []);
-  //  Poll the backend every 20s while online 
+  // Poll the backend every 20s while online. Pauses when the tab is hidden.
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      if (navigator.onLine) pingBackend();
+      if (navigator.onLine && !document.hidden) pingBackend();
     }, 0);
 
     const intervalId = setInterval(() => {
-      if (navigator.onLine) pingBackend();
+      if (navigator.onLine && !document.hidden) pingBackend();
     }, 20000);
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden && navigator.onLine) pingBackend();
+    };
+
+    window.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
       clearTimeout(timeoutId);
       clearInterval(intervalId);
+      window.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, []);
 
