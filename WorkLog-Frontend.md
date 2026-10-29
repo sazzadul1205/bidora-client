@@ -87,12 +87,20 @@ ESLint passed with zero errors. Production build passed successfully.
 - Fixed incorrect relative import path for `formatCurrency` util in `ReviewModal.jsx` (`../../../utils/currency` → `../../../../utils/currency`).
 - Production build: 2081 modules transformed, built successfully with zero errors.
 
+### 12:45 PM — Ineffective Dynamic Import Fix
+
+**File:** `useOnlineStatus.js`
+
+- Replaced dynamic `import("../utils/toast")` with static `import { toast } from "../utils/toast"`.
+- The dynamic import was ineffective because `toast.js` is already statically imported by `Navbar.jsx`, settings pages, and other modules — so it never created a separate chunk.
+- Production build: 2080 modules transformed, built successfully with zero errors. `[INEFFECTIVE_DYNAMIC_IMPORT]` warning eliminated.
+
 ---
 
 ## 2. Commit History Overview
 
-**Total commits:** 60  
-**Latest recorded commit:** `03bd82e` — `fix(ui): correct currency util import paths in Wallet.jsx and ReviewModal.jsx`
+**Total commits:** 61  
+**Latest recorded commit:** `28d7d8e` — `fix(ui): remove ineffective dynamic import of toast in useOnlineStatus`
 
 ### 29 October — Auction Management and UI Improvements
 
@@ -104,6 +112,7 @@ ESLint passed with zero errors. Production build passed successfully.
 - Removed System fault-type option from ResolveModal (backend rejects it).
 - Paused online-status polling when browser tab is hidden.
 - Fixed currency util import paths in Wallet.jsx and ReviewModal.jsx.
+- Removed ineffective dynamic import of toast.js in useOnlineStatus.js (static import instead).
 
 ### 28 October — Pagination and Data Fetching
 
