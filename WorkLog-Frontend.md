@@ -12,16 +12,16 @@
 
 ### 8:00 AM — Auction Management and Dashboard Updates
 
-**Seller Sales Dashboard**
+#### Seller Sales Dashboard
 
 - Verified that Total Sales, Awaiting Dispatch, and Revenue cards display counts and values returned by the backend.
 - Removed client-side filtering and unclear “(page)” labels from dashboard statistics.
 
-**Won Auctions**
+#### Won Auctions
 
 - Updated `WonAuctions.jsx` to read the paginated response from `res.data.data?.items`, matching the backend response structure.
 
-**Admin Auction Management**
+#### Admin Auction Management
 
 - Added a Result / Winner column to the auction history table, displaying:
   - Auction result (Sold or NoWinner)
@@ -32,7 +32,9 @@
 - Moved the bid count into a red notification badge on the Bids button for active auctions.
 - Extended the bid-count badge to Completed and Cancelled auction tabs.
 
-**Validation:** ESLint passed with zero errors.
+#### Validation
+
+ESLint passed with zero errors.
 
 ### 10:40 AM — Currency Standardization
 
@@ -49,7 +51,9 @@
   - `SellerAuctionView`
   - `AdminProducts` ReviewModal
 
-**Validation:** ESLint passed with zero errors.
+#### Validation
+
+ESLint passed with zero errors.
 
 ### 11:00 AM — Dispute Resolution Fix
 
@@ -58,7 +62,9 @@
 - Removed the **System** fault-type radio option because the backend rejects the combination of System fault and Apply Penalty.
 - Removed the unused `ShieldAlert` import.
 
-**Validation:** ESLint passed with zero errors.
+#### Validation
+
+ESLint passed with zero errors.
 
 ### 11:10 AM — Online Status and Polling Optimization
 
@@ -69,7 +75,9 @@
 
 **Purpose:** Reduce unnecessary background network requests when the application is not actively viewed.
 
-**Validation:** ESLint passed with zero errors.
+#### Validation
+
+ESLint passed with zero errors.
 
 ---
 
