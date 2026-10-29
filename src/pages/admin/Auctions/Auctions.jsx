@@ -317,9 +317,13 @@ export default function Auctions() {
                               </p>
                               <p className="text-gray-600">Winner: {a.winnerName || `User_${(a.winnerId || "").slice(0, 8)}`}</p>
                               <p className="text-gray-600">Winning bid: ৳{a.currentHighestBid?.toLocaleString() || "0.00"}</p>
+                              <p className="text-gray-600">Bids: {a.bidCount}</p>
                             </>
                           ) : (
-                            <p className="text-gray-600">No winner — deposit released</p>
+                            <>
+                              <p className="text-gray-600">No winner — deposit released</p>
+                              <p className="text-gray-600">Bids: {a.bidCount}</p>
+                            </>
                           )}
                         </div>
                       )}
@@ -333,6 +337,7 @@ export default function Auctions() {
                           ) : (
                             <p className="text-gray-600">No reason provided</p>
                           )}
+                          <p className="text-gray-600">Bids: {a.bidCount}</p>
                         </div>
                       )}
                       {a.status !== "Completed" && a.status !== "Cancelled" && <span className="text-gray-300">—</span>}
@@ -390,7 +395,7 @@ export default function Auctions() {
                           title="View all bids for this auction"
                         >
                           <Eye className="w-4 h-4" /> Bids
-                          {a.status === "Active" && a.bidCount > 0 && (
+                          {a.bidCount > 0 && (
                             <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center">
                               {a.bidCount}
                             </span>
