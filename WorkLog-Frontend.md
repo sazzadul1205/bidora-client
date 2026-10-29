@@ -77,14 +77,22 @@ ESLint passed with zero errors.
 
 #### Validation
 
-ESLint passed with zero errors.
+ESLint passed with zero errors. Production build passed successfully.
+
+### 12:30 PM — Currency Import Path Fixes
+
+**Files:** `Wallet.jsx`, `ReviewModal.jsx`
+
+- Fixed incorrect relative import path for `formatCurrency` util in `Wallet.jsx` (`../../../utils/currency` → `../../utils/currency`).
+- Fixed incorrect relative import path for `formatCurrency` util in `ReviewModal.jsx` (`../../../utils/currency` → `../../../../utils/currency`).
+- Production build: 2081 modules transformed, built successfully with zero errors.
 
 ---
 
 ## 2. Commit History Overview
 
-**Total commits:** 56  
-**Latest recorded commit:** `8ff29c4` — `fix(ui): pause online status polling when tab is hidden`
+**Total commits:** 60  
+**Latest recorded commit:** `03bd82e` — `fix(ui): correct currency util import paths in Wallet.jsx and ReviewModal.jsx`
 
 ### 29 October — Auction Management and UI Improvements
 
@@ -95,6 +103,7 @@ ESLint passed with zero errors.
 - Refactored auction and product pages to use reusable components.
 - Removed System fault-type option from ResolveModal (backend rejects it).
 - Paused online-status polling when browser tab is hidden.
+- Fixed currency util import paths in Wallet.jsx and ReviewModal.jsx.
 
 ### 28 October — Pagination and Data Fetching
 
