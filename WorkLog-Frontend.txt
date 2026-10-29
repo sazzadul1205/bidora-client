@@ -1,12 +1,72 @@
 Frontend Work Log - bidora-client (React)
-Updated: Thursday, 29 October 2026 08:20 AM
+Updated: Thursday, 29 October 2026 08:23 AM
 
 Project: bidora-client (React + Vite)
-Location: bidora-client/src/pages/
+Repository: D:\Sazzadul_PTSL_236_Intern\Sazzadul React\Bidora Project\bidora-client
+Branch: master | Total commits: 75
 
 --------------------------------------------------
-29 October 2026 - 08:00 AM
+FULL COMMIT HISTORY (INCEPTION TO PRESENT)
 --------------------------------------------------
+
+2026-10-29 | chore: add frontend work log for auction management fixes | eedc5e7
+2026-10-29 | feat(admin): display bid count in auction list and details | eda948d
+2026-10-29 | feat(admin): add auction results and winner details to dashboard | a6cc415
+2026-10-29 | fix(ui): update won auctions data access to use items property | a1cfea3
+2026-10-29 | fix(ui): prevent negative wallet balances and improve navigation | 9e32b72
+2026-10-29 | refactor(ui): update currency symbol from USD to BDT | 216abb2
+2026-10-29 | feat(ui): refactor auction and product pages to use new components | 09180c2
+2026-10-28 | feat(api): implement server-side pagination and filtering for auctions | a452438
+2026-10-28 | feat(ui): optimize data fetching and improve loading UX | c49eef3
+2026-10-28 | refactor(ui): migrate from client-side to server-side filtering and search | 8cb0226
+2026-10-28 | feat(ui): implement pagination across admin, buyer, and seller pages | 9ee2cb5
+2026-10-28 | fix(ui): update data fetching to handle paginated API responses | 79aacc3
+2026-10-28 | feat(ui): implement connection monitoring and enhanced auction status logic | 496c5c1
+2026-10-27 | fix(ui): refine bid status indicators in MyBids page | a597375
+2026-10-27 | feat(ui): implement live bid polling in auction details | 8746968
+2026-10-27 | chore(config): update api base url and proxy target to remote host | e346f3a
+2026-10-27 | feat(ui): implement mobile-responsive sidebar and layout improvements | b8fc1a1
+2026-10-27 | style(ui): improve responsiveness and clean up auth/frontend components | 2137275
+2026-10-27 | refactor(admin): optimize react-hook-form usage and fix hook violation | 196bdf6
+2026-10-27 | feat(admin): modularize admin dashboard pages by extracting modals | ada620f
+2026-10-27 | refactor(api): clean up service modules and standardize formatting | bc8e86f
+2026-10-27 | feat(auth): implement route guards and restructure routing | 66b881f
+2026-10-27 | feat(frontend): restructure pages and implement frontend routes | e554ee8
+2026-10-27 | refactor(ui): standardize date formatting and update currency symbol | 2e0ebba
+2026-10-27 | ui: update currency symbol from $ to ৳ | f0619e7
+2026-10-27 | refactor(ui): optimize data fetching and improve component functionality | b0aaef5
+2026-10-27 | feat(seller): implement dispatch workflow with tracking evidence | 2e3fc07
+2026-10-27 | feat(admin): implement financial ledger and sales management modules | d6095cf
+2026-10-27 | refactor(ui): optimize data fetching and enhance dispute management workflows | 512fc3b
+2026-10-26 | refactor(ui): restructure routing and implement role-based dashboards | 3f393b2
+2026-10-26 | feat(admin): implement platform wallet and enhance user management | 3d4ea18
+2026-10-26 | refactor(ui): upgrade dispute management and receipt workflows | 9c3bfcf
+2026-10-26 | feat(ui): enhance receipt confirmation and add non-delivery reporting | c63ab96
+2026-10-26 | feat(ui): implement dispute raising functionality for buyers and sellers | 2b547d4
+2026-10-26 | feat(seller): implement auction management and dashboard enhancements | 6a2fda3
+2026-10-26 | refactor(ui): enhance auction user experience and admin oversight | acf74b6
+2026-10-26 | feat(ui): implement auction pages and improve admin auction management | b2e00f3
+2026-10-26 | feat(seller): implement product management and admin dashboard enhancements | 4dc1c6d
+2026-10-26 | refactor(wallet): modularize wallet dashboard into specialized tabs | eb487ea
+2026-10-26 | feat(wallet): add deposit requests tracking to wallet dashboard | f746f4a
+2026-10-26 | feat(wallet): implement wallet functionality and improve user experience | 9fa66a7
+2026-10-26 | refactor(auth): improve profile verification logic and admin experience | 88ab8ab
+2026-10-25 | feat(auth): enhance profile management and verification workflow | 49113b6
+2026-10-25 | refactor(ui): modularize settings page and update profile upload logic | 0dc3399
+2026-10-25 | feat(auth): add profile pending route and update redirection logic | cc50bb6
+2026-10-25 | feat(ui): implement buyer and seller routes and add skeleton loading states | 0c278f9
+2026-10-25 | Fix admin pages: ESLint errors, SweetAlert2 toasts, role-based dashboards, layout fixes | 2b9003f
+2026-10-25 | feat(auth): integrate react-hook-form and implement protected routing | d9ed6a3
+2026-10-25 | feat(api): add service layers for admin, buyer, and seller | f7776c7
+2026-10-25 | refactor(auth): reorganize directory structure and implement layouts | cad8bcc
+2026-10-25 | feat(core): setup routing, styling, and project architecture | cb912c0
+2026-10-25 | feat: initialize project with vite and eslint | ed5dd2a
+
+--------------------------------------------------
+29 OCTOBER 2026 - TODAY'S CHANGES
+--------------------------------------------------
+
+08:00 AM
 - SellerSales.jsx: Confirmed all 3 dashboard cards (Total Sales, Awaiting Dispatch, Revenue) render server-side counts from backend (no client-side filtering or "(page)" labels).
 - WonAuctions.jsx: Updated to read res.data.data?.items instead of res.data.data after backend wrapped response in { items: [...] } object for consistency.
 - Auctions.jsx (Admin Auction Management):
