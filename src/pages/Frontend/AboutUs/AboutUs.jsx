@@ -363,7 +363,7 @@ function StepCard({ number, icon, title, description, color }) {
     <div className="relative bg-white border border-gray-200 rounded-xl shadow-sm p-6">
       <div className="flex items-center justify-between mb-4">
         <div className={`p-3 ${c.bg} ${c.text} rounded-lg`}>{icon}</div>
-        <span className="text-3xl font-black text-gray-100">{number}</span>
+        <span className="text-3xl font-black text-gray-400">{number}</span>
       </div>
       <h3 className="text-base font-bold text-gray-900 mb-2">{title}</h3>
       <p className="text-sm text-gray-600 leading-relaxed">{description}</p>
