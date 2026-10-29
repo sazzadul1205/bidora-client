@@ -51,7 +51,7 @@ export default function WonAuctions() {
       try {
         const res = await getWonAuctions();
         if (cancelled) return;
-        setAuctions(res.data.data || []);
+        setAuctions(res.data.data?.items || []);
       } catch {
         if (!cancelled) toast.error("Failed to load won auctions.");
       } finally {
@@ -68,7 +68,7 @@ export default function WonAuctions() {
   const fetchWonAuctions = async () => {
     try {
       const res = await getWonAuctions();
-      setAuctions(res.data.data || []);
+      setAuctions(res.data.data?.items || []);
     } catch {
       toast.error("Failed to load won auctions.");
     } finally {
