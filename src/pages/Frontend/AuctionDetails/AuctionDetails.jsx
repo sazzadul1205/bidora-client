@@ -69,6 +69,10 @@ export default function AuctionDetails() {
     }
   };
 
+  const handleRefresh = async () => {
+    await fetchData();
+  };
+
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -252,6 +256,9 @@ export default function AuctionDetails() {
     auction.status === "Completed" ||
     auction.status === "Cancelled" ||
     (auction.status === "Active" && isTimeUp);
+
+  // Processing state: auction ended but backend hasn't updated status yet.
+  const isProcessing = isEnded && auction.status === "Active";
 
   // 3-TIER PRICING LOGIC
   const startingPrice = auction.startingPrice || 0;
@@ -454,21 +461,29 @@ export default function AuctionDetails() {
                     Going live...
                   </div>
                 )}
-                {isEnded &&
-                  (auction.status === "Completed" ? (
-                    <div className="inline-flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-lg font-medium">
-                      <CheckCircle className="w-4 h-4" /> Auction Completed
-                    </div>
-                  ) : auction.status === "Cancelled" ? (
-                    <div className="inline-flex items-center gap-2 bg-red-50 text-red-700 px-4 py-2 rounded-lg font-medium">
-                      <XCircle className="w-4 h-4" /> Auction Cancelled
-                    </div>
-                  ) : (
-                    <div className="inline-flex items-center gap-2 bg-gray-100 text-gray-700 px-4 py-2 rounded-lg font-medium">
-                      <Clock className="w-4 h-4 animate-pulse" /> Processing
-                      Results...
-                    </div>
-                  ))}
+                  {isEnded &&
+                    (auction.status === "Completed" ? (
+                      <div className="inline-flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-lg font-medium">
+                        <CheckCircle className="w-4 h-4" /> Auction Completed
+                      </div>
+                    ) : auction.status === "Cancelled" ? (
+                      <div className="inline-flex items-center gap-2 bg-red-50 text-red-700 px-4 py-2 rounded-lg font-medium">
+                        <XCircle className="w-4 h-4" /> Auction Cancelled
+                      </div>
+                    ) : (
+                      <div className="inline-flex items-center gap-2 bg-gray-100 text-gray-700 px-4 py-2 rounded-lg font-medium">
+                        <Clock className="w-4 h-4 animate-pulse" /> Processing
+                        Results...
+                        {isProcessing && (
+                          <button
+                            onClick={handleRefresh}
+                            className="ml-2 text-xs text-blue-600 hover:text-blue-800 underline font-medium"
+                          >
+                            Refresh
+                          </button>
+                        )}
+                      </div>
+                    ))}
               </div>
 
               {/* TIER VISUALIZATION */}

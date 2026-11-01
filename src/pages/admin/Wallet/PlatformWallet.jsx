@@ -14,6 +14,7 @@ import {
 import adminApi from "../../../services/adminApi";
 import { Skeleton } from "../../../components/Skeleton";
 import Pagination from "../../../components/Pagination/Pagination";
+import { formatDateTime } from "../../../utils/date";
 
 export default function PlatformWallet() {
   const [data, setData] = useState(null);
@@ -92,17 +93,6 @@ export default function PlatformWallet() {
     setFilterType(type);
     setPage(1);
     setLoading(true);
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleString("en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
   };
 
   if (loading && !data) {
@@ -301,7 +291,7 @@ export default function PlatformWallet() {
                         </p>
                       </td>
                       <td className="px-6 py-4 text-right text-xs text-gray-500">
-                        {formatDate(t.createdAt)}
+                        {formatDateTime(t.createdAt)}
                       </td>
                     </tr>
                   );

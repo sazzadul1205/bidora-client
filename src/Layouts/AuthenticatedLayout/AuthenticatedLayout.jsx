@@ -139,7 +139,16 @@ function AuthenticatedLayout() {
           </div>
 
           {/* Dynamic Navigation Links */}
-          <div className="flex-1 overflow-y-auto px-4 py-4 space-y-5">
+          <div
+            className="flex-1 overflow-y-auto px-4 py-4 space-y-5
+              [&::-webkit-scrollbar]:w-1.5
+              [&::-webkit-scrollbar-track]:bg-transparent
+              [&::-webkit-scrollbar-thumb]:bg-gray-300
+              [&::-webkit-scrollbar-thumb]:rounded-full
+              hover:[&::-webkit-scrollbar-thumb]:bg-gray-400
+              scrollbar-thin
+              [scrollbar-color:#d1d5db_transparent]"
+          >
             <div>
               <p className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
                 Overview
@@ -379,7 +388,17 @@ function AuthenticatedLayout() {
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 bg-gray-50">
+        <main
+          className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 bg-gray-50
+            scrollbar-gutter-stable
+            [&::-webkit-scrollbar]:w-1.5
+            [&::-webkit-scrollbar-track]:bg-transparent
+            [&::-webkit-scrollbar-thumb]:bg-gray-300
+            [&::-webkit-scrollbar-thumb]:rounded-full
+            hover:[&::-webkit-scrollbar-thumb]:bg-gray-400
+            scrollbar-thin
+            [scrollbar-color:#d1d5db_transparent]"
+        >
           <div className="max-w-7xl mx-auto">
             <Outlet />
           </div>
