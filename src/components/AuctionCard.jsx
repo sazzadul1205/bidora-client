@@ -4,6 +4,13 @@ import { Tag, Gavel, ArrowRight } from "lucide-react";
 import { imageUrl, handleImageError } from "../utils/image";
 import Countdown from "./Countdown";
 
+// Helper to force UTC parsing
+const parseUtc = (str) => {
+  if (!str) return 0;
+  const hasTimezone = str.endsWith("Z") || str.includes("+");
+  return new Date(hasTimezone ? str : `${str}Z`).getTime();
+};
+
 export default function AuctionCard({
   auction,
   variant = "home", // "home" | "browse"
@@ -22,7 +29,6 @@ export default function AuctionCard({
 
   const [now, setNow] = useState(0);
 
-  // Keep the clock ticking so the status updates when end time passes.
   useEffect(() => {
     const update = () => setNow(Date.now());
     update();
@@ -30,33 +36,35 @@ export default function AuctionCard({
     return () => clearInterval(timer);
   }, []);
 
-  // Client-side fallback so auctions show correct status even if the backend
-  // background service was down and hasn't updated the status yet.
-  const endMs = endTime ? new Date(endTime).getTime() : 0;
-  const startMs = startTime ? new Date(startTime).getTime() : 0;
-  const isTimeUp = endMs > 0 && endMs <= now;
-  const hasStarted = startMs > 0 && startMs <= now;
+  const endMs = parseUtc(endTime);
 
+  const isTimeUp = endMs > 0 && endMs <= now;
+
+  // TRUST THE BACKEND: If the backend says Upcoming, keep it Upcoming visually.
+  // Only override to "Completed" if the time has explicitly expired.
   let effectiveStatus = status;
-  if (status === "Active" && isTimeUp) {
+  if (isTimeUp && status !== "Completed" && status !== "Cancelled") {
     effectiveStatus = "Completed";
-  } else if (status === "Upcoming" && isTimeUp) {
-    effectiveStatus = "Completed";
-  } else if (status === "Upcoming" && hasStarted && !isTimeUp) {
-    effectiveStatus = "Active";
   }
 
   const isLive = effectiveStatus === "Active";
   const isUpcoming = effectiveStatus === "Upcoming";
-  const isEnded = effectiveStatus === "Completed" || effectiveStatus === "Cancelled";
+  const isEnded =
+    effectiveStatus === "Completed" || effectiveStatus === "Cancelled";
 
-  const displayPrice = isLive
-    ? currentHighestBid ?? startingPrice ?? 0
-    : startingPrice ?? 0;
+  const safeStartingPrice = Number(startingPrice) || 0;
+  const safeCurrentBid = Number(currentHighestBid) || 0;
 
+  // Show the current bid if live and bids exist, otherwise show starting price
+  const displayPrice =
+    isLive && safeCurrentBid > 0 ? safeCurrentBid : safeStartingPrice;
 
   return (
-    <Link to={`/auction/${id}`} key={id} className="group bg-white rounded-2xl border border-gray-200 overflow-hidden hover:-translate-y-1 hover:shadow-xl transition-all duration-200 flex flex-col">
+    <Link
+      to={`/auction/${id}`}
+      key={id}
+      className="group bg-white rounded-2xl border border-gray-200 overflow-hidden hover:-translate-y-1 hover:shadow-xl transition-all duration-200 flex flex-col"
+    >
       <div className="relative aspect-4/3 bg-gray-100 overflow-hidden">
         {mainImageUrl ? (
           <img
@@ -110,8 +118,7 @@ export default function AuctionCard({
 
       <div className="p-5 flex flex-col flex-1">
         <p className="text-xs text-blue-600 font-medium mb-1 flex items-center gap-1">
-          <Tag className="w-3 h-3" />{" "}
-          {categoryName || "Uncategorized"}
+          <Tag className="w-3 h-3" /> {categoryName || "Uncategorized"}
         </p>
         <h3
           className={`font-bold text-gray-900 text-lg line-clamp-1 ${
@@ -125,7 +132,9 @@ export default function AuctionCard({
           {isLive && (
             <div className="flex justify-between items-end gap-2">
               <div className="min-w-0">
-                <p className="text-xs text-gray-500 mb-0.5">Current Bid</p>
+                <p className="text-xs text-gray-500 mb-0.5">
+                  {safeCurrentBid > 0 ? "Current Bid" : "Starting Price"}
+                </p>
                 <p className="text-base sm:text-lg font-bold text-blue-600 truncate">
                   ৳{displayPrice.toLocaleString()}
                 </p>
@@ -156,11 +165,7 @@ export default function AuctionCard({
                   {startTime ? "Starts in" : "Schedule"}
                 </p>
                 <p className="text-xs font-semibold text-orange-600">
-                  {startTime ? (
-                    <Countdown targetDate={startTime} />
-                  ) : (
-                    "Pending"
-                  )}
+                  {startTime ? <Countdown targetDate={startTime} /> : "Pending"}
                 </p>
               </div>
             </div>
@@ -170,9 +175,7 @@ export default function AuctionCard({
             <div className="flex justify-between items-center">
               <div>
                 <p className="text-xs text-gray-500 mb-0.5">Final Status</p>
-                <p className="text-sm font-bold text-gray-700">
-                  {status}
-                </p>
+                <p className="text-sm font-bold text-gray-700">{status}</p>
               </div>
               <span className="text-sm font-semibold text-gray-500 flex items-center gap-1">
                 View <ArrowRight className="w-4 h-4" />
@@ -180,7 +183,6 @@ export default function AuctionCard({
             </div>
           )}
 
-          {/* Home variant: show starting price + ends in when not live/upcoming/ended */}
           {variant === "home" && !isLive && !isUpcoming && !isEnded && (
             <div className="flex justify-between items-end gap-2">
               <div className="min-w-0">

@@ -108,18 +108,19 @@ export default function AuctionDetails() {
 
   // ─── LIVE POLLING ──────────────────────────────────────────────
   // Re-fetches bids + auction state every 4s while the auction is Active
-  // OR while it's in the transition window (status=Upcoming but StartTime
-  // has already passed and the backend worker hasn't promoted it yet).
+  // OR while it's in the transition window.
   useEffect(() => {
     if (!auction) return;
 
     const nowMsCheck = Date.now();
-    const startMsCheck = auction.startTime
-      ? new Date(auction.startTime).getTime()
-      : 0;
-    const endMsCheck = auction.endTime
-      ? new Date(auction.endTime).getTime()
-      : 0;
+    const parseUtc = (str) => {
+      if (!str) return 0;
+      const hasTimezone = str.endsWith("Z") || str.includes("+");
+      return new Date(hasTimezone ? str : `${str}Z`).getTime();
+    };
+
+    const startMsCheck = parseUtc(auction.startTime);
+    const endMsCheck = parseUtc(auction.endTime);
 
     const shouldPoll =
       auction.status === "Active" ||
@@ -233,21 +234,26 @@ export default function AuctionDetails() {
     return <AuctionLoader />;
   }
 
-  //  STATUS DERIVATION 
-  const endTimeMs = auction.endTime ? new Date(auction.endTime).getTime() : 0;
-  const startTimeMs = auction.startTime
-    ? new Date(auction.startTime).getTime()
-    : 0;
+  //  STATUS DERIVATION (With Forced UTC Parsing)
+  const parseUtc = (str) => {
+    if (!str) return 0;
+    const hasTimezone = str.endsWith("Z") || str.includes("+");
+    return new Date(hasTimezone ? str : `${str}Z`).getTime();
+  };
+
+  const endTimeMs = parseUtc(auction.endTime);
+  const startTimeMs = parseUtc(auction.startTime);
   const nowMs = now.getTime();
 
   const isTimeUp = endTimeMs > 0 && endTimeMs <= nowMs;
-  const hasStarted = startTimeMs > 0 && startTimeMs <= nowMs;
+  const timeSinceStart = nowMs - startTimeMs;
 
-  // Backend worker takes up to 30s to promote Upcoming → Active after
-  // StartTime passes. During that window we call it "STARTING" so the UI
-  // doesn't show a zeroed countdown alongside an "UPCOMING" badge.
+  // Only trigger "Starting" if it literally just started (within 5 minutes)
   const isStartingSoon =
-    auction.status === "Upcoming" && hasStarted && !isTimeUp;
+    auction.status === "Upcoming" &&
+    timeSinceStart > 0 &&
+    timeSinceStart < 5 * 60 * 1000 &&
+    !isTimeUp;
 
   const isLive = auction.status === "Active" && !isTimeUp;
   const isUpcoming = auction.status === "Upcoming" && !isStartingSoon;
@@ -461,62 +467,96 @@ export default function AuctionDetails() {
                     Going live...
                   </div>
                 )}
-                  {isEnded &&
-                    (auction.status === "Completed" ? (
-                      <div className="inline-flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-lg font-medium">
-                        <CheckCircle className="w-4 h-4" /> Auction Completed
-                      </div>
-                    ) : auction.status === "Cancelled" ? (
-                      <div className="inline-flex items-center gap-2 bg-red-50 text-red-700 px-4 py-2 rounded-lg font-medium">
-                        <XCircle className="w-4 h-4" /> Auction Cancelled
-                      </div>
-                    ) : (
-                      <div className="inline-flex items-center gap-2 bg-gray-100 text-gray-700 px-4 py-2 rounded-lg font-medium">
-                        <Clock className="w-4 h-4 animate-pulse" /> Processing
-                        Results...
-                        {isProcessing && (
-                          <button
-                            onClick={handleRefresh}
-                            className="ml-2 text-xs text-blue-600 hover:text-blue-800 underline font-medium"
-                          >
-                            Refresh
-                          </button>
-                        )}
-                      </div>
-                    ))}
+                {isEnded &&
+                  (auction.status === "Completed" ? (
+                    <div className="inline-flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-lg font-medium">
+                      <CheckCircle className="w-4 h-4" /> Auction Completed
+                    </div>
+                  ) : auction.status === "Cancelled" ? (
+                    <div className="inline-flex items-center gap-2 bg-red-50 text-red-700 px-4 py-2 rounded-lg font-medium">
+                      <XCircle className="w-4 h-4" /> Auction Cancelled
+                    </div>
+                  ) : (
+                    <div className="inline-flex items-center gap-2 bg-gray-100 text-gray-700 px-4 py-2 rounded-lg font-medium">
+                      <Clock className="w-4 h-4 animate-pulse" /> Processing
+                      Results...
+                      {isProcessing && (
+                        <button
+                          onClick={handleRefresh}
+                          className="ml-2 text-xs text-blue-600 hover:text-blue-800 underline font-medium"
+                        >
+                          Refresh
+                        </button>
+                      )}
+                    </div>
+                  ))}
               </div>
 
-              {/* TIER VISUALIZATION */}
-              <div className="mb-6 bg-gray-50 p-4 rounded-xl border border-gray-200">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1">
-                    <TrendingUp className="w-3.5 h-3.5" /> Bid Increment Tiers
-                  </span>
-                  <span className="text-xs font-semibold text-blue-600">
-                    Current Tier: ৳{currentIncrement}
-                  </span>
+              {/* TIER VISUALIZATION (Only show if NOT ended) */}
+              {!isEnded && (
+                <div className="mb-6 bg-gray-50 p-4 rounded-xl border border-gray-200">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1">
+                      <TrendingUp className="w-3.5 h-3.5" /> Bid Increment Tiers
+                    </span>
+                    <span className="text-xs font-semibold text-blue-600">
+                      Current Tier: ৳{currentIncrement}
+                    </span>
+                  </div>
+                  <div className="relative h-3 bg-gray-200 rounded-full overflow-hidden mb-2">
+                    <div
+                      className="absolute top-0 left-0 h-full bg-blue-500 transition-all duration-500"
+                      style={{ width: `${progressPercentage}%` }}
+                    />
+                    <div className="absolute top-0 bottom-0 left-1/3 w-0.5 bg-white opacity-50"></div>
+                    <div className="absolute top-0 bottom-0 left-2/3 w-0.5 bg-white opacity-50"></div>
+                  </div>
+                  <div className="flex justify-between text-[10px] font-medium text-gray-400 uppercase">
+                    <span>Tier 1 (+৳20)</span>
+                    <span>Tier 2 (+৳50)</span>
+                    <span>Tier 3 (+৳100)</span>
+                  </div>
                 </div>
-                <div className="relative h-3 bg-gray-200 rounded-full overflow-hidden mb-2">
-                  <div
-                    className="absolute top-0 left-0 h-full bg-blue-500 transition-all duration-500"
-                    style={{ width: `${progressPercentage}%` }}
-                  />
-                  <div className="absolute top-0 bottom-0 left-1/3 w-0.5 bg-white opacity-50"></div>
-                  <div className="absolute top-0 bottom-0 left-2/3 w-0.5 bg-white opacity-50"></div>
+              )}
+
+              {/* RESULT SUMMARY (Show only if ENDED) */}
+              {isEnded && auction.status === "Completed" && (
+                <div className="mb-6 bg-gray-50 p-4 rounded-xl border border-gray-200">
+                  <h4 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-600" /> Final
+                    Result
+                  </h4>
+                  {auction.result === "Sold" ? (
+                    <div className="bg-white p-3 rounded-lg border border-green-100">
+                      <p className="text-sm font-medium text-gray-900">
+                        This item was sold!
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        The winning bid was{" "}
+                        <strong className="text-gray-900 text-sm">
+                          ৳{auction.currentHighestBid?.toLocaleString()}
+                        </strong>
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="bg-white p-3 rounded-lg border border-gray-200">
+                      <p className="text-sm font-medium text-gray-900">
+                        No winner.
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        This auction ended without any bids.
+                      </p>
+                    </div>
+                  )}
                 </div>
-                <div className="flex justify-between text-[10px] font-medium text-gray-400 uppercase">
-                  <span>Tier 1 (+৳20)</span>
-                  <span>Tier 2 (+৳50)</span>
-                  <span>Tier 3 (+৳100)</span>
-                </div>
-              </div>
+              )}
 
               {/* Bidding Form */}
               {isLive && (
                 <div className="space-y-4 animate-in fade-in duration-300">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1 justify-between items-end">
-                      <span className="mr-2" >Your Bid</span>
+                      <span className="mr-2">Your Bid</span>
                       <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
                         Min: ৳{calculatedMinBid.toLocaleString()}
                       </span>

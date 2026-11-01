@@ -1,9 +1,20 @@
 import { useEffect, useState } from "react";
 
-export default function Countdown({ targetDate, fallback = "00h : 00m : 00s" }) {
+// Helper to force UTC parsing if the backend forgot the 'Z'
+const parseUtcDate = (dateString) => {
+  if (!dateString) return NaN;
+  // If it doesn't end with 'Z' and has no timezone offset, append 'Z' to force UTC
+  const hasTimezone = dateString.endsWith("Z") || dateString.includes("+");
+  return new Date(hasTimezone ? dateString : `${dateString}Z`).getTime();
+};
+
+export default function Countdown({
+  targetDate,
+  fallback = "00h : 00m : 00s",
+}) {
   // Normalize the target date once so the interval closure always sees
   // the same Date object reference.
-  const targetMs = targetDate ? new Date(targetDate).getTime() : NaN;
+  const targetMs = parseUtcDate(targetDate);
   const hasValidTarget = Number.isFinite(targetMs);
 
   const [timeLeft, setTimeLeft] = useState({ d: 0, h: 0, m: 0, s: 0 });

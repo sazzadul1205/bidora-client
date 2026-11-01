@@ -45,10 +45,37 @@ const ICON_POOL = [
   Dumbbell,
 ];
 
-// Small pill for the hero card. Tells the user at a glance whether the
-// auction shown in the banner is live, upcoming, or just scheduled.
-function HeroStatusBadge({ status, hasStartTime }) {
-  if (status === "Active") {
+// Helper to force UTC parsing
+const parseUtc = (str) => {
+  if (!str) return 0;
+  const hasTimezone = str.endsWith("Z") || str.includes("+");
+  return new Date(hasTimezone ? str : `${str}Z`).getTime();
+};
+
+// Small pill for the hero card.
+function HeroStatusBadge({ status, hasStartTime, endTime, startTime }) {
+  const [now, setNow] = useState(0);
+
+  useEffect(() => {
+    const update = () => setNow(Date.now());
+    update(); // Set immediately on mount
+    const timer = setInterval(update, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const endMs = parseUtc(endTime);
+  const startMs = parseUtc(startTime);
+
+  const isTimeUp = endMs > 0 && endMs <= now;
+  const hasStarted = startMs > 0 && startMs <= now;
+
+  let effectiveStatus = status;
+  if (status === "Active" && isTimeUp) effectiveStatus = "Completed";
+  else if (status === "Upcoming" && isTimeUp) effectiveStatus = "Completed";
+  else if (status === "Upcoming" && hasStarted && !isTimeUp)
+    effectiveStatus = "Active";
+
+  if (effectiveStatus === "Active") {
     return (
       <span className="inline-flex items-center gap-1.5 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-md">
         <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
@@ -57,18 +84,26 @@ function HeroStatusBadge({ status, hasStartTime }) {
     );
   }
 
-  if (status === "Upcoming" && hasStartTime) {
+  if (effectiveStatus === "Upcoming") {
     return (
       <span className="inline-flex items-center gap-1.5 bg-orange-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-md">
-        UPCOMING
+        {hasStartTime ? "UPCOMING" : "SCHEDULED"}
       </span>
     );
   }
 
-  // Upcoming with no start time, or any other "not live yet" state.
+  if (effectiveStatus === "Cancelled") {
+    return (
+      <span className="inline-flex items-center gap-1.5 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-md">
+        CANCELLED
+      </span>
+    );
+  }
+
+  // Fallback for Completed / Ended
   return (
-    <span className="inline-flex items-center gap-1.5 bg-gray-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-md">
-      SCHEDULED
+    <span className="inline-flex items-center gap-1.5 bg-gray-700 text-white text-[10px] font-bold px-2 py-0.5 rounded-md">
+      ENDED
     </span>
   );
 }
@@ -77,13 +112,22 @@ export default function Home() {
   const [auctions, setAuctions] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [now, setNow] = useState(0);
+
+  // Keep the clock ticking (initialized to 0 to satisfy React strict mode)
+  useEffect(() => {
+    const update = () => setNow(Date.now());
+    update(); // Set immediately on mount
+    const timer = setInterval(update, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   // Server-side pagination
   const [pageSize] = useState(20);
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
 
-  // Filters 
+  // Filters
   const [activeStatus] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -157,12 +201,38 @@ export default function Home() {
     };
   }, [page, pageSize, searchTerm, selectedCategory, activeStatus]);
 
-  const activeAuctions = auctions.filter((a) => a.status === "Active");
-  const upcomingAuctions = auctions.filter((a) => a.status === "Upcoming");
+  // Compute effective status for the grid arrays
+  const getEffectiveStatus = (a) => {
+    const endMs = parseUtc(a.endTime);
+    const startMs = parseUtc(a.startTime);
+    const isTimeUp = endMs > 0 && endMs <= now;
+    const hasStarted = startMs > 0 && startMs <= now;
 
-  // Hero banner — always populated because the backend guarantees at least
-  // one product even when filters return empty results.
-  const heroAuction = auctions[0] || null;
+    if (a.status === "Active" && isTimeUp) return "Completed";
+    if (a.status === "Upcoming" && isTimeUp) return "Completed";
+    if (a.status === "Upcoming" && hasStarted && !isTimeUp) return "Active";
+    return a.status;
+  };
+
+  const activeAuctions = auctions.filter(
+    (a) => getEffectiveStatus(a) === "Active",
+  );
+  const upcomingAuctions = auctions.filter(
+    (a) => getEffectiveStatus(a) === "Upcoming",
+  );
+
+  // Hero banner — prioritize Active, then Upcoming, and avoid Ended ones.
+  const heroAuction =
+    auctions.find((a) => {
+      const status = getEffectiveStatus(a);
+      return status === "Active" || status === "Upcoming";
+    }) ||
+    auctions[0] ||
+    null;
+
+  const heroEffectiveStatus = heroAuction
+    ? getEffectiveStatus(heroAuction)
+    : "";
 
   // Grids use the split sets, excluding the hero so it isn't duplicated.
   const activeGrid = activeAuctions
@@ -179,12 +249,12 @@ export default function Home() {
   return (
     <div className="bg-white min-h-screen pb-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
-        {/* HERO BANNER SECTION (no filters up here) */}
+        {/* HERO BANNER SECTION */}
         {heroAuction && (
           <div className="relative bg-[#F0F4F8] rounded-3xl overflow-hidden mb-8 flex flex-col md:flex-row items-center">
             <div className="p-6 sm:p-10 md:p-16 md:w-1/2 relative z-10">
               <p className="text-blue-600 font-semibold text-sm mb-3">
-                {heroAuction.status === "Active"
+                {heroEffectiveStatus === "Active"
                   ? "Live right now"
                   : heroAuction.startTime
                     ? "Coming soon"
@@ -201,7 +271,7 @@ export default function Home() {
               </p>
               <div className="flex flex-col sm:flex-row gap-3">
                 <Link
-                  to="/auction"
+                  to="/auctions" // Fixed from /auction
                   className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg text-sm font-semibold transition-colors text-center"
                 >
                   Explore Auctions
@@ -228,11 +298,13 @@ export default function Home() {
                     className="w-full h-full object-contain bg-gray-100"
                   />
 
-                  {/* Status badge — LIVE / UPCOMING / SCHEDULED */}
+                  {/* Status badge */}
                   <div className="absolute top-3 left-3">
                     <HeroStatusBadge
                       status={heroAuction.status}
                       hasStartTime={!!heroAuction.startTime}
+                      endTime={heroAuction.endTime}
+                      startTime={heroAuction.startTime}
                     />
                   </div>
                 </div>
@@ -243,14 +315,14 @@ export default function Home() {
                       {heroAuction.productTitle}
                     </h3>
                     <p className="text-xs text-gray-500">
-                      {heroAuction.status === "Active"
+                      {heroEffectiveStatus === "Active"
                         ? "Current bid"
                         : "Starting price"}
                     </p>
                   </div>
                   <p className="text-xl font-bold text-blue-600 shrink-0">
                     ৳
-                    {heroAuction.status === "Active"
+                    {heroEffectiveStatus === "Active"
                       ? heroAuction.currentHighestBid?.toLocaleString() ||
                         heroAuction.startingPrice?.toLocaleString() ||
                         "0.00"
@@ -260,7 +332,7 @@ export default function Home() {
 
                 {/* Small timing line under the price */}
                 <div className="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-500">
-                  {heroAuction.status === "Active" && heroAuction.endTime && (
+                  {heroEffectiveStatus === "Active" && heroAuction.endTime && (
                     <>
                       Ends in{" "}
                       <span className="font-semibold text-red-600">
@@ -268,15 +340,16 @@ export default function Home() {
                       </span>
                     </>
                   )}
-                  {heroAuction.status !== "Active" && heroAuction.startTime && (
-                    <>
-                      Starts in{" "}
-                      <span className="font-semibold text-orange-600">
-                        <Countdown targetDate={heroAuction.startTime} />
-                      </span>
-                    </>
-                  )}
-                  {heroAuction.status !== "Active" &&
+                  {heroEffectiveStatus !== "Active" &&
+                    heroAuction.startTime && (
+                      <>
+                        Starts in{" "}
+                        <span className="font-semibold text-orange-600">
+                          <Countdown targetDate={heroAuction.startTime} />
+                        </span>
+                      </>
+                    )}
+                  {heroEffectiveStatus !== "Active" &&
                     !heroAuction.startTime && (
                       <>Schedule pending — check back soon.</>
                     )}
@@ -288,7 +361,7 @@ export default function Home() {
           </div>
         )}
 
-        {/* SEARCH + CATEGORY (now below the banner) */}
+        {/* SEARCH + CATEGORY */}
         <div className="flex flex-col sm:flex-row gap-3 mb-8">
           <div className="relative flex-1">
             <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -390,7 +463,7 @@ export default function Home() {
               </p>
             </div>
             <Link
-              to="/auction"
+              to="/auctions" // Fixed from /auction
               className="text-sm font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1 mt-2 sm:mt-0"
             >
               View all <ArrowRight className="w-4 h-4" />
@@ -410,7 +483,7 @@ export default function Home() {
                 auctions.
               </p>
               <Link
-                to="/auctions"
+                to="/auctions" // Fixed from /auction
                 className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition-colors"
               >
                 Browse All Auctions
