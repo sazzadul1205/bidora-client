@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Tag, Gavel, ArrowRight } from "lucide-react";
 import { imageUrl, handleImageError } from "../utils/image";
@@ -19,9 +20,35 @@ export default function AuctionCard({
     endTime,
   } = auction;
 
-  const isLive = status === "Active";
-  const isUpcoming = status === "Upcoming";
-  const isEnded = status === "Completed" || status === "Cancelled";
+  const [now, setNow] = useState(0);
+
+  // Keep the clock ticking so the status updates when end time passes.
+  useEffect(() => {
+    const update = () => setNow(Date.now());
+    update();
+    const timer = setInterval(update, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Client-side fallback so auctions show correct status even if the backend
+  // background service was down and hasn't updated the status yet.
+  const endMs = endTime ? new Date(endTime).getTime() : 0;
+  const startMs = startTime ? new Date(startTime).getTime() : 0;
+  const isTimeUp = endMs > 0 && endMs <= now;
+  const hasStarted = startMs > 0 && startMs <= now;
+
+  let effectiveStatus = status;
+  if (status === "Active" && isTimeUp) {
+    effectiveStatus = "Completed";
+  } else if (status === "Upcoming" && isTimeUp) {
+    effectiveStatus = "Completed";
+  } else if (status === "Upcoming" && hasStarted && !isTimeUp) {
+    effectiveStatus = "Active";
+  }
+
+  const isLive = effectiveStatus === "Active";
+  const isUpcoming = effectiveStatus === "Upcoming";
+  const isEnded = effectiveStatus === "Completed" || effectiveStatus === "Cancelled";
 
   const displayPrice = isLive
     ? currentHighestBid ?? startingPrice ?? 0

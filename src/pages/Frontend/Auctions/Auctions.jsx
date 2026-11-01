@@ -13,6 +13,15 @@ export default function Auctions() {
   const [auctions, setAuctions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState([]);
+  const [now, setNow] = useState(0);
+
+  // Keep the clock ticking so the effective status updates when end time passes.
+  useEffect(() => {
+    const update = () => setNow(Date.now());
+    update();
+    const timer = setInterval(update, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   // Server-side pagination
   const [pageSize] = useState(20);
@@ -55,24 +64,47 @@ export default function Auctions() {
     };
   }, [page, pageSize, searchTerm, activeStatus, activeCategory]);
 
+  // Compute effective status for each auction based on endTime, so auctions
+  // that ended while the backend was down still show correctly.
+  const getEffectiveStatus = (a) => {
+    const endMs = a.endTime ? new Date(a.endTime).getTime() : 0;
+    const startMs = a.startTime ? new Date(a.startTime).getTime() : 0;
+    const isTimeUp = endMs > 0 && endMs <= now;
+    const hasStarted = startMs > 0 && startMs <= now;
+    if (a.status === "Active" && isTimeUp) return "Completed";
+    if (a.status === "Upcoming" && isTimeUp) return "Completed";
+    if (a.status === "Upcoming" && hasStarted && !isTimeUp) return "Active";
+    return a.status;
+  };
+
   // Filter + sort 
-  const filteredAuctions = auctions.sort((a, b) => {
-    const getPriority = (status) => {
-      if (status === "Active") return 1;
-      if (status === "Upcoming") return 2;
-      if (status === "Completed" || status === "Cancelled") return 3;
-      return 4;
-    };
-    const priorityDiff = getPriority(a.status) - getPriority(b.status);
-    if (priorityDiff !== 0) return priorityDiff;
-    if (a.status === "Active" && b.status === "Active") {
-      return new Date(a.endTime || 0) - new Date(b.endTime || 0);
-    }
-    if (a.status === "Upcoming" && b.status === "Upcoming") {
-      return new Date(a.startTime || 0) - new Date(b.startTime || 0);
-    }
-    return 0;
-  });
+  const filteredAuctions = auctions
+    .map((a) => ({ ...a, effectiveStatus: getEffectiveStatus(a) }))
+    .sort((a, b) => {
+      const getPriority = (status) => {
+        if (status === "Active") return 1;
+        if (status === "Upcoming") return 2;
+        if (status === "Completed" || status === "Cancelled") return 3;
+        return 4;
+      };
+      const priorityDiff = getPriority(a.effectiveStatus) - getPriority(b.effectiveStatus);
+      if (priorityDiff !== 0) return priorityDiff;
+      if (a.effectiveStatus === "Active" && b.effectiveStatus === "Active") {
+        return new Date(a.endTime || 0) - new Date(b.endTime || 0);
+      }
+      if (a.effectiveStatus === "Upcoming" && b.effectiveStatus === "Upcoming") {
+        return new Date(a.startTime || 0) - new Date(b.startTime || 0);
+      }
+      return 0;
+    })
+    .filter((a) => {
+      if (activeStatus === "All") return true;
+      if (activeStatus === "Live") return a.effectiveStatus === "Active";
+      if (activeStatus === "Upcoming") return a.effectiveStatus === "Upcoming";
+      if (activeStatus === "Ended")
+        return a.effectiveStatus === "Completed" || a.effectiveStatus === "Cancelled";
+      return true;
+    });
 
   const totalPages = Math.ceil(totalCount / pageSize);
 
