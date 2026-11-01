@@ -175,6 +175,9 @@ export default function Auctions() {
     return formatDateTime(dateString);
   };
 
+  // Bids button is only meaningful once an auction has started or ended.
+  const showBidsButton = activeTab === "Active" || activeTab === "History";
+
   return (
     <div className="max-w-7xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
@@ -285,7 +288,8 @@ export default function Auctions() {
                             {a.productTitle}
                           </p>
                           <p className="text-xs text-gray-500 mt-0.5 truncate max-w-37.5">
-                            Seller: {a.sellerName || `User_${a.sellerId.slice(0, 8)}`}
+                            Seller:{" "}
+                            {a.sellerName || `User_${a.sellerId.slice(0, 8)}`}
                           </p>
                         </div>
                       </div>
@@ -315,14 +319,28 @@ export default function Auctions() {
                               <p className="text-green-700 font-medium flex items-center gap-1">
                                 <CheckCircle className="w-3 h-3" /> Sold
                               </p>
-                              <p className="text-gray-600">Winner: {a.winnerName || `User_${(a.winnerId || "").slice(0, 8)}`}</p>
-                              <p className="text-gray-600">Winning bid: ৳{a.currentHighestBid?.toLocaleString() || "0.00"}</p>
-                              <p className="text-gray-600">Bids: {a.bidCount}</p>
+                              <p className="text-gray-600">
+                                Winner:{" "}
+                                {a.winnerName ||
+                                  `User_${(a.winnerId || "").slice(0, 8)}`}
+                              </p>
+                              <p className="text-gray-600">
+                                Winning bid: ৳
+                                {a.currentHighestBid?.toLocaleString() ||
+                                  "0.00"}
+                              </p>
+                              <p className="text-gray-600">
+                                Bids: {a.bidCount}
+                              </p>
                             </>
                           ) : (
                             <>
-                              <p className="text-gray-600">No winner — deposit released</p>
-                              <p className="text-gray-600">Bids: {a.bidCount}</p>
+                              <p className="text-gray-600">
+                                No winner — deposit released
+                              </p>
+                              <p className="text-gray-600">
+                                Bids: {a.bidCount}
+                              </p>
                             </>
                           )}
                         </div>
@@ -333,14 +351,18 @@ export default function Auctions() {
                             <XCircle className="w-3 h-3" /> Cancelled
                           </p>
                           {a.cancellationReason ? (
-                            <p className="text-gray-600">{a.cancellationReason}</p>
+                            <p className="text-gray-600">
+                              {a.cancellationReason}
+                            </p>
                           ) : (
                             <p className="text-gray-600">No reason provided</p>
                           )}
                           <p className="text-gray-600">Bids: {a.bidCount}</p>
                         </div>
                       )}
-                      {a.status !== "Completed" && a.status !== "Cancelled" && <span className="text-gray-300">—</span>}
+                      {a.status !== "Completed" && a.status !== "Cancelled" && (
+                        <span className="text-gray-300">—</span>
+                      )}
                     </td>
 
                     <td className="px-6 py-4">
@@ -388,20 +410,22 @@ export default function Auctions() {
                           <XCircle className="w-4 h-4" /> Cancel
                         </button>
                       )}
-                      <div className="relative">
-                        <button
-                          onClick={() => openBidsModal(a)}
-                          className="inline-flex items-center gap-1.5 text-purple-600 hover:text-purple-800 font-medium bg-purple-50 hover:bg-purple-100 px-3 py-1.5 rounded-lg transition-colors"
-                          title="View all bids for this auction"
-                        >
-                          <Eye className="w-4 h-4" /> Bids
-                          {a.bidCount > 0 && (
-                            <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center">
-                              {a.bidCount}
-                            </span>
-                          )}
-                        </button>
-                      </div>
+                      {showBidsButton && (
+                        <div className="relative">
+                          <button
+                            onClick={() => openBidsModal(a)}
+                            className="inline-flex items-center gap-1.5 text-purple-600 hover:text-purple-800 font-medium bg-purple-50 hover:bg-purple-100 px-3 py-1.5 rounded-lg transition-colors"
+                            title="View all bids for this auction"
+                          >
+                            <Eye className="w-4 h-4" /> Bids
+                            {a.bidCount > 0 && (
+                              <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center">
+                                {a.bidCount}
+                              </span>
+                            )}
+                          </button>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))
