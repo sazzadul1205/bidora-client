@@ -18,6 +18,7 @@ import {
   Mail,
   UserPlus,
   Eye,
+  Lock,
 } from "lucide-react";
 import { toast } from "../../../utils/toast";
 import { SkeletonRow, Skeleton } from "../../../components/Skeleton";
