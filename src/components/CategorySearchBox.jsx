@@ -157,23 +157,6 @@ export default function CategorySearchBox({
       {/* Category dropdown */}
       {open && !disabled && (
         <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-64 overflow-y-auto">
-          {/* Dropdown search */}
-          <div className="px-3 py-2 border-b border-gray-100 flex items-center gap-2">
-            <SearchIcon className="w-4 h-4 text-gray-400" />
-
-            <input
-              ref={searchInputRef}
-              type="text"
-              placeholder="Search categories..."
-              value={query}
-              onChange={(e) => {
-                setQuery(e.target.value);
-                setHighlightedIndex(-1);
-              }}
-              onKeyDown={handleKeyDown}
-              className="flex-1 min-w-0 px-2 py-1.5 text-sm bg-transparent border-none outline-none placeholder-gray-400"
-            />
-          </div>
 
           <div ref={dropdownRef} className="px-2 py-1">
             {/* Show the all-categories option */}
