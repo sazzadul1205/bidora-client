@@ -48,6 +48,7 @@ export default function AdminTransactions() {
   });
 
   const [loading, setLoading] = useState(true);
+  const [resTotal, setResTotal] = useState(0);
 
   // Debounce both search boxes independently.
   useEffect(() => {
@@ -63,7 +64,7 @@ export default function AdminTransactions() {
     return () => clearTimeout(t);
   }, [resSearchTerm]);
 
-  // Fetch transactions (paginated) + reservations (full list) + global stats.
+  // Fetch transactions (paginated) + reservations (paginated) + global stats.
   useEffect(() => {
     let cancelled = false;
 
@@ -76,7 +77,11 @@ export default function AdminTransactions() {
             search: txDebouncedSearch || undefined,
             filter: txTypeFilter !== "All" ? txTypeFilter : undefined,
           }),
-          getAllReservations(),
+          getAllReservations({
+            page: resPage,
+            pageSize: resPageSize,
+            search: resDebouncedSearch || undefined,
+          }),
         ]);
         if (cancelled) return;
 
@@ -92,7 +97,13 @@ export default function AdminTransactions() {
           totalActiveReservations: txData.totalActiveReservations ?? 0,
         });
 
-        setReservations(resRes.data.data || []);
+        const resData = resRes.data.data || [];
+        setReservations(Array.isArray(resData) ? resData : resData.items || []);
+        if (typeof resRes.data.totalCount === "number") {
+          setResTotal(resRes.data.totalCount);
+        } else if (Array.isArray(resData)) {
+          setResTotal(resData.length);
+        }
       } catch (err) {
         console.error(err);
         if (!cancelled) toast.error("Failed to load financial ledger.");
@@ -104,7 +115,7 @@ export default function AdminTransactions() {
     return () => {
       cancelled = true;
     };
-  }, [txPage, txPageSize, txDebouncedSearch, txTypeFilter]);
+  }, [txPage, txPageSize, txDebouncedSearch, txTypeFilter, resPage, resPageSize, resDebouncedSearch]);
 
   // Pagination handlers — transactions
   const goToTxPage = (p) => {
@@ -150,29 +161,13 @@ export default function AdminTransactions() {
     return formatDateTime(dateString);
   };
 
-  // Reservations stay client-side (endpoint returns full array) —
-  // still filter locally by the reservations tab search.
-  const activeReservations = reservations.filter(
-    (r) => r.status === "Reserved",
-  );
-
-  const filteredReservations = activeReservations.filter(
-    (r) =>
-      !resDebouncedSearch ||
-      r.userName?.toLowerCase().includes(resDebouncedSearch.toLowerCase()) ||
-      r.productTitle
-        ?.toLowerCase()
-        .includes(resDebouncedSearch.toLowerCase()) ||
-      r.type?.toLowerCase().includes(resDebouncedSearch.toLowerCase()),
-  );
-
-  const resTotal = filteredReservations.length;
+  // Reservations now server-side paginated
+  const activeReservations = reservations;
+  const filteredReservations = reservations;
+  const resTotal = resTotal;
   const resTotalPages = Math.max(1, Math.ceil(resTotal / resPageSize));
   const safeResPage = Math.min(resPage, resTotalPages);
-  const resPageItems = filteredReservations.slice(
-    (safeResPage - 1) * resPageSize,
-    safeResPage * resPageSize,
-  );
+  const resPageItems = reservations;
 
   return (
     <div className="max-w-7xl mx-auto">

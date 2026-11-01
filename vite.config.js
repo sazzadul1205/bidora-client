@@ -10,11 +10,13 @@ export default defineConfig({
       "/api": {
         // target: "http://localhost:5102", 
         target: "http://10.192.168.204:5102", 
+        // target: "http://192.168.10.14:5102", 
         changeOrigin: true,
       },
       "/uploads": {
         // target: "http://localhost:5102", 
         target: "http://10.192.168.204:5102", 
+        // target: "http://192.168.10.14:5102", 
         changeOrigin: true,
       },
     },

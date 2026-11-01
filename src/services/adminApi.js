@@ -69,8 +69,8 @@ export const getPlatformWallet = (params = {}) =>
   authApi.get("/admin/platform-wallet", { ...getAuthConfig(), params });
 export const getAllTransactions = (params = {}) =>
   authApi.get("/admin/transactions", { ...getAuthConfig(), params });
-export const getAllReservations = () =>
-  authApi.get("/admin/reservations", getAuthConfig());
+export const getAllReservations = (params = {}) =>
+  authApi.get("/admin/reservations", { ...getAuthConfig(), params });
 
 export default {
   getAdminDashboard,
