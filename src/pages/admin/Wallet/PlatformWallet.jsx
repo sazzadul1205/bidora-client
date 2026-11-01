@@ -7,7 +7,6 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   TrendingUp,
-  ShieldCheck,
   CheckCircle2,
   Receipt,
 } from "lucide-react";
@@ -115,7 +114,6 @@ export default function PlatformWallet() {
   const txs = data?.transactions || [];
 
   const balance = Math.max(0, wallet?.balance ?? wallet?.Balance ?? 0);
-  const reserved = wallet?.reservedBalance ?? wallet?.ReservedBalance ?? 0;
 
   const tabTypes = ["All", "Penalty", "Commission"];
 
@@ -164,7 +162,7 @@ export default function PlatformWallet() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+      <div className="grid grid-cols-1 gap-4 mb-8">
         <div className="bg-linear-to-br from-blue-600 to-blue-700 p-6 rounded-xl shadow-md flex items-center justify-between text-white">
           <div>
             <p className="text-sm font-medium text-blue-100 mb-1">
@@ -177,23 +175,6 @@ export default function PlatformWallet() {
           </div>
           <div className="p-4 bg-white/10 rounded-xl">
             <WalletIcon className="w-8 h-8 text-white" />
-          </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium text-gray-500 mb-1">
-              Reserved Funds
-            </p>
-            <p className="text-3xl font-bold text-gray-900">
-              {formatMoney(reserved)}
-            </p>
-            <p className="text-xs text-gray-400 mt-2 flex items-center gap-1">
-              <ShieldCheck className="w-3.5 h-3.5" /> Locked in active escrow
-            </p>
-          </div>
-          <div className="p-4 bg-orange-50 rounded-xl">
-            <History className="w-8 h-8 text-orange-500" />
           </div>
         </div>
       </div>
