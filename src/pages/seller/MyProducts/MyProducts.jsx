@@ -33,9 +33,10 @@ export default function MyProducts() {
   const [filterStatus, setFilterStatus] = useState("All");
   const [filterAuction, setFilterAuction] = useState("All");
 
-  // Client-side pagination
+  // Server-side pagination
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
+  const [totalCount, setTotalCount] = useState(0);
 
   // Effect: only reconciles the external fetch. No sync setState here.
   useEffect(() => {
@@ -43,9 +44,18 @@ export default function MyProducts() {
 
     (async () => {
       try {
-        const res = await getMyProducts();
+        const res = await getMyProducts({
+          page,
+          pageSize,
+          search: searchTerm,
+          approvalStatus: filterStatus,
+          auctionStatus: filterAuction,
+        });
         if (cancelled) return;
         setProducts(res.data.data || []);
+        if (typeof res.data.totalCount === "number") {
+          setTotalCount(res.data.totalCount);
+        }
       } catch {
         if (!cancelled) toast.error("Failed to load products.");
       } finally {
@@ -56,7 +66,7 @@ export default function MyProducts() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [page, pageSize, searchTerm, filterStatus, filterAuction]);
 
   // Manual refresh, used after submit/withdraw/delete (event-handler call-chain).
   const fetchProducts = async () => {
@@ -148,27 +158,12 @@ export default function MyProducts() {
   };
 
   const filteredProducts = useMemo(() => {
-    return products.filter((p) => {
-      const matchesSearch = p.title
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase());
-      const matchesStatus =
-        filterStatus === "All" || p.approvalStatus === filterStatus;
-      const matchesAuction =
-        filterAuction === "All" ||
-        (filterAuction === "No Auction" && !p.auctionStatus) ||
-        p.auctionStatus === filterAuction;
-      return matchesSearch && matchesStatus && matchesAuction;
-    });
-  }, [products, searchTerm, filterStatus, filterAuction]);
+    return products;
+  }, [products]);
 
-  const totalCount = filteredProducts.length;
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
   const safePage = Math.min(page, totalPages);
-  const pageItems = filteredProducts.slice(
-    (safePage - 1) * pageSize,
-    safePage * pageSize,
-  );
+  const pageItems = products;
 
   if (loading) {
     return (

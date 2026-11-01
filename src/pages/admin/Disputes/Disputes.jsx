@@ -31,9 +31,10 @@ export default function Disputes() {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("Open");
 
-  // Client-side pagination
+  // Server-side pagination
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
+  const [totalCount, setTotalCount] = useState(0);
 
   // Effect: only reconciles the external fetch. No sync setState here.
   useEffect(() => {
@@ -41,9 +42,17 @@ export default function Disputes() {
 
     (async () => {
       try {
-        const res = await getAllDisputes();
+        const res = await getAllDisputes({
+          page,
+          pageSize,
+          search: searchTerm,
+          filter: activeTab !== "All" ? activeTab : undefined,
+        });
         if (cancelled) return;
         setDisputes(res.data.data || []);
+        if (typeof res.data.totalCount === "number") {
+          setTotalCount(res.data.totalCount);
+        }
       } catch (err) {
         console.error(err);
       } finally {
@@ -54,13 +63,21 @@ export default function Disputes() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [page, pageSize, searchTerm, activeTab]);
 
   // Manual refresh, used after dispute actions (event-handler call-chain).
   const fetchDisputes = async () => {
     try {
-      const res = await getAllDisputes();
+      const res = await getAllDisputes({
+        page,
+        pageSize,
+        search: searchTerm,
+        filter: activeTab !== "All" ? activeTab : undefined,
+      });
       setDisputes(res.data.data || []);
+      if (typeof res.data.totalCount === "number") {
+        setTotalCount(res.data.totalCount);
+      }
     } catch (err) {
       console.error(err);
       toast.error(err.response?.data?.message || "Failed to load disputes.");
@@ -132,28 +149,11 @@ export default function Disputes() {
   ).length;
   const resolvedCount = disputes.filter((d) => d.status === "Resolved").length;
 
-  const filteredDisputes = useMemo(() => {
-    return disputes.filter((d) => {
-      const matchesSearch =
-        d.complaint?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        d.id.toString().includes(searchTerm) ||
-        d.saleId.toString().includes(searchTerm) ||
-        d.raisedByName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        d.againstName?.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredDisputes = useMemo(() => disputes, [disputes]);
 
-      if (!matchesSearch) return false;
-      if (activeTab === "All") return true;
-      return d.status === activeTab;
-    });
-  }, [disputes, searchTerm, activeTab]);
-
-  const totalCount = filteredDisputes.length;
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
   const safePage = Math.min(page, totalPages);
-  const pageItems = filteredDisputes.slice(
-    (safePage - 1) * pageSize,
-    safePage * pageSize,
-  );
+  const pageItems = disputes;
 
   if (loading) {
     return (

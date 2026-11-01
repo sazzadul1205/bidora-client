@@ -18,8 +18,8 @@ export const lockUser = (id, data) =>
   authApi.put(`/admin/user/${id}/lock`, data, getAuthConfig());
 
 // Product Moderation
-export const getPendingProducts = () =>
-  authApi.get("/product/pending-approval", getAuthConfig());
+export const getPendingProducts = (params = {}) =>
+  authApi.get("/product/pending-approval", { ...getAuthConfig(), params });
 export const getPendingProductById = (id) =>
   authApi.get(`/product/pending-approval/${id}`, getAuthConfig());
 export const reviewProduct = (id, data) =>
@@ -58,7 +58,7 @@ export const getAllSales = (params = {}) =>
   authApi.get("/sale", { ...getAuthConfig(), params });
 
 // Disputes
-export const getAllDisputes = () => authApi.get("/dispute", getAuthConfig());
+export const getAllDisputes = (params = {}) => authApi.get("/dispute", { ...getAuthConfig(), params });
 export const startDisputeReview = (id) =>
   authApi.post(`/admin/disputes/${id}/start-review`, {}, getAuthConfig());
 export const resolveDispute = (id, data) =>

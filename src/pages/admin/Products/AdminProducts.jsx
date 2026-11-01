@@ -20,9 +20,10 @@ export default function AdminProducts() {
   const [zoomImage, setZoomImage] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Client-side pagination
+  // Server-side pagination
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
+  const [totalCount, setTotalCount] = useState(0);
 
   // Effect: only reconciles the external fetch. No sync setState here.
   useEffect(() => {
@@ -30,9 +31,16 @@ export default function AdminProducts() {
 
     (async () => {
       try {
-        const res = await getPendingProducts();
+        const res = await getPendingProducts({
+          page,
+          pageSize,
+          search: searchTerm,
+        });
         if (cancelled) return;
-        setProducts(res.data.data);
+        setProducts(res.data.data || []);
+        if (typeof res.data.totalCount === "number") {
+          setTotalCount(res.data.totalCount);
+        }
       } catch (err) {
         console.error(err);
       } finally {
@@ -43,13 +51,19 @@ export default function AdminProducts() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [page, pageSize, searchTerm]);
 
-  // Manual refresh, used after a review action (event-handler call-chain).
   const fetchProducts = async () => {
     try {
-      const res = await getPendingProducts();
-      setProducts(res.data.data);
+      const res = await getPendingProducts({
+        page,
+        pageSize,
+        search: searchTerm,
+      });
+      setProducts(res.data.data || []);
+      if (typeof res.data.totalCount === "number") {
+        setTotalCount(res.data.totalCount);
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -108,23 +122,11 @@ export default function AdminProducts() {
     });
   };
 
-  const filteredProducts = useMemo(
-    () =>
-      products.filter(
-        (p) =>
-          p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          p.categoryName?.toLowerCase().includes(searchTerm.toLowerCase()),
-      ),
-    [products, searchTerm],
-  );
+  const filteredProducts = useMemo(() => products, [products]);
 
-  const totalCount = filteredProducts.length;
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
   const safePage = Math.min(page, totalPages);
-  const pageItems = filteredProducts.slice(
-    (safePage - 1) * pageSize,
-    safePage * pageSize,
-  );
+  const pageItems = products;
 
   if (loading)
     return (

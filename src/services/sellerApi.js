@@ -13,8 +13,8 @@ export const getSellerDashboard = () =>
   authApi.get("/seller/dashboard", getAuthConfig());
 
 // Product Management
-export const getMyProducts = () =>
-  authApi.get("/product/my-products", getAuthConfig());
+export const getMyProducts = (params = {}) =>
+  authApi.get("/product/my-products", { ...getAuthConfig(), params });
 export const getMyProductById = (id) =>
   authApi.get(`/product/my-products/${id}`, getAuthConfig());
 

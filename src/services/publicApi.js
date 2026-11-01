@@ -6,7 +6,7 @@ const publicApi = axios.create({
 });
 
 // View all available categories 
-export const getCategories = () => publicApi.get("/category");
+export const getCategories = (params = {}) => publicApi.get("/category", { params });
 
 // View details of one auction by ID 
 export const getAuctionById = (id) => publicApi.get(`/auction/${id}`);

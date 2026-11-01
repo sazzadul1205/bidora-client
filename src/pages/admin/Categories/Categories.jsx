@@ -12,9 +12,10 @@ export default function Categories() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Client-side pagination
+  // Server-side pagination
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
+  const [totalCount, setTotalCount] = useState(0);
 
   const {
     register,
@@ -29,9 +30,12 @@ export default function Categories() {
 
     (async () => {
       try {
-        const res = await getCategories();
+        const res = await getCategories({ page, pageSize, search: searchTerm });
         if (cancelled) return;
         setCategories(res.data.data || []);
+        if (typeof res.data.totalCount === "number") {
+          setTotalCount(res.data.totalCount);
+        }
       } catch (err) {
         console.error(err);
         if (!cancelled) toast.error("Failed to load categories.");
@@ -43,13 +47,16 @@ export default function Categories() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [page, pageSize, searchTerm]);
 
   // Manual refresh, used after create/delete (event-handler call-chain).
   const fetchCategories = async () => {
     try {
-      const res = await getCategories();
+      const res = await getCategories({ page, pageSize, search: searchTerm });
       setCategories(res.data.data || []);
+      if (typeof res.data.totalCount === "number") {
+        setTotalCount(res.data.totalCount);
+      }
     } catch (err) {
       console.error(err);
       toast.error("Failed to load categories.");
@@ -98,21 +105,11 @@ export default function Categories() {
     }
   };
 
-  const filteredCategories = useMemo(
-    () =>
-      categories.filter((c) =>
-        c.name.toLowerCase().includes(searchTerm.toLowerCase()),
-      ),
-    [categories, searchTerm],
-  );
+  const filteredCategories = useMemo(() => categories, [categories]);
 
-  const totalCount = filteredCategories.length;
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
   const safePage = Math.min(page, totalPages);
-  const pageItems = filteredCategories.slice(
-    (safePage - 1) * pageSize,
-    safePage * pageSize,
-  );
+  const pageItems = categories;
 
   if (loading) {
     return (
