@@ -139,7 +139,7 @@ export default function ReviewModal({
                   <p className="text-xs text-blue-700 mt-2 bg-white/60 p-2 rounded border border-blue-200">
                     Seller deposit required:{" "}
                     <strong>
-                      ${(selectedProduct.startingPrice * 0.25).toFixed(2)}
+                      ৳${(selectedProduct.startingPrice * 0.25).toFixed(2)}
                     </strong>
                   </p>
                 </div>
