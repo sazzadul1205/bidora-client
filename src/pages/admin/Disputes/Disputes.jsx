@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import {
   getAllDisputes,
   startDisputeReview,
@@ -49,9 +49,13 @@ export default function Disputes() {
           filter: activeTab !== "All" ? activeTab : undefined,
         });
         if (cancelled) return;
-        setDisputes(res.data.data || []);
+        const payload = res.data.data || res.data || [];
+        const items = Array.isArray(payload) ? payload : payload.items || [];
+        setDisputes(items);
         if (typeof res.data.totalCount === "number") {
           setTotalCount(res.data.totalCount);
+        } else if (typeof payload.totalCount === "number") {
+          setTotalCount(payload.totalCount);
         }
       } catch (err) {
         console.error(err);
@@ -74,9 +78,13 @@ export default function Disputes() {
         search: searchTerm,
         filter: activeTab !== "All" ? activeTab : undefined,
       });
-      setDisputes(res.data.data || []);
+      const payload = res.data.data || res.data || [];
+      const items = Array.isArray(payload) ? payload : payload.items || [];
+      setDisputes(items);
       if (typeof res.data.totalCount === "number") {
         setTotalCount(res.data.totalCount);
+      } else if (typeof payload.totalCount === "number") {
+        setTotalCount(payload.totalCount);
       }
     } catch (err) {
       console.error(err);
@@ -148,9 +156,6 @@ export default function Disputes() {
     (d) => d.status === "UnderReview",
   ).length;
   const resolvedCount = disputes.filter((d) => d.status === "Resolved").length;
-
-  const filteredDisputes = useMemo(() => disputes, [disputes]);
-
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
   const safePage = Math.min(page, totalPages);
   const pageItems = disputes;

@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getWonAuctions, payForSale } from "../../../services/buyerApi";
 import {
@@ -32,9 +32,10 @@ export default function WonAuctions() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
 
-  // Client-side pagination
+  // Server-side pagination
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
+  const [totalCount, setTotalCount] = useState(0);
 
   // Modal targets
   const [confirmingTarget, setConfirmingTarget] = useState(null);
@@ -49,9 +50,21 @@ export default function WonAuctions() {
 
     (async () => {
       try {
-        const res = await getWonAuctions();
+        const res = await getWonAuctions({
+          page,
+          pageSize,
+          search: searchTerm,
+          filter: filterStatus !== "All" ? filterStatus : undefined,
+        });
         if (cancelled) return;
-        setAuctions(res.data.data?.items || []);
+        const payload = res.data.data || {};
+        const items = Array.isArray(payload) ? payload : payload.items || [];
+        setAuctions(items);
+        if (typeof payload.totalCount === "number") {
+          setTotalCount(payload.totalCount);
+        } else {
+          setTotalCount(items.length);
+        }
       } catch {
         if (!cancelled) toast.error("Failed to load won auctions.");
       } finally {
@@ -62,13 +75,23 @@ export default function WonAuctions() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [page, pageSize, searchTerm, filterStatus]);
 
   // Manual refresh, used by action handlers.
   const fetchWonAuctions = async () => {
     try {
-      const res = await getWonAuctions();
-      setAuctions(res.data.data?.items || []);
+      const res = await getWonAuctions({
+        page,
+        pageSize,
+        search: searchTerm,
+        filter: filterStatus !== "All" ? filterStatus : undefined,
+      });
+      const payload = res.data.data || {};
+      const items = Array.isArray(payload) ? payload : payload.items || [];
+      setAuctions(items);
+      if (typeof payload.totalCount === "number") {
+        setTotalCount(payload.totalCount);
+      }
     } catch {
       toast.error("Failed to load won auctions.");
     } finally {
@@ -118,34 +141,9 @@ export default function WonAuctions() {
     )
     .reduce((sum, a) => sum + (a.winningAmount || 0), 0);
 
-  const filteredAuctions = useMemo(() => {
-    return auctions.filter((a) => {
-      if (
-        searchTerm &&
-        !a.productTitle.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-        return false;
-      if (filterStatus === "AwaitingPayment")
-        return (
-          a.paymentStatus === "AwaitingPayment" ||
-          a.paymentStatus === "PaymentOverdue"
-        );
-      if (filterStatus === "Action Required")
-        return a.paymentStatus === "Dispatched" || a.paymentStatus === "Paid";
-      if (filterStatus === "Completed") return a.paymentStatus === "Completed";
-      if (filterStatus === "Disputed")
-        return a.paymentStatus === "Disputed" || a.paymentStatus === "Refunded";
-      return true;
-    });
-  }, [auctions, searchTerm, filterStatus]);
-
-  const totalCount = filteredAuctions.length;
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
   const safePage = Math.min(page, totalPages);
-  const pageItems = filteredAuctions.slice(
-    (safePage - 1) * pageSize,
-    safePage * pageSize,
-  );
+  const pageItems = auctions;
 
   if (loading) {
     return (

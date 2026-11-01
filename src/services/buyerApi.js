@@ -22,8 +22,8 @@ export const buyoutAuction = (auctionId) =>
 // Buyer Activity
 export const getMyBids = (params = {}) =>
   authApi.get("/buyer/my-bids", { ...getAuthConfig(), params });
-export const getWonAuctions = () =>
-  authApi.get("/buyer/won-auctions", getAuthConfig());
+export const getWonAuctions = (params = {}) =>
+  authApi.get("/buyer/won-auctions", { ...getAuthConfig(), params });
 
 // Wallet
 export const getMyWallet = () => authApi.get("/wallet/me", getAuthConfig());
