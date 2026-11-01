@@ -29,9 +29,6 @@ function Footer() {
               <a href="#" className="hover:text-gray-900">Auction rules</a>
               <a href="#" className="hover:text-gray-900">Terms & privacy</a>
             </div>
-            <p className="text-xs text-gray-400 mt-2">
-              No online payments. Arrange handover directly with the seller.
-            </p>
           </div>
 
         </div>

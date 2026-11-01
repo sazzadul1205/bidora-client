@@ -5,7 +5,6 @@ import {
   TrendingUp,
   Package,
   ShieldCheck,
-  Info,
   CheckCircle2,
 } from "lucide-react";
 import { login, getCurrentUser } from "../../../services/authApi";
@@ -179,14 +178,6 @@ function Login() {
                 {isSubmitting ? "Logging in..." : "Log in"}
               </button>
             </form>
-
-            <div className="mt-6 bg-blue-50 border border-blue-100 rounded-lg p-3 flex gap-3 items-start">
-              <Info className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
-              <p className="text-xs text-blue-700 leading-relaxed">
-                You'll be taken to your buyer, seller or admin dashboard based
-                on your account role.
-              </p>
-            </div>
 
             <div className="mt-6 text-center text-sm text-gray-600">
               New to Bidora?{" "}

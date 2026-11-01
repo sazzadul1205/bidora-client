@@ -501,7 +501,7 @@ export default function AuctionDetails() {
                 <div className="space-y-4 animate-in fade-in duration-300">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1 justify-between items-end">
-                      <span>Your Bid</span>
+                      <span className="mr-2" >Your Bid</span>
                       <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
                         Min: ৳{calculatedMinBid.toLocaleString()}
                       </span>

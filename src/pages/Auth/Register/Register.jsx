@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { ShoppingBag, Store, Info } from "lucide-react";
+import { ShoppingBag, Store } from "lucide-react";
 import { register as registerUser } from "../../../services/authApi";
 
 function Register() {
@@ -305,14 +305,6 @@ function Register() {
                   : `Create ${role} account`}
               </button>
             </form>
-
-            <div className="mt-6 bg-blue-50 border border-blue-100 rounded-lg p-3 flex gap-3 items-start">
-              <Info className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
-              <p className="text-xs text-blue-700 leading-relaxed">
-                Admin accounts are created internally. Public registration is
-                for buyers and sellers only.
-              </p>
-            </div>
 
             <div className="mt-6 text-center text-sm text-gray-600">
               Already registered?{" "}

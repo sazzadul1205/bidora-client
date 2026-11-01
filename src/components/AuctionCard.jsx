@@ -27,13 +27,9 @@ export default function AuctionCard({
     ? currentHighestBid ?? startingPrice ?? 0
     : startingPrice ?? 0;
 
-  const linkClass =
-    variant === "home"
-      ? "group/card bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow flex flex-col"
-      : "group bg-white rounded-2xl border border-gray-200 overflow-hidden hover:-translate-y-1 hover:shadow-xl transition-all duration-200 flex flex-col";
 
   return (
-    <Link to={`/auction/${id}`} key={id} className={linkClass}>
+    <Link to={`/auction/${id}`} key={id} className="group bg-white rounded-2xl border border-gray-200 overflow-hidden hover:-translate-y-1 hover:shadow-xl transition-all duration-200 flex flex-col">
       <div className="relative aspect-4/3 bg-gray-100 overflow-hidden">
         {mainImageUrl ? (
           <img
@@ -50,7 +46,7 @@ export default function AuctionCard({
           </div>
         )}
 
-        {/* Status badges (browse variant only) */}
+        {/* Status badges */}
         {variant === "browse" && isLive && (
           <span className="absolute top-3 left-3 bg-red-600 text-white text-xs font-bold px-2.5 py-1 rounded-md shadow-sm flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>{" "}
