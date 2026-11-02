@@ -36,6 +36,9 @@ export default function WonAuctions() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [totalCount, setTotalCount] = useState(0);
+  const [totalWonCount, setTotalWonCountState] = useState(null);
+  const [pendingPaymentCountState, setPendingPaymentCountState] = useState(null);
+  const [totalSpentState, setTotalSpentState] = useState(null);
 
   // Modal targets
   const [confirmingTarget, setConfirmingTarget] = useState(null);
@@ -65,6 +68,9 @@ export default function WonAuctions() {
         } else {
           setTotalCount(items.length);
         }
+      if (payload.totalWon !== undefined) setTotalWonCountState(payload.totalWon);
+      if (payload.pendingPaymentCount !== undefined) setPendingPaymentCountState(payload.pendingPaymentCount);
+      if (payload.totalSpent !== undefined) setTotalSpentState(payload.totalSpent);
       } catch {
         if (!cancelled) toast.error("Failed to load won auctions.");
       } finally {
@@ -130,12 +136,12 @@ export default function WonAuctions() {
     }
   };
 
-  const pendingPaymentCount = auctions.filter(
+  const pendingPaymentCount = pendingPaymentCountState !== null ? pendingPaymentCountState : auctions.filter(
     (a) =>
       a.paymentStatus === "AwaitingPayment" ||
       a.paymentStatus === "PaymentOverdue",
   ).length;
-  const totalSpent = auctions
+  const totalSpent = totalSpentState !== null ? totalSpentState : auctions
     .filter(
       (a) => a.paymentStatus === "Paid" || a.paymentStatus === "Completed",
     )
@@ -205,7 +211,7 @@ export default function WonAuctions() {
           <div>
             <p className="text-sm font-medium text-gray-500">Total Won</p>
             <p className="text-2xl font-bold text-gray-900">
-              {auctions.length}
+              {totalWonCount !== null ? totalWonCount : auctions.length}
             </p>
           </div>
         </div>
