@@ -2,7 +2,6 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { getCurrentUser, logout } from "../../services/authApi";
 import { getMyWallet } from "../../services/buyerApi";
-import { toast } from "../../utils/toast";
 import { Wallet, LogOut, LayoutDashboard, Menu, X } from "lucide-react";
 
 function Navbar() {
@@ -25,8 +24,12 @@ function Navbar() {
 
           if (role === "Buyer") {
             try {
-              const walletData = walletRes.data.data || {};
-              setWalletBalance(Math.max(0, walletData.availableBalance ?? (walletData.balance - (walletData.reservedBalance || 0)) ?? walletData.balance ?? 0));
+              const walletRes = await getMyWallet();
+              const walletData = walletRes.data?.data || walletRes.data || {};
+              const totalBal = walletData.balance ?? 0;
+              const reservedBal = walletData.reservedBalance ?? 0;
+              const avail = walletData.availableBalance;
+              setWalletBalance(Math.max(0, avail !== undefined && avail !== null ? avail : totalBal - reservedBal));
             } catch (err) {
               console.warn("Could not fetch wallet", err);
             }
@@ -46,7 +49,6 @@ function Navbar() {
     setUser(null);
     setWalletBalance(null);
     setIsMobileMenuOpen(false);
-    toast.success("Logged out successfully!");
     navigate("/login");
   };
 

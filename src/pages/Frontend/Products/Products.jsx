@@ -124,7 +124,9 @@ export default function Home() {
 
   // Server-side pagination
   const [pageSize] = useState(20);
+  // eslint-disable-next-line no-unused-vars
   const [page, setPage] = useState(1);
+  // eslint-disable-next-line no-unused-vars
   const [totalCount, setTotalCount] = useState(0);
 
   // Filters
@@ -132,7 +134,7 @@ export default function Home() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
 
-  const totalPages = Math.ceil(totalCount / pageSize);
+  // const totalPages = Math.ceil(totalCount / pageSize);
 
   // DRAG TO SCROLL LOGIC
   const scrollRef = useRef(null);
@@ -542,7 +544,7 @@ export default function Home() {
         </div>
 
         {/* Pagination */}
-        {totalPages > 1 && (
+        {/* {totalPages > 1 && (
           <div className="flex items-center justify-between gap-4 mt-12 px-4 sm:px-6 lg:px-8">
             <p className="text-sm text-gray-600">
               Showing {(page - 1) * pageSize + 1} to{" "}
@@ -573,7 +575,7 @@ export default function Home() {
               </button>
             </div>
           </div>
-        )}
+        )} */}
       </div>
     </div>
   );
