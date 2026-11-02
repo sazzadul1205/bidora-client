@@ -252,7 +252,6 @@ export default function WonAuctions() {
             {[
               "All",
               "AwaitingPayment",
-              "Action Required",
               "Completed",
               "Disputed",
             ].map((tab) => (
