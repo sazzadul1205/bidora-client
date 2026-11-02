@@ -164,7 +164,6 @@ export default function AdminTransactions() {
   // Reservations now server-side paginated
   const activeReservations = reservations;
   const filteredReservations = reservations;
-  const resTotal = resTotal;
   const resTotalPages = Math.max(1, Math.ceil(resTotal / resPageSize));
   const safeResPage = Math.min(resPage, resTotalPages);
   const resPageItems = reservations;

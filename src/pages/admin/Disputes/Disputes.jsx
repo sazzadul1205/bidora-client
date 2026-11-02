@@ -30,6 +30,9 @@ export default function Disputes() {
   const [submitting, setSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("Open");
+  const [openCount, setOpenCount] = useState(0);
+  const [reviewingCount, setReviewingCount] = useState(0);
+  const [resolvedCount, setResolvedCount] = useState(0);
 
   // Server-side pagination
   const [page, setPage] = useState(1);
@@ -57,6 +60,10 @@ export default function Disputes() {
         } else if (typeof payload.totalCount === "number") {
           setTotalCount(payload.totalCount);
         }
+        // Update counts from API response
+        if (res.data.openCount !== undefined) setOpenCount(res.data.openCount);
+        if (res.data.underReviewCount !== undefined) setReviewingCount(res.data.underReviewCount);
+        if (res.data.resolvedCount !== undefined) setResolvedCount(res.data.resolvedCount);
       } catch (err) {
         console.error(err);
       } finally {
@@ -86,6 +93,9 @@ export default function Disputes() {
       } else if (typeof payload.totalCount === "number") {
         setTotalCount(payload.totalCount);
       }
+      if (res.data.openCount !== undefined) setOpenCount(res.data.openCount);
+      if (res.data.underReviewCount !== undefined) setReviewingCount(res.data.underReviewCount);
+      if (res.data.resolvedCount !== undefined) setResolvedCount(res.data.resolvedCount);
     } catch (err) {
       console.error(err);
       toast.error(err.response?.data?.message || "Failed to load disputes.");
@@ -151,11 +161,9 @@ export default function Disputes() {
     });
   };
 
-  const openCount = disputes.filter((d) => d.status === "Open").length;
-  const reviewingCount = disputes.filter(
-    (d) => d.status === "UnderReview",
-  ).length;
-  const resolvedCount = disputes.filter((d) => d.status === "Resolved").length;
+  const openCountDisplay = openCount;
+  const reviewingCountDisplay = reviewingCount;
+  const resolvedCountDisplay = resolvedCount;
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
   const safePage = Math.min(page, totalPages);
   const pageItems = disputes;

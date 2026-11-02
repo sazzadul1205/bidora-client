@@ -26,7 +26,6 @@ import authApi, {
 } from "../../services/authApi";
 import AuctionLoader from "../../components/AuctionLoader";
 import { formatDateTime } from "../../utils/date";
-import ConnectionStatus from "../../components/ConnectionStatus";
 
 function AuthenticatedLayout() {
   const navigate = useNavigate();
@@ -46,7 +45,9 @@ function AuthenticatedLayout() {
         if (currentRole !== "Admin") {
           try {
             const walletRes = await authApi.get("/wallet/me", getAuthConfig());
-            setBalance(Math.max(0, walletRes.data.data.balance || 0));
+            console.log(walletRes);
+            
+            setBalance(Math.max(0, walletRes.data.data.availableBalance || 0));
           } catch (walletErr) {
             console.warn(
               "Wallet not found or could not be fetched:",
@@ -368,7 +369,6 @@ function AuthenticatedLayout() {
             <span className="hidden md:block text-xs text-gray-400">
               {currentDate}
             </span>
-            <ConnectionStatus />
             {role !== "Admin" && (
               <Link
                 to="/wallet"

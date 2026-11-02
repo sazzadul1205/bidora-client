@@ -25,8 +25,8 @@ function Navbar() {
 
           if (role === "Buyer") {
             try {
-              const walletRes = await getMyWallet();
-              setWalletBalance(Math.max(0, walletRes.data.data.balance || 0));
+              const walletData = walletRes.data.data || {};
+              setWalletBalance(Math.max(0, walletData.availableBalance ?? (walletData.balance - (walletData.reservedBalance || 0)) ?? walletData.balance ?? 0));
             } catch (err) {
               console.warn("Could not fetch wallet", err);
             }
