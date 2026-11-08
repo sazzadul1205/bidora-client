@@ -453,7 +453,7 @@ export default function SellerSales() {
                             </button>
                           )}
 
-                        {(s.status === "Paid" ||
+                        {((s.status === "Paid" && s.dispatchedAt) ||
                           s.status === "PaymentOverdue") && (
                           <button
                             onClick={() => setDisputeTarget(s)}

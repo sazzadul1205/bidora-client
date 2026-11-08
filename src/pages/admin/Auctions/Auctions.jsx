@@ -329,17 +329,11 @@ export default function Auctions() {
                                 {a.currentHighestBid?.toLocaleString() ||
                                   "0.00"}
                               </p>
-                              <p className="text-gray-600">
-                                Bids: {a.bidCount}
-                              </p>
                             </>
                           ) : (
                             <>
                               <p className="text-gray-600">
                                 No winner — deposit released
-                              </p>
-                              <p className="text-gray-600">
-                                Bids: {a.bidCount}
                               </p>
                             </>
                           )}
@@ -357,7 +351,6 @@ export default function Auctions() {
                           ) : (
                             <p className="text-gray-600">No reason provided</p>
                           )}
-                          <p className="text-gray-600">Bids: {a.bidCount}</p>
                         </div>
                       )}
                       {a.status !== "Completed" && a.status !== "Cancelled" && (
@@ -365,7 +358,7 @@ export default function Auctions() {
                       )}
                     </td>
 
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 min-w-56">
                       <div className="text-xs space-y-1.5">
                         <p
                           className={

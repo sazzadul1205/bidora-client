@@ -262,6 +262,7 @@ export default function MyProducts() {
             {[
               "All",
               "No Auction",
+              "NoWinner",
               "Upcoming",
               "Active",
               "Completed",
