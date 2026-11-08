@@ -41,9 +41,15 @@ export const withdrawProductSubmission = (id) =>
 export const deleteProduct = (id) =>
   authApi.delete(`/product/${id}`, getAuthConfig());
 
+export const resetForReAuction = (id) =>
+  authApi.post(`/auction/product/${id}/reset-for-reauction`, {}, getAuthConfig());
+
 // Auctions
 export const getAuctionByIdForSeller = (id) =>
   authApi.get(`/auction/${id}/seller`, getAuthConfig());
+
+export const getAuctionsByProduct = (id) =>
+  authApi.get(`/auction/product/${id}`, getAuthConfig());
 
 // Sales & Delivery
 export const getMySales = (params = {}) =>
@@ -88,7 +94,9 @@ export default {
   submitProductForApproval,
   withdrawProductSubmission,
   deleteProduct,
+  resetForReAuction,
   getAuctionByIdForSeller,
+  getAuctionsByProduct,
   getMySales,
   dispatchSale,
   reportNonDelivery,

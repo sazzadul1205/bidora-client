@@ -1,10 +1,11 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   getMyProducts,
   submitProductForApproval,
   withdrawProductSubmission,
   deleteProduct,
+  resetForReAuction,
 } from "../../../services/sellerApi";
 import {
   Plus,
@@ -148,18 +149,29 @@ export default function MyProducts() {
     }
   };
 
+  const handleResetForReAuction = async (id) => {
+    const confirmed = await confirmDialog(
+      "Reset for re-auction?",
+      "Product will return to draft for re-approval.",
+    );
+    if (!confirmed) return;
+
+    try {
+      await resetForReAuction(id);
+      toast.success("Product reset for re-auction");
+      await fetchProducts();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Reset failed.");
+    }
+  };
+
   const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
     return new Date(dateString).toLocaleDateString("en-GB", {
       day: "2-digit",
       month: "short",
       year: "numeric",
     });
   };
-
-  const filteredProducts = useMemo(() => {
-    return products;
-  }, [products]);
 
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
   const safePage = Math.min(page, totalPages);
@@ -338,15 +350,15 @@ export default function MyProducts() {
                       <div className="space-y-1.5">
                         <p className="text-xs text-gray-500">
                           Start:{" "}
-                            <span className="font-bold text-gray-900 text-sm">
-                              ৳${p.startingPrice?.toLocaleString()}
-                            </span>
+                          <span className="font-bold text-gray-900 text-sm">
+                            ৳${p.startingPrice?.toLocaleString()}
+                          </span>
                         </p>
                         <p className="text-xs text-gray-500">
                           Buyout:{" "}
-                            <span className="font-bold text-gray-900 text-sm">
-                              ৳${p.buyoutPrice?.toLocaleString()}
-                            </span>
+                          <span className="font-bold text-gray-900 text-sm">
+                            ৳${p.buyoutPrice?.toLocaleString()}
+                          </span>
                         </p>
                       </div>
                     </td>
@@ -364,9 +376,10 @@ export default function MyProducts() {
                                   : "bg-gray-100 text-gray-700 border-gray-200"
                           }`}
                         >
-                          {p.approvalStatus === "Approved" && (
-                            <ShieldCheck className="w-3.5 h-3.5" />
-                          )}
+                          {p.approvalStatus === "Approved" &&
+                            p.auctionStatus === "Completed" && (
+                              <ShieldCheck className="w-3.5 h-3.5" />
+                            )}
                           {p.approvalStatus === "PendingApproval"
                             ? "Pending Review"
                             : p.approvalStatus}
@@ -444,13 +457,31 @@ export default function MyProducts() {
                           </button>
                         )}
 
+                        {p.approvalStatus === "Approved" &&
+                          p.auctionStatus === "Completed" &&
+                          p.auctionBidCount === 0 && (
+                            <button
+                              onClick={() => handleResetForReAuction(p.id)}
+                              title="Reset for Re-Auction"
+                              className="p-2 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-lg transition-colors"
+                            >
+                              <RotateCcw className="w-4 h-4" />
+                            </button>
+                          )}
                         {p.auctionId ? (
                           <Link
                             to={`/seller/auctions/${p.auctionId}`}
-                            className="p-2 text-purple-600 hover:text-purple-800 hover:bg-purple-50 rounded-lg transition-colors border border-transparent hover:border-purple-100"
+                            className="relative p-2 text-purple-600 hover:text-purple-800 hover:bg-purple-50 rounded-lg transition-colors border border-transparent hover:border-purple-100"
                             title="View Auction Details"
                           >
                             <Gavel className="w-4 h-4" />
+                            {p.auctionBidCount > 0 && (
+                              <span className="absolute -top-1.5 -right-1.5 min-w-4.5 h-4.5 px-1 flex items-center justify-center bg-red-600 text-white text-[10px] font-bold rounded-full border-2 border-white shadow-sm leading-none">
+                                {p.auctionBidCount > 99
+                                  ? "99+"
+                                  : p.auctionBidCount}
+                              </span>
+                            )}
                           </Link>
                         ) : null}
 
