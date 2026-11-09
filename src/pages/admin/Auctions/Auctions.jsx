@@ -240,7 +240,9 @@ export default function Auctions() {
               <tr>
                 <th className="px-6 py-4 font-medium">Product</th>
                 <th className="px-6 py-4 font-medium">Status</th>
-                <th className="px-6 py-4 font-medium">Result / Winner</th>
+                {activeTab === "History" && (
+                  <th className="px-6 py-4 font-medium">Result / Winner</th>
+                )}
                 <th className="px-6 py-4 font-medium">Schedule</th>
                 <th className="px-6 py-4 font-medium text-right">Actions</th>
               </tr>
@@ -248,13 +250,13 @@ export default function Auctions() {
             <tbody className="divide-y divide-gray-200">
               {loading ? (
                 <>
-                  <SkeletonRow cols={5} />
-                  <SkeletonRow cols={5} />
-                  <SkeletonRow cols={5} />
+                  <SkeletonRow cols={activeTab === "History" ? 5 : 4} />
+                  <SkeletonRow cols={activeTab === "History" ? 5 : 4} />
+                  <SkeletonRow cols={activeTab === "History" ? 5 : 4} />
                 </>
               ) : auctions.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="text-center py-12">
+                  <td colSpan={activeTab === "History" ? 5 : 4} className="text-center py-12">
                     <Package className="w-12 h-12 text-gray-300 mx-auto mb-3" />
                     <p className="text-gray-500 font-medium">
                       No auctions found.
@@ -314,6 +316,7 @@ export default function Auctions() {
                       </span>
                     </td>
 
+                    {activeTab === "History" && (
                     <td className="px-6 py-4">
                       {a.status === "Completed" && (
                         <div className="text-xs space-y-1">
@@ -356,10 +359,8 @@ export default function Auctions() {
                           )}
                         </div>
                       )}
-                      {a.status !== "Completed" && a.status !== "Cancelled" && (
-                        <span className="text-gray-300">—</span>
-                      )}
                     </td>
+                    )}
 
                     <td className="px-6 py-4 min-w-56">
                       <div className="text-xs space-y-1.5">
