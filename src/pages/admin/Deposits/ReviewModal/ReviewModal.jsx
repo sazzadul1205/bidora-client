@@ -15,6 +15,7 @@ export default function ReviewModal({
   onClose,
   onSubmit,
   submitting,
+  readOnly = false,
 }) {
  
   const { register, handleSubmit, control } = useForm({
@@ -35,10 +36,8 @@ export default function ReviewModal({
       <div className="bg-white rounded-2xl w-full max-w-3xl max-h-[92vh] overflow-y-auto shadow-2xl flex flex-col">
         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
           <div>
-            <h2 className="text-xl font-bold text-gray-900">Review Deposit</h2>
-            <p className="text-sm text-gray-500 mt-0.5">
-              Deposit ID: #{selected.id}
-            </p>
+            <h2 className="text-xl font-bold text-gray-900">{readOnly ? "Deposit Details" : "Review Deposit"}</h2>
+            <p className="text-sm text-gray-500 mt-0.5">Deposit ID: #{selected.id}</p>
           </div>
           <button
             onClick={onClose}
@@ -89,29 +88,11 @@ export default function ReviewModal({
                 <Calendar className="w-4 h-4" /> Metadata
               </h3>
               <div className="space-y-3 text-sm">
-                <div>
-                  <span className="text-blue-700 block text-xs">Wallet ID</span>
-                  <span className="font-medium text-blue-950">
-                    #{selected.walletId}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-blue-700 block text-xs">
-                    Submitted On
-                  </span>
-                  <span className="font-medium text-blue-950 flex items-center gap-1">
-                    <Calendar className="w-3.5 h-3.5" />{" "}
-                    {formatDate(selected.createdAt)}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-blue-700 block text-xs">
-                    Current Status
-                  </span>
-                  <span className="font-medium text-blue-950">
-                    {selected.status}
-                  </span>
-                </div>
+                <div><span className="text-blue-700 block text-xs">User</span><span className="font-medium text-blue-950">{selected.userName || selected.userEmail || "—"}</span>{selected.userEmail && selected.userName && <div className="text-xs text-blue-700/70">{selected.userEmail}</div>}</div>
+                <div><span className="text-blue-700 block text-xs">Submitted On</span><span className="font-medium text-blue-950 flex items-center gap-1"><Calendar className="w-3.5 h-3.5" /> {formatDate(selected.createdAt)}</span></div>
+                <div><span className="text-blue-700 block text-xs">Status</span><span className="font-medium text-blue-950">{selected.status === "PendingVerification" ? "Pending" : selected.status}</span></div>
+                {selected.reviewedAt && <div><span className="text-blue-700 block text-xs">Reviewed At</span><span className="font-medium text-blue-950">{formatDate(selected.reviewedAt)}</span></div>}
+                {selected.rejectionReason && <div><span className="text-blue-700 block text-xs">Rejection Reason</span><span className="font-medium text-red-700">{selected.rejectionReason}</span></div>}
               </div>
             </div>
           </div>
@@ -144,6 +125,11 @@ export default function ReviewModal({
         </div>
 
         <div className="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4 rounded-b-2xl">
+          {readOnly || selected.status !== "PendingVerification" ? (
+            <div className="flex justify-end">
+              <button type="button" onClick={onClose} className="px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">Close</button>
+            </div>
+          ) : (
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <label
@@ -228,6 +214,7 @@ export default function ReviewModal({
               </button>
             </div>
           </form>
+          )}
         </div>
       </div>
     </div>
