@@ -1,11 +1,15 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Pencil, X, Loader2 } from "lucide-react";
+import { useOutletContext } from "react-router-dom";
 import { getRoles } from "../../../../services/adminApi";
 
 const EXCLUDED = new Set(["seller", "buyer"]);
+const ADMIN_ROLES = new Set(["admin", "super admin"]);
 
 export default function EditUserModal({ target, onClose, onSubmit }) {
+  const { userData } = useOutletContext() || {};
+  const callerIsSuperAdmin = (userData?.account?.roles || []).includes("Super Admin");
   const {
     register,
     handleSubmit,
@@ -25,9 +29,12 @@ export default function EditUserModal({ target, onClose, onSubmit }) {
     (async () => {
       try {
         const res = await getRoles();
-        const list = (res.data.data || []).filter(
-          (r) => !EXCLUDED.has((r.name || "").toLowerCase()),
-        );
+        const list = (res.data.data || []).filter((r) => {
+          const n = (r.name || "").toLowerCase();
+          if (EXCLUDED.has(n)) return false;
+          if (!callerIsSuperAdmin && ADMIN_ROLES.has(n)) return false; // non-Super-Admin can't assign Admin/Super Admin
+          return true;
+        });
         setRoles(list);
       } catch {
         setRoles([]);
@@ -35,7 +42,7 @@ export default function EditUserModal({ target, onClose, onSubmit }) {
         setLoadingRoles(false);
       }
     })();
-  }, []);
+  }, [callerIsSuperAdmin]);
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
@@ -116,7 +123,7 @@ export default function EditUserModal({ target, onClose, onSubmit }) {
               </select>
             )}
             <p className="text-xs text-gray-500 mt-1">
-              Admin and custom roles only.
+              {callerIsSuperAdmin ? "Super Admin can assign Admin/Super Admin and custom roles." : "Custom staff roles only (Admin cannot assign/edit Super Admin)."}
             </p>
           </div>
 

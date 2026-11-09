@@ -1,11 +1,15 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Shield, X, Loader2 } from "lucide-react";
+import { useOutletContext } from "react-router-dom";
 import { getRoles } from "../../../../services/adminApi";
 
 const EXCLUDED_ROLES = new Set(["seller", "buyer"]);
+const ADMIN_ROLES = new Set(["admin", "super admin"]);
 
 export default function CreateAdminModal({ onClose, onSubmit }) {
+  const { userData } = useOutletContext() || {};
+  const callerIsSuperAdmin = (userData?.account?.roles || []).includes("Super Admin");
   const {
     register,
     handleSubmit,
@@ -25,9 +29,12 @@ export default function CreateAdminModal({ onClose, onSubmit }) {
         const res = await getRoles();
         if (cancelled) return;
 
-        const filtered = (res.data.data || []).filter(
-          (r) => !EXCLUDED_ROLES.has((r.name || "").toLowerCase()),
-        );
+        const filtered = (res.data.data || []).filter((r) => {
+          const n = (r.name || "").toLowerCase();
+          if (EXCLUDED_ROLES.has(n)) return false;
+          if (!callerIsSuperAdmin && ADMIN_ROLES.has(n)) return false;
+          return true;
+        });
         setRoles(filtered);
       } catch {
         if (!cancelled) setRoles([]);
@@ -39,7 +46,7 @@ export default function CreateAdminModal({ onClose, onSubmit }) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [callerIsSuperAdmin]);
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
@@ -145,8 +152,9 @@ export default function CreateAdminModal({ onClose, onSubmit }) {
               <p className="text-xs text-red-600 mt-1">{errors.role.message}</p>
             )}
             <p className="text-xs text-gray-500 mt-1">
-              Only Admin and custom roles can be assigned here. Sellers and
-              Buyers register through the public signup flow.
+              {callerIsSuperAdmin
+                ? "Super Admin can create Admin/Super Admin and custom roles (no Seller/Buyer)."
+                : "Admin can create custom staff roles only (cannot create/edit Super Admin). Sellers/Buyers register publicly."}
             </p>
           </div>
 

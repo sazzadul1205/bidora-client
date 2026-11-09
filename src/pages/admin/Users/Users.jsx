@@ -1,3 +1,4 @@
+import { useOutletContext } from "react-router-dom";
 import PageTitle from "../../../components/PageTitle";
 import { useEffect, useState } from "react";
 import { formatCurrency as formatMoney } from "../../../utils/currency";
@@ -36,6 +37,8 @@ import EditUserModal from "./EditUserModal/EditUserModal";
 import ResetPasswordModal from "./ResetPasswordModal/ResetPasswordModal";
 
 export default function Users() {
+  const { userData } = useOutletContext() || {};
+  const callerIsSuperAdmin = (userData?.account?.roles || []).includes("Super Admin");
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -452,8 +455,11 @@ export default function Users() {
                   </tr>
                 ) : (
                   users.map((u) => {
-                    const lockInfo = getLockInfo(u);
-                    const isBuyerSeller = ["Buyer", "Seller"].includes(u.roles?.[0]);
+                      const lockInfo = getLockInfo(u);
+                      const isBuyerSeller = ["Buyer", "Seller"].includes(u.roles?.[0]);
+                      const targetRole = u.roles?.[0];
+                      const isElevated = targetRole === "Admin" || targetRole === "Super Admin";
+                      const canEdit = !isBuyerSeller && (callerIsSuperAdmin || !isElevated);
                     return (
                       <tr
                         key={u.userId}
@@ -554,7 +560,7 @@ export default function Users() {
                             >
                               <Eye className="w-4 h-4" />
                             </button>
-                            {!["Seller", "Buyer"].includes(u.roles?.[0]) && (
+                            {canEdit && (
                               <button
                                 onClick={() => setEditTarget(u)}
                                 className="inline-flex items-center justify-center p-2 text-xs font-semibold text-gray-700 bg-white hover:bg-gray-50 border border-gray-300 rounded-lg transition-colors"

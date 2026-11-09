@@ -412,7 +412,7 @@ function AuthenticatedLayout() {
             [scrollbar-color:#d1d5db_transparent]"
         >
           <div className="max-w-7xl mx-auto">
-            <Outlet />
+            <Outlet context={{ userData }} />
           </div>
         </main>
       </div>
