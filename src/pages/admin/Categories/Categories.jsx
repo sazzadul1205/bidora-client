@@ -13,9 +13,9 @@ export default function Categories() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Server-side pagination
+  // Server-side pagination (grid: 3 columns × 3 rows)
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
+  const [pageSize, setPageSize] = useState(9);
   const [totalCount, setTotalCount] = useState(0);
 
   const {
@@ -161,7 +161,7 @@ export default function Categories() {
 
           <div className="bg-blue-50 text-blue-700 px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 shrink-0 self-start sm:self-auto">
             <Layers className="w-4 h-4" />
-            {categories.length} Total
+            {totalCount} Categor{totalCount === 1 ? "y" : "ies"}
           </div>
         </div>
       </div>
@@ -235,9 +235,11 @@ export default function Categories() {
                   </div>
                   <div className="truncate">
                     <p className="font-semibold text-gray-900 truncate">
-                      {c.name}
+                      {c.name ?? c.Name}
                     </p>
-                    <p className="text-xs text-gray-500">ID: #{c.id}</p>
+                    <p className="text-xs text-gray-500">
+                      ID: #{c.id ?? c.Id} · {(c.productCount ?? c.ProductCount ?? 0)} product{(c.productCount ?? c.ProductCount ?? 0) === 1 ? "" : "s"}
+                    </p>
                   </div>
                 </div>
 
@@ -260,6 +262,7 @@ export default function Categories() {
             page={safePage}
             pageSize={pageSize}
             totalCount={totalCount}
+            pageSizeOptions={[9, 12, 15, 18, 21, 24]}
             onPageChange={setPage}
             onPageSizeChange={(s) => {
               setPageSize(s);
