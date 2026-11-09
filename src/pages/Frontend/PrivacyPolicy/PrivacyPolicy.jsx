@@ -1,3 +1,4 @@
+import PageTitle from "../../../components/PageTitle";
 import {
   ShieldCheck,
   Database,
@@ -486,6 +487,8 @@ function SubHeading({ children }) {
 
 function List({ items }) {
   return (
+    <>
+      <PageTitle title="Privacy Policy" />
     <ul className="space-y-1.5 mt-2">
       {items.map((item, idx) => (
         <li key={idx} className="flex items-start gap-2 text-sm text-gray-700">
@@ -494,5 +497,6 @@ function List({ items }) {
         </li>
       ))}
     </ul>
+    </>
   );
 }

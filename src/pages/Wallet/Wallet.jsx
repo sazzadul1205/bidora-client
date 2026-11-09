@@ -1,3 +1,4 @@
+import PageTitle from "../../components/PageTitle";
 import { useEffect, useState, useRef } from "react";
 import { formatCurrency as formatMoney } from "../../utils/currency";
 import { useForm } from "react-hook-form";
@@ -363,6 +364,8 @@ export default function Wallet() {
   );
 
   return (
+    <>
+      <PageTitle title="Wallet" />
     <div className="max-w-6xl mx-auto space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -756,5 +759,6 @@ export default function Wallet() {
         </div>
       )}
     </div>
+    </>
   );
 }

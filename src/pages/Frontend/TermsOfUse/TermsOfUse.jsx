@@ -1,3 +1,4 @@
+import PageTitle from "../../../components/PageTitle";
 import {
   ScrollText,
   Shield,
@@ -525,9 +526,12 @@ function RoleCard({ title, description, color }) {
   };
 
   return (
+    <>
+      <PageTitle title="Terms of Use" />
     <div className={`border rounded-lg p-3 ${colorMap[color]}`}>
       <p className="font-bold text-sm mb-1">{title}</p>
       <p className="text-xs leading-relaxed opacity-90">{description}</p>
     </div>
+    </>
   );
 }

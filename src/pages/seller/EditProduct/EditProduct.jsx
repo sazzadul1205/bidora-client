@@ -1,3 +1,4 @@
+import PageTitle from "../../../components/PageTitle";
 import { useEffect, useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
@@ -379,6 +380,8 @@ export default function EditProduct() {
     );
 
   return (
+    <>
+      <PageTitle title="Edit Product" />
     <div className="max-w-4xl mx-auto pb-12">
       {/* Page Header */}
       <div className="mb-6">
@@ -686,5 +689,6 @@ export default function EditProduct() {
         </div>
       </form>
     </div>
+    </>
   );
 }

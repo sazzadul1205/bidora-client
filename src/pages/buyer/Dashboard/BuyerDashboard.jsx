@@ -1,3 +1,4 @@
+import PageTitle from "../../../components/PageTitle";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getBuyerDashboard } from "../../../services/buyerApi";
@@ -49,6 +50,8 @@ export default function BuyerDashboard() {
   }
 
   return (
+    <>
+      <PageTitle title="Buyer Dashboard" />
     <div className="max-w-6xl mx-auto space-y-6">
 
       {/* HEADER */}
@@ -192,5 +195,6 @@ export default function BuyerDashboard() {
       </div>
 
     </div>
+    </>
   );
 }

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Search, Gavel } from "lucide-react";
+import PageTitle from "../../../components/PageTitle";
 
 // Services
 import { getAuctions, getCategories } from "../../../services/publicApi";

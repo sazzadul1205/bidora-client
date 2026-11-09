@@ -1,3 +1,4 @@
+import PageTitle from "../../../components/PageTitle";
 import { useEffect, useState } from "react";
 import { getMySales, reportNonDelivery } from "../../../services/sellerApi";
 import {
@@ -175,6 +176,8 @@ export default function SellerSales() {
   // (losing focus). Loading is handled inside <tbody> below instead.
 
   return (
+    <>
+      <PageTitle title="My Sales" />
     <div className="max-w-7xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
@@ -497,5 +500,6 @@ export default function SellerSales() {
         onClose={() => setSelectedDispute(null)}
       />
     </div>
+    </>
   );
 }

@@ -1,3 +1,4 @@
+import PageTitle from "../../../components/PageTitle";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -40,6 +41,8 @@ function Register() {
   };
 
   return (
+    <>
+      <PageTitle title="Register" />
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-8 md:py-12">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
         {/* Left Column - Marketing (Hidden on Mobile) */}
@@ -319,6 +322,7 @@ function Register() {
         </div>
       </div>
     </div>
+    </>
   );
 }
 

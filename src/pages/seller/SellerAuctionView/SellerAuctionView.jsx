@@ -1,3 +1,4 @@
+import PageTitle from "../../../components/PageTitle";
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { getAuctionByIdForSeller } from "../../../services/sellerApi";
@@ -78,6 +79,8 @@ export default function SellerAuctionView() {
   const uniqueBidders = new Set(bids.map((b) => b.bidderId)).size;
 
   return (
+    <>
+      <PageTitle title="Auction View" />
     <div className="bg-gray-50 min-h-screen pb-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <Link
@@ -397,5 +400,6 @@ export default function SellerAuctionView() {
         </div>
       </div>
     </div>
+    </>
   );
 }

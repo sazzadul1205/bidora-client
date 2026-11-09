@@ -1,8 +1,11 @@
+import PageTitle from "../../components/PageTitle";
 import { Link } from 'react-router-dom';
 import { User, Clock, CheckCircle } from 'lucide-react';
 
 export default function ProfilePending() {
   return (
+    <>
+      <PageTitle title="Profile Pending" />
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="max-w-md w-full bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
         <div className="bg-blue-50 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
@@ -33,5 +36,6 @@ export default function ProfilePending() {
         </Link>
       </div>
     </div>
+    </>
   );
 }

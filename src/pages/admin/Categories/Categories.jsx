@@ -1,3 +1,4 @@
+import PageTitle from "../../../components/PageTitle";
 import { useEffect, useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { getCategories } from "../../../services/publicApi";
@@ -135,6 +136,8 @@ export default function Categories() {
   }
 
   return (
+    <>
+      <PageTitle title="Categories" />
     <div className="max-w-5xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
@@ -267,5 +270,6 @@ export default function Categories() {
         </div>
       )}
     </div>
+    </>
   );
 }

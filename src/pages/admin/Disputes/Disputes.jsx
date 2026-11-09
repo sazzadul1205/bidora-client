@@ -1,3 +1,4 @@
+import PageTitle from "../../../components/PageTitle";
 import { useEffect, useState } from "react";
 import {
   getAllDisputes,
@@ -203,6 +204,8 @@ export default function Disputes() {
   }
 
   return (
+    <>
+      <PageTitle title="Disputes" />
     <div className="max-w-7xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
@@ -431,5 +434,6 @@ export default function Disputes() {
         submitting={submitting}
       />
     </div>
+    </>
   );
 }

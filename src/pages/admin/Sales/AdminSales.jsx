@@ -1,3 +1,4 @@
+import PageTitle from "../../../components/PageTitle";
 import { useEffect, useState } from "react";
 import { getAllSales } from "../../../services/adminApi";
 import {
@@ -138,6 +139,8 @@ export default function AdminSales() {
   // (losing focus). Loading is handled inside <tbody> below instead.
 
   return (
+    <>
+      <PageTitle title="Admin Sales" />
     <div className="max-w-7xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
@@ -439,5 +442,6 @@ export default function AdminSales() {
         />
       </div>
     </div>
+    </>
   );
 }

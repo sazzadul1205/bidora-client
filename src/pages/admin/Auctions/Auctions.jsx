@@ -1,3 +1,4 @@
+import PageTitle from "../../../components/PageTitle";
 import { useEffect, useState } from "react";
 import {
   getAllAuctions,
@@ -179,6 +180,8 @@ export default function Auctions() {
   const showBidsButton = activeTab === "Active" || activeTab === "History";
 
   return (
+    <>
+      <PageTitle title="Auctions" />
     <div className="max-w-7xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
@@ -449,5 +452,6 @@ export default function Auctions() {
         onClose={() => setBidsData(null)}
       />
     </div>
+    </>
   );
 }

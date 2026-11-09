@@ -1,3 +1,4 @@
+import PageTitle from "../../../components/PageTitle";
 import { useEffect, useState, useMemo } from "react";
 import {
   getPendingProducts,
@@ -158,6 +159,8 @@ export default function AdminProducts() {
     );
 
   return (
+    <>
+      <PageTitle title="Products" />
     <div className="max-w-7xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
@@ -299,5 +302,6 @@ export default function AdminProducts() {
         setZoomImage={setZoomImage}
       />
     </div>
+    </>
   );
 }

@@ -1,3 +1,4 @@
+import PageTitle from "../../components/PageTitle";
 import { Link, useNavigate } from "react-router-dom";
 import { ShieldOff, Home, ArrowLeft, LogIn } from "lucide-react";
 
@@ -19,6 +20,8 @@ export default function Unauthorized() {
           : null;
 
   return (
+    <>
+      <PageTitle title="Unauthorized" />
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <div className="max-w-md w-full bg-white rounded-2xl border border-gray-200 shadow-sm p-8 text-center">
         {/* Icon */}
@@ -85,5 +88,6 @@ export default function Unauthorized() {
         </button>
       </div>
     </div>
+    </>
   );
 }

@@ -1,3 +1,4 @@
+import PageTitle from "../../../components/PageTitle";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getAdminDashboard } from "../../../services/adminApi";
@@ -49,6 +50,8 @@ export default function AdminDashboard() {
     (data?.openDisputes || 0);
 
   return (
+    <>
+      <PageTitle title="Admin Dashboard" />
     <div className="max-w-7xl mx-auto space-y-6">
 
       {/* HEADER */}
@@ -157,5 +160,6 @@ export default function AdminDashboard() {
       </div>
 
     </div>
+    </>
   );
 }

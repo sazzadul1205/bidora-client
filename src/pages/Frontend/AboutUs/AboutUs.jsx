@@ -1,3 +1,4 @@
+import PageTitle from "../../../components/PageTitle";
 import {
   Gavel,
   ShieldCheck,
@@ -407,6 +408,8 @@ function FeatureItem({ icon, title, description }) {
 
 function TimelineItem({ year, text, isLast }) {
   return (
+    <>
+      <PageTitle title="About Us" />
     <div className="flex gap-3">
       <div className="flex flex-col items-center shrink-0">
         <div className="w-2.5 h-2.5 rounded-full bg-blue-600 mt-1.5" />
@@ -419,5 +422,6 @@ function TimelineItem({ year, text, isLast }) {
         <p className="text-sm text-gray-700 leading-relaxed">{text}</p>
       </div>
     </div>
+    </>
   );
 }

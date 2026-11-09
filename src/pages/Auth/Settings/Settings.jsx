@@ -1,3 +1,4 @@
+import PageTitle from "../../../components/PageTitle";
 import { useEffect, useState } from "react";
 import { getCurrentUser } from "../../../services/authApi";
 import { toast } from "../../../utils/toast";
@@ -56,6 +57,8 @@ export default function Settings() {
   }
 
   return (
+    <>
+      <PageTitle title="Settings" />
     <div className="mx-auto max-w-5xl w-full">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Account Settings</h1>
@@ -128,5 +131,6 @@ export default function Settings() {
         </div>
       </div>
     </div>
+    </>
   );
 }

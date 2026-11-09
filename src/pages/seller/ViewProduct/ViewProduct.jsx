@@ -1,3 +1,4 @@
+import PageTitle from "../../../components/PageTitle";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { getMyProductById } from "../../../services/sellerApi";
@@ -87,6 +88,8 @@ export default function ViewProduct() {
   const statusColor = getStatusBadge(product.approvalStatus).color;
 
   return (
+    <>
+      <PageTitle title="View Product" />
     <div className="max-w-6xl mx-auto pb-12">
       {/* Top Navigation */}
       <button
@@ -320,5 +323,6 @@ export default function ViewProduct() {
         </div>
       </div>
     </div>
+    </>
   );
 }

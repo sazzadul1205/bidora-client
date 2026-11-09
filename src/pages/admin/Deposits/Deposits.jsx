@@ -1,3 +1,4 @@
+import PageTitle from "../../../components/PageTitle";
 import { useEffect, useState, useMemo } from "react";
 import {
   getPendingDepositRequests,
@@ -121,6 +122,8 @@ export default function Deposits() {
     );
 
   return (
+    <>
+      <PageTitle title="Deposits" />
     <div className="max-w-7xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
@@ -221,5 +224,6 @@ export default function Deposits() {
         submitting={submitting}
       />
     </div>
+    </>
   );
 }

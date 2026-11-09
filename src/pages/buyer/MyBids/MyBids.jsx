@@ -1,3 +1,4 @@
+import PageTitle from "../../../components/PageTitle";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getMyBids } from "../../../services/buyerApi";
@@ -100,6 +101,8 @@ export default function MyBids() {
   // (losing focus). Loading is handled inside <tbody> below instead.
 
   return (
+    <>
+      <PageTitle title="My Bids" />
     <div className="max-w-7xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
@@ -334,5 +337,6 @@ export default function MyBids() {
         />
       </div>
     </div>
+    </>
   );
 }

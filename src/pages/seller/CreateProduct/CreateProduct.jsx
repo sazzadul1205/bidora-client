@@ -1,3 +1,4 @@
+import PageTitle from "../../../components/PageTitle";
 import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
@@ -250,6 +251,8 @@ export default function CreateProduct() {
   };
 
   return (
+    <>
+      <PageTitle title="Create Product" />
     <div className="max-w-4xl mx-auto pb-12">
       {/* Page Header */}
       <div className="mb-6">
@@ -563,5 +566,6 @@ export default function CreateProduct() {
         </div>
       </form>
     </div>
+    </>
   );
 }

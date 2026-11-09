@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getAuctionById } from "../../../services/publicApi";
+import PageTitle from "../../../components/PageTitle";
 import {
   getAuctionBids,
   placeBid,
