@@ -18,7 +18,10 @@ export const getAuctions = (params = {}) =>
 // View only auctions currently live 
 export const getActiveAuctions = () => publicApi.get("/auction/active");
 
-// View auctions scheduled for the future 
+// View auctions scheduled for the future
 export const getUpcomingAuctions = () => publicApi.get("/auction/upcoming");
+
+// Home page: banner + max 8 active + max 8 upcoming (optional search/categoryId)
+export const getHomeAuctions = (params = {}) => publicApi.get("/auction/home", { params });
 
 export default publicApi;

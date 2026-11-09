@@ -1,6 +1,5 @@
 import { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
-import PageTitle from "../../../components/PageTitle";
 
 import {
   Search,
@@ -22,7 +21,7 @@ import {
 } from "lucide-react";
 
 // Services
-import { getAuctions, getCategories } from "../../../services/publicApi";
+import { getHomeAuctions, getCategories } from "../../../services/publicApi";
 
 // Utils
 import { imageUrl, handleImageError } from "../../../utils/image";
@@ -110,140 +109,70 @@ function HeroStatusBadge({ status, hasStartTime, endTime, startTime }) {
 }
 
 export default function Home() {
-  const [auctions, setAuctions] = useState([]);
+  const [activeAuctions, setActiveAuctions] = useState([]);
+  const [upcomingAuctions, setUpcomingAuctions] = useState([]);
+  const [bannerAuction, setBannerAuction] = useState(null);
+  console.log("home:", { bannerAuction, activeAuctions, upcomingAuctions });
+
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [now, setNow] = useState(0);
 
-  // Keep the clock ticking (initialized to 0 to satisfy React strict mode)
+  // Keep the clock ticking
   useEffect(() => {
     const update = () => setNow(Date.now());
-    update(); // Set immediately on mount
+    update();
     const timer = setInterval(update, 1000);
     return () => clearInterval(timer);
   }, []);
 
-  // Server-side pagination
-  const [pageSize] = useState(20);
-  // eslint-disable-next-line no-unused-vars
-  const [page, setPage] = useState(1);
-  // eslint-disable-next-line no-unused-vars
-  const [totalCount, setTotalCount] = useState(0);
-
-  // Filters
-  const [activeStatus] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
 
-  // const totalPages = Math.ceil(totalCount / pageSize);
-
-  // DRAG TO SCROLL LOGIC
   const scrollRef = useRef(null);
   const isDown = useRef(false);
   const startX = useRef(0);
   const scrollLeft = useRef(0);
-
-  const handleMouseDown = (e) => {
-    isDown.current = true;
-    scrollRef.current.classList.add("active");
-    startX.current = e.pageX - scrollRef.current.offsetLeft;
-    scrollLeft.current = scrollRef.current.scrollLeft;
-  };
-  const handleMouseLeave = () => {
-    isDown.current = false;
-    scrollRef.current.classList.remove("active");
-  };
-  const handleMouseUp = () => {
-    isDown.current = false;
-    scrollRef.current.classList.remove("active");
-  };
-  const handleMouseMove = (e) => {
-    if (!isDown.current) return;
-    e.preventDefault();
-    const x = e.pageX - scrollRef.current.offsetLeft;
-    const walk = (x - startX.current) * 2;
-    scrollRef.current.scrollLeft = scrollLeft.current - walk;
-  };
-  const scroll = (direction) => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollBy({
-        left: direction === "left" ? -300 : 300,
-        behavior: "smooth",
-      });
-    }
-  };
+  const handleMouseDown = (e) => { isDown.current = true; scrollRef.current.classList.add("active"); startX.current = e.pageX - scrollRef.current.offsetLeft; scrollLeft.current = scrollRef.current.scrollLeft; };
+  const handleMouseLeave = () => { isDown.current = false; scrollRef.current.classList.remove("active"); };
+  const handleMouseUp = () => { isDown.current = false; scrollRef.current.classList.remove("active"); };
+  const handleMouseMove = (e) => { if (!isDown.current) return; e.preventDefault(); const x = e.pageX - scrollRef.current.offsetLeft; const walk = (x - startX.current) * 2; scrollRef.current.scrollLeft = scrollLeft.current - walk; };
+  const scroll = (direction) => { if (scrollRef.current) scrollRef.current.scrollBy({ left: direction === "left" ? -300 : 300, behavior: "smooth" }); };
 
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
-        const [aucRes, catRes] = await Promise.all([
-          getAuctions({
-            page,
-            pageSize,
-            search: searchTerm,
-            filter: activeStatus,
-            categoryId: selectedCategory ? Number(selectedCategory) : undefined,
-          }),
-          getCategories(),
-        ]);
-
+        const params = {};
+        if (searchTerm.trim()) params.search = searchTerm.trim();
+        if (selectedCategory) params.categoryId = Number(selectedCategory);
+        const [homeRes, catRes] = await Promise.all([getHomeAuctions(params), getCategories()]);
         if (!mounted) return;
-
-        setAuctions(aucRes.data.data?.items || []);
-        setTotalCount(aucRes.data.data?.totalCount || 0);
+        const home = homeRes.data.data || {};
+        setBannerAuction(home.banner || null);
+        setActiveAuctions(home.active || []);
+        setUpcomingAuctions(home.upcoming || []);
         setCategories(catRes.data.data || []);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        if (mounted) setLoading(false);
-      }
+      } catch (err) { console.error(err); }
+      finally { if (mounted) setLoading(false); }
     })();
-    return () => {
-      mounted = false;
-    };
-  }, [page, pageSize, searchTerm, selectedCategory, activeStatus]);
+    return () => { mounted = false; };
+  }, [searchTerm, selectedCategory]);
 
-  // Compute effective status for the grid arrays
   const getEffectiveStatus = (a) => {
-    const endMs = parseUtc(a.endTime);
-    const startMs = parseUtc(a.startTime);
-    const isTimeUp = endMs > 0 && endMs <= now;
-    const hasStarted = startMs > 0 && startMs <= now;
-
+    if (!a) return "";
+    const endMs = parseUtc(a.endTime), startMs = parseUtc(a.startTime);
+    const isTimeUp = endMs > 0 && endMs <= now, hasStarted = startMs > 0 && startMs <= now;
     if (a.status === "Active" && isTimeUp) return "Completed";
     if (a.status === "Upcoming" && isTimeUp) return "Completed";
     if (a.status === "Upcoming" && hasStarted && !isTimeUp) return "Active";
     return a.status;
   };
 
-  const activeAuctions = auctions.filter(
-    (a) => getEffectiveStatus(a) === "Active",
-  );
-  const upcomingAuctions = auctions.filter(
-    (a) => getEffectiveStatus(a) === "Upcoming",
-  );
-
-  // Hero banner — prioritize Active, then Upcoming, and avoid Ended ones.
-  const heroAuction =
-    auctions.find((a) => {
-      const status = getEffectiveStatus(a);
-      return status === "Active" || status === "Upcoming";
-    }) ||
-    auctions[0] ||
-    null;
-
-  const heroEffectiveStatus = heroAuction
-    ? getEffectiveStatus(heroAuction)
-    : "";
-
-  // Grids use the split sets, excluding the hero so it isn't duplicated.
-  const activeGrid = activeAuctions
-    .filter((a) => a.id !== heroAuction?.id)
-    .slice(0, 3);
-  const upcomingGrid = upcomingAuctions
-    .filter((a) => a.id !== heroAuction?.id)
-    .slice(0, 3);
+  const heroAuction = bannerAuction;
+  const heroEffectiveStatus = heroAuction ? getEffectiveStatus(heroAuction) : "";
+  const activeGrid = activeAuctions.slice(0, 8);
+  const upcomingGrid = upcomingAuctions.slice(0, 8);
 
   if (loading) {
     return <AuctionLoader />;
@@ -466,7 +395,7 @@ export default function Home() {
               </p>
             </div>
             <Link
-              to="/auctions" // Fixed from /auction
+              to="/auctions"
               className="text-sm font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1 mt-2 sm:mt-0"
             >
               View all <ArrowRight className="w-4 h-4" />
@@ -486,7 +415,7 @@ export default function Home() {
                 auctions.
               </p>
               <Link
-                to="/auctions" // Fixed from /auction
+                to="/auctions"
                 className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition-colors"
               >
                 Browse All Auctions
