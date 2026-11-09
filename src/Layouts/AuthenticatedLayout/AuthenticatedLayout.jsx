@@ -41,9 +41,10 @@ function AuthenticatedLayout() {
         const userRes = await getCurrentUser();
         setUserData(userRes.data);
 
-        const currentRole = userRes.data?.account?.roles?.[0];
+        const currentRoles = userRes.data?.account?.roles || [];
+        const isStaffUser = currentRoles.includes("Admin") || currentRoles.some((r) => r !== "Buyer" && r !== "Seller");
 
-        if (currentRole !== "Admin") {
+        if (!isStaffUser) {
           try {
             const walletRes = await authApi.get("/wallet/me", getAuthConfig());
             console.log(walletRes);
@@ -380,7 +381,7 @@ function AuthenticatedLayout() {
             <span className="hidden md:block text-xs text-gray-400">
               {currentDate}
             </span>
-            {role !== "Admin" && (
+            {!isStaff && (
               <Link
                 to="/wallet"
                 className="flex items-center gap-2 bg-blue-50 border border-blue-200 px-2.5 sm:px-3 py-1.5 rounded-lg hover:bg-blue-100 transition-colors cursor-pointer"

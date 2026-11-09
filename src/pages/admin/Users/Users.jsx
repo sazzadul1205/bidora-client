@@ -6,6 +6,7 @@ import {
   getUserRoleCounts,
   lockUser,
   editUser,
+  resetUserPassword,
   createAdmin,
 } from "../../../services/adminApi";
 import {
@@ -20,7 +21,10 @@ import {
   Eye,
   Lock,
   Pencil,
+  KeyRound,
 } from "lucide-react";
+import { Tooltip } from "react-tooltip";
+import "react-tooltip/dist/react-tooltip.css";
 import { toast } from "../../../utils/toast";
 import { SkeletonRow, Skeleton } from "../../../components/Skeleton";
 import Pagination from "../../../components/Pagination/Pagination";
@@ -29,6 +33,7 @@ import UserDetailsModal from "./UserDetailsModal/UserDetailsModal";
 import ManageLockModal from "./ManageLockModal/ManageLockModal";
 import CreateAdminModal from "./CreateAdminModal/CreateAdminModal";
 import EditUserModal from "./EditUserModal/EditUserModal";
+import ResetPasswordModal from "./ResetPasswordModal/ResetPasswordModal";
 
 export default function Users() {
   const [users, setUsers] = useState([]);
@@ -48,7 +53,7 @@ export default function Users() {
 
   // Global role counts
   const [roleCounts, setRoleCounts] = useState({
-    admin: 0,
+    staff: 0,
     seller: 0,
     buyer: 0,
   });
@@ -57,13 +62,14 @@ export default function Users() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [viewDetailsTarget, setViewDetailsTarget] = useState(null);
   const [editTarget, setEditTarget] = useState(null);
+  const [resetTarget, setResetTarget] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [initialLockAction, setInitialLockAction] = useState("unlock");
   const [submitting, setSubmitting] = useState(false);
 
-  // Global total users = sum of the three role counts.
+  // Global total users = staff (Admin + other roles) + sellers + buyers.
   const globalTotalUsers =
-    roleCounts.admin + roleCounts.seller + roleCounts.buyer;
+    roleCounts.staff + roleCounts.seller + roleCounts.buyer;
 
   // Debounce the search box → 300ms
   useEffect(() => {
@@ -112,7 +118,7 @@ export default function Users() {
         if (cancelled) return;
         const data = res.data.data || {};
         setRoleCounts({
-          admin: data.admin ?? 0,
+          staff: data.staff ?? data.admin ?? 0,
           seller: data.seller ?? 0,
           buyer: data.buyer ?? 0,
         });
@@ -133,7 +139,7 @@ export default function Users() {
       const res = await getUserRoleCounts();
       const data = res.data.data || {};
       setRoleCounts({
-        admin: data.admin ?? 0,
+        staff: data.staff ?? data.admin ?? 0,
         seller: data.seller ?? 0,
         buyer: data.buyer ?? 0,
       });
@@ -240,6 +246,20 @@ export default function Users() {
       await refreshUsers();
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to update user.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const onResetPassword = async (data) => {
+    if (!resetTarget) return;
+    setSubmitting(true);
+    try {
+      await resetUserPassword(resetTarget.userId, data);
+      toast.success("Password reset successfully.");
+      setResetTarget(null);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to reset password.");
     } finally {
       setSubmitting(false);
     }
@@ -373,9 +393,9 @@ export default function Users() {
               <Shield className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-500">Admins</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {roleCounts.admin}
+              <p className="text-sm font-medium text-gray-500">Staff</p>
+              <p className="text-2xl font-bold text-purple-600 mt-1">
+                {roleCounts.staff}
               </p>
             </div>
           </div>
@@ -433,6 +453,7 @@ export default function Users() {
                 ) : (
                   users.map((u) => {
                     const lockInfo = getLockInfo(u);
+                    const isBuyerSeller = ["Buyer", "Seller"].includes(u.roles?.[0]);
                     return (
                       <tr
                         key={u.userId}
@@ -526,18 +547,33 @@ export default function Users() {
                           <div className="flex items-center justify-end gap-2">
                             <button
                               onClick={() => setViewDetailsTarget(u)}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors"
-                              title="View Details"
+                              className="inline-flex items-center justify-center p-2 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors"
+                              data-tooltip-id="user-actions"
+                              data-tooltip-content="View details"
+                              aria-label="View details"
                             >
-                              <Eye className="w-3.5 h-3.5" /> View
+                              <Eye className="w-4 h-4" />
                             </button>
                             {!["Seller", "Buyer"].includes(u.roles?.[0]) && (
                               <button
                                 onClick={() => setEditTarget(u)}
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-700 bg-white hover:bg-gray-50 border border-gray-300 rounded-lg transition-colors"
-                                title="Edit User"
+                                className="inline-flex items-center justify-center p-2 text-xs font-semibold text-gray-700 bg-white hover:bg-gray-50 border border-gray-300 rounded-lg transition-colors"
+                                data-tooltip-id="user-actions"
+                                data-tooltip-content="Edit user"
+                                aria-label="Edit user"
                               >
-                                <Pencil className="w-3.5 h-3.5" /> Edit
+                                <Pencil className="w-4 h-4" />
+                              </button>
+                            )}
+                            {!isBuyerSeller && (
+                              <button
+                                onClick={() => setResetTarget(u)}
+                                className="inline-flex items-center justify-center p-2 text-xs font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg transition-colors"
+                                data-tooltip-id="user-actions"
+                                data-tooltip-content="Reset password"
+                                aria-label="Reset password"
+                              >
+                                <KeyRound className="w-4 h-4" />
                               </button>
                             )}
                             <button
@@ -549,13 +585,16 @@ export default function Users() {
                                   setInitialLockAction("temporary");
                                 else setInitialLockAction("unlock");
                               }}
-                              className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold border rounded-lg transition-colors ${
+                              className={`inline-flex items-center justify-center p-2 text-xs font-semibold border rounded-lg transition-colors ${
                                 lockInfo
                                   ? "text-red-700 bg-red-50 hover:bg-red-100 border-red-200"
                                   : "text-gray-700 bg-white hover:bg-gray-50 border-gray-300"
                               }`}
+                              data-tooltip-id="user-actions"
+                              data-tooltip-content="Manage access"
+                              aria-label="Manage access"
                             >
-                              <Lock className="w-3.5 h-3.5" /> Manage Access
+                              <Lock className="w-4 h-4" />
                             </button>
                           </div>
                         </td>
@@ -608,6 +647,16 @@ export default function Users() {
             onSubmit={onEditSubmit}
           />
         )}
+
+        {resetTarget && (
+          <ResetPasswordModal
+            key={resetTarget.userId}
+            target={resetTarget}
+            onClose={() => setResetTarget(null)}
+            onSubmit={onResetPassword}
+          />
+        )}
+        <Tooltip id="user-actions" place="top" />
       </div>
     </>
   );

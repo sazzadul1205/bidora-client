@@ -16,6 +16,8 @@ export const createAdmin = (data) =>
 
 export const editUser = (id, data) =>
   authApi.put(`/admin/user/${id}`, data, getAuthConfig());
+export const resetUserPassword = (id, data) =>
+  authApi.put(`/admin/user/${id}/reset-password`, data, getAuthConfig());
 export const lockUser = (id, data) =>
   authApi.put(`/admin/user/${id}/lock`, data, getAuthConfig());
 
@@ -91,6 +93,7 @@ export default {
   getUserRoleCounts,
   createAdmin,
   editUser,
+  resetUserPassword,
   lockUser,
   getPendingProducts,
   getPendingProductById,
