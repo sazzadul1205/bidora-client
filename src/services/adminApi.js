@@ -8,12 +8,14 @@ export const getAdminDashboard = () =>
 export const getUsers = (params = {}) =>
   authApi.get("/admin/user", { ...getAuthConfig(), params });
 
-// global per-role user counts (Admin / Seller / Buyer)
 export const getUserRoleCounts = () =>
   authApi.get("/admin/user/role-counts", getAuthConfig());
 
 export const createAdmin = (data) =>
   authApi.post("/admin/create-admin", data, getAuthConfig());
+
+export const editUser = (id, data) =>
+  authApi.put(`/admin/user/${id}`, data, getAuthConfig());
 export const lockUser = (id, data) =>
   authApi.put(`/admin/user/${id}/lock`, data, getAuthConfig());
 
@@ -58,11 +60,22 @@ export const getAllSales = (params = {}) =>
   authApi.get("/sale", { ...getAuthConfig(), params });
 
 // Disputes
-export const getAllDisputes = (params = {}) => authApi.get("/dispute", { ...getAuthConfig(), params });
+export const getAllDisputes = (params = {}) =>
+  authApi.get("/dispute", { ...getAuthConfig(), params });
 export const startDisputeReview = (id) =>
   authApi.post(`/admin/disputes/${id}/start-review`, {}, getAuthConfig());
 export const resolveDispute = (id, data) =>
   authApi.put(`/dispute/${id}/resolve`, data, getAuthConfig());
+
+// Roles — list / create / rename / delete
+export const getRoles = () =>
+  authApi.get("/admin/roles", getAuthConfig());
+export const createRole = (data) =>
+  authApi.post("/admin/roles", data, getAuthConfig());
+export const updateRole = (id, data) =>
+  authApi.put(`/admin/roles/${id}`, data, getAuthConfig());
+export const deleteRole = (id) =>
+  authApi.delete(`/admin/roles/${id}`, getAuthConfig());
 
 // Platform Wallet & Financial Ledger
 export const getPlatformWallet = (params = {}) =>
@@ -77,6 +90,7 @@ export default {
   getUsers,
   getUserRoleCounts,
   createAdmin,
+  editUser,
   lockUser,
   getPendingProducts,
   getPendingProductById,
@@ -95,6 +109,10 @@ export default {
   getAllDisputes,
   startDisputeReview,
   resolveDispute,
+  getRoles,
+  createRole,
+  updateRole,
+  deleteRole,
   getPlatformWallet,
   getAllTransactions,
   getAllReservations,

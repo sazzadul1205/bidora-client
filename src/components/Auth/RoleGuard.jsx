@@ -4,7 +4,7 @@ import { getCurrentUser } from "../../services/authApi";
 
 // Blocks users whose role doesn't match what the route allows.
 // Can be used as a wrapper (<RoleGuard>...</RoleGuard>) or as a layout route.
-export default function RoleGuard({ allowedRoles = [], children }) {
+export default function RoleGuard({ allowedRoles = [], allowStaff = false, children }) {
   const [loading, setLoading] = useState(true);
   const [authorized, setAuthorized] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -24,7 +24,10 @@ export default function RoleGuard({ allowedRoles = [], children }) {
         const user = res.data;
         const roles = user?.account?.roles || user?.roles || [];
         setIsLoggedIn(true);
-        const hasAccess = Array.isArray(roles) && roles.some((r) => allowedRoles.includes(r));
+        const roleList = Array.isArray(roles) ? roles : [];
+        const hasAccess =
+          roleList.some((r) => allowedRoles.includes(r)) ||
+          (allowStaff && roleList.some((r) => r === "Admin" || !["Buyer", "Seller"].includes(r)));
         setAuthorized(hasAccess);
       } catch (err) {
         console.error("Role check failed:", err);
@@ -36,7 +39,7 @@ export default function RoleGuard({ allowedRoles = [], children }) {
     };
 
     checkRole();
-  }, [allowedRoles]);
+  }, [allowedRoles, allowStaff]);
 
   if (loading) {
     return (

@@ -18,6 +18,7 @@ import {
   Activity,
   Menu,
   X,
+  Shield,
 } from "lucide-react";
 import authApi, {
   logout,
@@ -46,7 +47,7 @@ function AuthenticatedLayout() {
           try {
             const walletRes = await authApi.get("/wallet/me", getAuthConfig());
             console.log(walletRes);
-            
+
             setBalance(Math.max(0, walletRes.data.data.availableBalance || 0));
           } catch (walletErr) {
             console.warn(
@@ -82,15 +83,18 @@ function AuthenticatedLayout() {
     return <AuctionLoader />;
   }
 
-  const role = userData?.account?.roles?.[0] || "User";
+  const roles = userData?.account?.roles || [];
+  const role = roles[0] || "User";
+  const isStaff = roles.includes("Admin") || roles.some((r) => r !== "Buyer" && r !== "Seller");
+  const isBuyer = roles.includes("Buyer");
+  const isSeller = roles.includes("Seller");
   const currentDate = formatDateTime(new Date()) + " (Local)";
 
-  const dashboardLink =
-    role === "Admin"
-      ? "/admin/dashboard"
-      : role === "Seller"
-        ? "/seller/dashboard"
-        : "/buyer/dashboard";
+  const dashboardLink = isStaff
+    ? "/admin/dashboard"
+    : isSeller
+      ? "/seller/dashboard"
+      : "/buyer/dashboard";
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
@@ -164,7 +168,7 @@ function AuthenticatedLayout() {
                   <LayoutDashboard className="w-4 h-4" /> Dashboard
                 </NavLink>
 
-                {role === "Buyer" && (
+                {isBuyer && !isStaff && (
                   <>
                     <NavLink
                       to="/buyer/bids"
@@ -190,7 +194,7 @@ function AuthenticatedLayout() {
                   </>
                 )}
 
-                {role === "Seller" && (
+                {isSeller && !isStaff && (
                   <>
                     <NavLink
                       to="/seller/products"
@@ -216,7 +220,7 @@ function AuthenticatedLayout() {
                   </>
                 )}
 
-                {role === "Admin" && (
+                {isStaff && (
                   <>
                     <div className="mt-3">
                       <p className="px-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
@@ -280,6 +284,13 @@ function AuthenticatedLayout() {
                           onClick={() => setSidebarOpen(false)}
                         >
                           <LayoutDashboard className="w-4 h-4" /> Categories
+                        </NavLink>
+                        <NavLink
+                          to="/admin/roles"
+                          className={navLinkClass}
+                          onClick={() => setSidebarOpen(false)}
+                        >
+                          <Shield className="w-4 h-4" /> Roles
                         </NavLink>
                         <NavLink
                           to="/admin/wallet"

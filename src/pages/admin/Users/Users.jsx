@@ -1,12 +1,11 @@
 import PageTitle from "../../../components/PageTitle";
 import { useEffect, useState } from "react";
-import {
-  formatCurrency as formatMoney,
-} from "../../../utils/currency";
+import { formatCurrency as formatMoney } from "../../../utils/currency";
 import {
   getUsers,
   getUserRoleCounts,
   lockUser,
+  editUser,
   createAdmin,
 } from "../../../services/adminApi";
 import {
@@ -20,6 +19,7 @@ import {
   UserPlus,
   Eye,
   Lock,
+  Pencil,
 } from "lucide-react";
 import { toast } from "../../../utils/toast";
 import { SkeletonRow, Skeleton } from "../../../components/Skeleton";
@@ -28,6 +28,7 @@ import Pagination from "../../../components/Pagination/Pagination";
 import UserDetailsModal from "./UserDetailsModal/UserDetailsModal";
 import ManageLockModal from "./ManageLockModal/ManageLockModal";
 import CreateAdminModal from "./CreateAdminModal/CreateAdminModal";
+import EditUserModal from "./EditUserModal/EditUserModal";
 
 export default function Users() {
   const [users, setUsers] = useState([]);
@@ -55,6 +56,7 @@ export default function Users() {
   // Modals
   const [selectedUser, setSelectedUser] = useState(null);
   const [viewDetailsTarget, setViewDetailsTarget] = useState(null);
+  const [editTarget, setEditTarget] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [initialLockAction, setInitialLockAction] = useState("unlock");
   const [submitting, setSubmitting] = useState(false);
@@ -143,13 +145,11 @@ export default function Users() {
   // Pagination handlers
   const goToPage = (p) => {
     if (p === page) return;
-    setLoading(true);
     setPage(p);
   };
 
   const changePageSize = (s) => {
     if (s === pageSize) return;
-    setLoading(true);
     setPageSize(s);
     setPage(1);
   };
@@ -158,14 +158,12 @@ export default function Users() {
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
     setPage(1);
-    setLoading(true);
   };
 
   // Role filter: same reset pattern.
   const handleRoleChange = (e) => {
     setRoleFilter(e.target.value);
     setPage(1);
-    setLoading(true);
   };
 
   // Manual refresh for the table (used after lock / create-admin).
@@ -223,19 +221,27 @@ export default function Users() {
       await createAdmin(data);
       toast.success("Admin account created successfully!");
       setShowCreateModal(false);
-
-      // New admin added → role counts changed, refresh them.
       await fetchRoleCounts();
-
-      // Jump to first page so the new admin is visible at the top of the list.
-      if (page === 1) {
-        await refreshUsers({ page: 1, pageSize });
-      } else {
-        setLoading(true);
-        setPage(1);
-      }
+      if (page === 1) await refreshUsers({ page: 1, pageSize });
+      else { setLoading(true); setPage(1); }
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to create admin.");
+    }
+  };
+
+  const onEditSubmit = async (data) => {
+    if (!editTarget) return;
+    setSubmitting(true);
+    try {
+      await editUser(editTarget.userId, data);
+      toast.success("User updated successfully.");
+      setEditTarget(null);
+      await fetchRoleCounts();
+      await refreshUsers();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to update user.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -307,280 +313,302 @@ export default function Users() {
   return (
     <>
       <PageTitle title="Users" />
-    <div className="max-w-7xl mx-auto">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Manage user accounts, roles, wallets, and security settings.
-          </p>
-        </div>
-
-        <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
-          <select
-            value={roleFilter}
-            onChange={handleRoleChange}
-            className="w-full sm:w-32 px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-          >
-            <option value="All">All Roles</option>
-            <option value="Admin">Admin</option>
-            <option value="Seller">Seller</option>
-            <option value="Buyer">Buyer</option>
-          </select>
-
-          <div className="relative w-full sm:w-72">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search all users..."
-              value={searchTerm}
-              onChange={handleSearch}
-              className="w-full pl-9 pr-4 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-            />
-          </div>
-
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="inline-flex items-center justify-center gap-2 bg-gray-900 hover:bg-black text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors shadow-sm shrink-0 w-full sm:w-auto"
-          >
-            <UserPlus className="w-4 h-4" /> Add Admin
-          </button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
-          <div className="p-3 bg-blue-50 text-blue-600 rounded-lg shrink-0">
-            <UsersIcon className="w-6 h-6" />
-          </div>
+      <div className="max-w-7xl mx-auto">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
-            <p className="text-sm font-medium text-gray-500">Total Users</p>
-            <p className="text-2xl font-bold text-gray-900">
-              {globalTotalUsers}
+            <h1 className="text-2xl font-bold text-gray-900">
+              User Management
+            </h1>
+            <p className="text-sm text-gray-500 mt-1">
+              Manage user accounts, roles, wallets, and security settings.
             </p>
           </div>
-        </div>
-        <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
-          <div className="p-3 bg-purple-50 text-purple-600 rounded-lg shrink-0">
-            <Shield className="w-6 h-6" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-gray-500">Admins</p>
-            <p className="text-2xl font-bold text-gray-900">
-              {roleCounts.admin}
-            </p>
-          </div>
-        </div>
-        <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
-          <div className="p-3 bg-orange-50 text-orange-600 rounded-lg shrink-0">
-            <Store className="w-6 h-6" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-gray-500">Sellers</p>
-            <p className="text-2xl font-bold text-gray-900">
-              {roleCounts.seller}
-            </p>
-          </div>
-        </div>
-        <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
-          <div className="p-3 bg-green-50 text-green-600 rounded-lg shrink-0">
-            <ShoppingBag className="w-6 h-6" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-gray-500">Buyers</p>
-            <p className="text-2xl font-bold text-gray-900">
-              {roleCounts.buyer}
-            </p>
-          </div>
-        </div>
-      </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-gray-600 min-w-225">
-            <thead className="bg-gray-50 border-b border-gray-200 text-gray-900">
-              <tr>
-                <th className="px-6 py-4 font-medium w-[25%]">User</th>
-                <th className="px-6 py-4 font-medium">Role</th>
-                <th className="px-6 py-4 font-medium">Wallet Balance</th>
-                <th className="px-6 py-4 font-medium">Location</th>
-                <th className="px-6 py-4 font-medium text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {users.length === 0 ? (
+          <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+            <select
+              value={roleFilter}
+              onChange={handleRoleChange}
+              className="w-full sm:w-32 px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+            >
+              <option value="All">All Roles</option>
+              <option value="Admin">Admin</option>
+              <option value="Seller">Seller</option>
+              <option value="Buyer">Buyer</option>
+            </select>
+
+            <div className="relative w-full sm:w-72">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search all users..."
+                value={searchTerm}
+                onChange={handleSearch}
+                className="w-full pl-9 pr-4 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              />
+            </div>
+
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="inline-flex items-center justify-center gap-2 bg-gray-900 hover:bg-black text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors shadow-sm shrink-0 w-full sm:w-auto"
+            >
+              <UserPlus className="w-4 h-4" /> Add Admin
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
+            <div className="p-3 bg-blue-50 text-blue-600 rounded-lg shrink-0">
+              <UsersIcon className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500">Total Users</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {globalTotalUsers}
+              </p>
+            </div>
+          </div>
+          <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
+            <div className="p-3 bg-purple-50 text-purple-600 rounded-lg shrink-0">
+              <Shield className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500">Admins</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {roleCounts.admin}
+              </p>
+            </div>
+          </div>
+          <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
+            <div className="p-3 bg-orange-50 text-orange-600 rounded-lg shrink-0">
+              <Store className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500">Sellers</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {roleCounts.seller}
+              </p>
+            </div>
+          </div>
+          <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
+            <div className="p-3 bg-green-50 text-green-600 rounded-lg shrink-0">
+              <ShoppingBag className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500">Buyers</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {roleCounts.buyer}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm text-gray-600 min-w-225">
+              <thead className="bg-gray-50 border-b border-gray-200 text-gray-900">
                 <tr>
-                  <td colSpan="5" className="text-center py-16">
-                    <UsersIcon className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                    <p className="text-gray-500 font-medium">No users found.</p>
-                    <p className="text-gray-400 text-xs mt-1">
-                      {debouncedSearch || roleFilter !== "All"
-                        ? "Try adjusting your search or filter."
-                        : "This page is empty."}
-                    </p>
-                  </td>
+                  <th className="px-6 py-4 font-medium w-[25%]">User</th>
+                  <th className="px-6 py-4 font-medium">Role</th>
+                  <th className="px-6 py-4 font-medium">Wallet Balance</th>
+                  <th className="px-6 py-4 font-medium">Location</th>
+                  <th className="px-6 py-4 font-medium text-right">Actions</th>
                 </tr>
-              ) : (
-                users.map((u) => {
-                  const lockInfo = getLockInfo(u);
-                  return (
-                    <tr
-                      key={u.userId}
-                      className={`transition-colors ${
-                        lockInfo
-                          ? "bg-red-50/40 hover:bg-red-50/60 border-l-4 border-l-red-500"
-                          : "hover:bg-gray-50/80 border-l-4 border-l-transparent"
-                      }`}
-                    >
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="relative shrink-0">
-                            <div
-                              className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs shadow-sm border ${
-                                lockInfo
-                                  ? "bg-linear-to-br from-red-100 to-red-200 text-red-700 border-red-300"
-                                  : "bg-linear-to-br from-blue-100 to-blue-200 text-blue-700 border-blue-200"
-                              }`}
-                            >
-                              {getInitials(u.profile?.fullName)}
-                            </div>
-                            {lockInfo && (
-                              <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-red-600 text-white flex items-center justify-center border-2 border-white shadow">
-                                <Lock className="w-2.5 h-2.5" />
-                              </span>
-                            )}
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <p className="font-semibold text-gray-900">
-                                {u.profile?.fullName || "Unnamed User"}
-                              </p>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {users.length === 0 ? (
+                  <tr>
+                    <td colSpan="5" className="text-center py-16">
+                      <UsersIcon className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                      <p className="text-gray-500 font-medium">
+                        No users found.
+                      </p>
+                      <p className="text-gray-400 text-xs mt-1">
+                        {debouncedSearch || roleFilter !== "All"
+                          ? "Try adjusting your search or filter."
+                          : "This page is empty."}
+                      </p>
+                    </td>
+                  </tr>
+                ) : (
+                  users.map((u) => {
+                    const lockInfo = getLockInfo(u);
+                    return (
+                      <tr
+                        key={u.userId}
+                        className={`transition-colors ${
+                          lockInfo
+                            ? "bg-red-50/40 hover:bg-red-50/60 border-l-4 border-l-red-500"
+                            : "hover:bg-gray-50/80 border-l-4 border-l-transparent"
+                        }`}
+                      >
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="relative shrink-0">
+                              <div
+                                className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs shadow-sm border ${
+                                  lockInfo
+                                    ? "bg-linear-to-br from-red-100 to-red-200 text-red-700 border-red-300"
+                                    : "bg-linear-to-br from-blue-100 to-blue-200 text-blue-700 border-blue-200"
+                                }`}
+                              >
+                                {getInitials(u.profile?.fullName)}
+                              </div>
                               {lockInfo && (
-                                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-red-700 bg-red-100 border border-red-300 px-1.5 py-0.5 rounded">
-                                  <Lock className="w-2.5 h-2.5" />{" "}
-                                  {lockInfo.isPermanent ? "Banned" : "Locked"}
+                                <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-red-600 text-white flex items-center justify-center border-2 border-white shadow">
+                                  <Lock className="w-2.5 h-2.5" />
                                 </span>
                               )}
                             </div>
-                            <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
-                              <Mail className="w-3 h-3" /> {u.email}
-                            </p>
+                            <div>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <p className="font-semibold text-gray-900">
+                                  {u.profile?.fullName || "Unnamed User"}
+                                </p>
+                                {lockInfo && (
+                                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-red-700 bg-red-100 border border-red-300 px-1.5 py-0.5 rounded">
+                                    <Lock className="w-2.5 h-2.5" />{" "}
+                                    {lockInfo.isPermanent ? "Banned" : "Locked"}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
+                                <Mail className="w-3 h-3" /> {u.email}
+                              </p>
+                            </div>
                           </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold border ${
-                            u.roles?.[0] === "Admin"
-                              ? "bg-purple-50 text-purple-700 border-purple-200"
-                              : u.roles?.[0] === "Seller"
-                                ? "bg-orange-50 text-orange-700 border-orange-200"
-                                : "bg-blue-50 text-blue-700 border-blue-200"
-                          }`}
-                        >
-                          {u.roles?.[0] === "Admin" && (
-                            <Shield className="w-3.5 h-3.5" />
-                          )}
-                          {u.roles?.[0] === "Seller" && (
-                            <Store className="w-3.5 h-3.5" />
-                          )}
-                          {u.roles?.[0] === "Buyer" && (
-                            <ShoppingBag className="w-3.5 h-3.5" />
-                          )}
-                          {u.roles?.[0] || "Buyer"}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        {u.wallet ? (
-                          <div>
-                            <p className="font-bold text-gray-900">
-                              {formatMoney(u.wallet.availableBalance)}
-                            </p>
-                            <p className="text-[11px] text-gray-500 mt-0.5">
-                              Res: {formatMoney(u.wallet.reservedBalance)}
-                            </p>
-                          </div>
-                        ) : (
-                          <span className="text-xs text-gray-400 italic">
-                            No Wallet
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="text-sm text-gray-700 flex items-center gap-1.5">
-                          <MapPin className="w-3.5 h-3.5 text-gray-400" />{" "}
-                          {u.profile?.city || "—"}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => setViewDetailsTarget(u)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors"
-                            title="View Details"
-                          >
-                            <Eye className="w-3.5 h-3.5" /> View
-                          </button>
-                          <button
-                            onClick={() => {
-                              setSelectedUser(u);
-                              if (lockInfo?.isPermanent)
-                                setInitialLockAction("permanent");
-                              else if (lockInfo)
-                                setInitialLockAction("temporary");
-                              else setInitialLockAction("unlock");
-                            }}
-                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold border rounded-lg transition-colors ${
-                              lockInfo
-                                ? "text-red-700 bg-red-50 hover:bg-red-100 border-red-200"
-                                : "text-gray-700 bg-white hover:bg-gray-50 border-gray-300"
+                        </td>
+                        <td className="px-6 py-4">
+                          <span
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold border ${
+                              u.roles?.[0] === "Admin"
+                                ? "bg-purple-50 text-purple-700 border-purple-200"
+                                : u.roles?.[0] === "Seller"
+                                  ? "bg-orange-50 text-orange-700 border-orange-200"
+                                  : "bg-blue-50 text-blue-700 border-blue-200"
                             }`}
                           >
-                            <Lock className="w-3.5 h-3.5" /> Manage Access
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
+                            {u.roles?.[0] === "Admin" && (
+                              <Shield className="w-3.5 h-3.5" />
+                            )}
+                            {u.roles?.[0] === "Seller" && (
+                              <Store className="w-3.5 h-3.5" />
+                            )}
+                            {u.roles?.[0] === "Buyer" && (
+                              <ShoppingBag className="w-3.5 h-3.5" />
+                            )}
+                            {u.roles?.[0] || "Buyer"}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          {u.wallet ? (
+                            <div>
+                              <p className="font-bold text-gray-900">
+                                {formatMoney(u.wallet.availableBalance)}
+                              </p>
+                              <p className="text-[11px] text-gray-500 mt-0.5">
+                                Res: {formatMoney(u.wallet.reservedBalance)}
+                              </p>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-gray-400 italic">
+                              No Wallet
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="text-sm text-gray-700 flex items-center gap-1.5">
+                            <MapPin className="w-3.5 h-3.5 text-gray-400" />{" "}
+                            {u.profile?.city || "—"}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => setViewDetailsTarget(u)}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors"
+                              title="View Details"
+                            >
+                              <Eye className="w-3.5 h-3.5" /> View
+                            </button>
+                            {!["Seller", "Buyer"].includes(u.roles?.[0]) && (
+                              <button
+                                onClick={() => setEditTarget(u)}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-700 bg-white hover:bg-gray-50 border border-gray-300 rounded-lg transition-colors"
+                                title="Edit User"
+                              >
+                                <Pencil className="w-3.5 h-3.5" /> Edit
+                              </button>
+                            )}
+                            <button
+                              onClick={() => {
+                                setSelectedUser(u);
+                                if (lockInfo?.isPermanent)
+                                  setInitialLockAction("permanent");
+                                else if (lockInfo)
+                                  setInitialLockAction("temporary");
+                                else setInitialLockAction("unlock");
+                              }}
+                              className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold border rounded-lg transition-colors ${
+                                lockInfo
+                                  ? "text-red-700 bg-red-50 hover:bg-red-100 border-red-200"
+                                  : "text-gray-700 bg-white hover:bg-gray-50 border-gray-300"
+                              }`}
+                            >
+                              <Lock className="w-3.5 h-3.5" /> Manage Access
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          <Pagination
+            page={page}
+            pageSize={pageSize}
+            totalCount={totalCount}
+            onPageChange={goToPage}
+            onPageSizeChange={changePageSize}
+          />
         </div>
 
-        <Pagination
-          page={page}
-          pageSize={pageSize}
-          totalCount={totalCount}
-          onPageChange={goToPage}
-          onPageSizeChange={changePageSize}
+        <UserDetailsModal
+          target={viewDetailsTarget}
+          onClose={() => setViewDetailsTarget(null)}
+          getLockInfo={getLockInfo}
+          getInitials={getInitials}
+          formatMoney={formatMoney}
         />
+
+        <ManageLockModal
+          selectedUser={selectedUser}
+          onClose={() => setSelectedUser(null)}
+          onSubmit={onLockSubmit}
+          submitting={submitting}
+          getLockInfo={getLockInfo}
+          initialAction={initialLockAction}
+        />
+
+        {showCreateModal && (
+          <CreateAdminModal
+            onClose={() => setShowCreateModal(false)}
+            onSubmit={onCreateAdminSubmit}
+          />
+        )}
+
+        {editTarget && (
+          <EditUserModal
+            key={editTarget.userId}
+            target={editTarget}
+            onClose={() => setEditTarget(null)}
+            onSubmit={onEditSubmit}
+          />
+        )}
       </div>
-
-      <UserDetailsModal
-        target={viewDetailsTarget}
-        onClose={() => setViewDetailsTarget(null)}
-        getLockInfo={getLockInfo}
-        getInitials={getInitials}
-        formatMoney={formatMoney}
-      />
-
-      <ManageLockModal
-        selectedUser={selectedUser}
-        onClose={() => setSelectedUser(null)}
-        onSubmit={onLockSubmit}
-        submitting={submitting}
-        getLockInfo={getLockInfo}
-        initialAction={initialLockAction}
-      />
-
-      {showCreateModal && (
-        <CreateAdminModal
-          onClose={() => setShowCreateModal(false)}
-          onSubmit={onCreateAdminSubmit}
-        />
-      )}
-    </div>
     </>
   );
 }

@@ -41,6 +41,7 @@ import Wallet from "./pages/Wallet/Wallet";
 import Settings from "./pages/Auth/Settings/Settings";
 import AdminTransactions from "./pages/admin/Transactions/AdminTransactions";
 import AdminSales from "./pages/admin/Sales/AdminSales";
+import Roles from "./pages/admin/Roles/Roles";
 import TermsOfUse from "./pages/Frontend/TermsOfUse/TermsOfUse";
 import PrivacyPolicy from "./pages/Frontend/PrivacyPolicy/PrivacyPolicy";
 import AboutUs from "./pages/Frontend/AboutUs/AboutUs";
@@ -86,8 +87,8 @@ function App() {
 
         {/* Authenticated Routes */}
         <Route element={<AuthenticatedLayout />}>
-          {/* ADMIN ROUTES — Admin only */}
-          <Route element={<RoleGuard allowedRoles={["Admin"]} />}>
+          {/* ADMIN ROUTES — Admin & custom staff roles (not Buyer/Seller) */}
+          <Route element={<RoleGuard allowedRoles={["Admin"]} allowStaff />}>
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/admin/users" element={<Users />} />
             <Route path="/admin/products" element={<AdminProducts />} />
@@ -97,6 +98,7 @@ function App() {
             <Route path="/admin/disputes" element={<Disputes />} />
             <Route path="/admin/categories" element={<Categories />} />
             <Route path="/admin/wallet" element={<PlatformWallet />} />
+            <Route path="/admin/roles" element={<Roles />} />
             <Route path="/admin/transactions" element={<AdminTransactions />} />
             <Route path="/admin/sales" element={<AdminSales />} />
           </Route>
