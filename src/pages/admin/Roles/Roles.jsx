@@ -53,9 +53,7 @@ export default function Roles() {
     return () => { cancelled = true; };
   }, []);
 
-  const visibleRoles = roles.filter(
-    (r) => !["buyer", "seller"].includes((r.name || "").toLowerCase()),
-  );
+  const visibleRoles = roles;
 
   const isProtected = (r) => r.isSystem === true;
 
