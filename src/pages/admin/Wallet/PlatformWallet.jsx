@@ -53,6 +53,8 @@ export default function PlatformWallet() {
         setData({
           wallet: d.wallet,
           transactions: d.transactions?.items || [],
+          sellerBalances: d.sellerBalances || null,
+          buyerBalances: d.buyerBalances || null,
         });
         setTotalTx(d.transactions?.totalCount || 0);
       } catch (e) {
@@ -113,6 +115,8 @@ export default function PlatformWallet() {
 
   const wallet = data?.wallet || {};
   const txs = data?.transactions || [];
+  const seller = data?.sellerBalances || { balance: 0, reservedBalance: 0, total: 0 };
+  const buyer = data?.buyerBalances || { balance: 0, reservedBalance: 0, total: 0 };
 
   const balance = Math.max(0, wallet?.balance ?? wallet?.Balance ?? 0);
 
@@ -165,12 +169,10 @@ export default function PlatformWallet() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <div className="bg-linear-to-br from-blue-600 to-blue-700 p-6 rounded-xl shadow-md flex items-center justify-between text-white">
           <div>
-            <p className="text-sm font-medium text-blue-100 mb-1">
-              Available Balance
-            </p>
+            <p className="text-sm font-medium text-blue-100 mb-1">Platform Available Balance</p>
             <p className="text-3xl font-bold">{formatMoney(balance)}</p>
             <p className="text-xs text-blue-200 mt-2 flex items-center gap-1">
               <CheckCircle2 className="w-3.5 h-3.5" /> Ready for withdrawal
@@ -179,6 +181,16 @@ export default function PlatformWallet() {
           <div className="p-4 bg-white/10 rounded-xl">
             <WalletIcon className="w-8 h-8 text-white" />
           </div>
+        </div>
+        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+          <p className="text-sm font-medium text-gray-500 mb-1">Total Held by Sellers</p>
+          <p className="text-2xl font-bold text-gray-900">{formatMoney(seller.total)}</p>
+          <p className="text-xs text-gray-500 mt-2">Available: {formatMoney(seller.balance)} · Reserved: {formatMoney(seller.reservedBalance)}</p>
+        </div>
+        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+          <p className="text-sm font-medium text-gray-500 mb-1">Total Held by Buyers</p>
+          <p className="text-2xl font-bold text-gray-900">{formatMoney(buyer.total)}</p>
+          <p className="text-xs text-gray-500 mt-2">Available: {formatMoney(buyer.balance)} · Reserved: {formatMoney(buyer.reservedBalance)}</p>
         </div>
       </div>
 
