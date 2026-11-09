@@ -28,6 +28,8 @@ import { imageUrl, handleImageError } from "../../../utils/image";
 import { SkeletonRow, Skeleton } from "../../../components/Skeleton";
 import Pagination from "../../../components/Pagination/Pagination";
 
+import { formatCurrency } from "../../../utils/currency";
+
 export default function MyProducts() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -359,13 +361,13 @@ export default function MyProducts() {
                           <p className="text-xs text-gray-500">
                             Start:{" "}
                             <span className="font-bold text-gray-900 text-sm">
-                              ৳${p.startingPrice?.toLocaleString()}
+                              {formatCurrency(p.startingPrice)}
                             </span>
                           </p>
                           <p className="text-xs text-gray-500">
                             Buyout:{" "}
                             <span className="font-bold text-gray-900 text-sm">
-                              ৳${p.buyoutPrice?.toLocaleString()}
+                              {formatCurrency(p.buyoutPrice)}
                             </span>
                           </p>
                         </div>
@@ -436,9 +438,7 @@ export default function MyProducts() {
                                 p.auctionBidCount > 0 && (
                                   <p className="text-[11px] text-gray-600 font-medium flex items-center gap-1">
                                     <Gavel className="w-3 h-3 text-gray-400" />
-                                    {p.auctionBidCount} bids · ৳
-                                    {p.auctionCurrentHighestBid?.toLocaleString() ||
-                                      "0"}
+                                    {p.auctionBidCount} bids · {formatCurrency(p.auctionCurrentHighestBid ?? 0)}
                                   </p>
                                 )}
                             </div>

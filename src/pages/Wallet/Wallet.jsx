@@ -1,6 +1,7 @@
 import PageTitle from "../../components/PageTitle";
 import { useEffect, useState, useRef } from "react";
 import { formatCurrency as formatMoney } from "../../utils/currency";
+import { formatDateTime } from "../../utils/date";
 import { useForm } from "react-hook-form";
 import {
   Wallet as WalletIcon,
@@ -325,14 +326,7 @@ export default function Wallet() {
       );
     }
   };
-  const formatDate = (date) =>
-    new Date(date).toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+  const formatDate = formatDateTime;
 
   const getTxColor = (type) => {
     if (type === "Credit" || type === "Release")
