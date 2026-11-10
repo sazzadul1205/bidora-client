@@ -184,7 +184,7 @@ export default function Home() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
         {/* HERO BANNER SECTION */}
         {heroAuction && (
-          <div className="relative bg-bg-alt rounded-3xl overflow-hidden mb-8 flex flex-col md:flex-row items-center">
+          <div className="relative bg-[var(--color-bg-alt)] rounded-3xl overflow-hidden mb-8 flex flex-col md:flex-row items-center">
             <div className="p-6 sm:p-10 md:p-16 md:w-1/2 relative z-10">
               <p className="text-blue-600 font-semibold text-sm mb-3">
                 {heroEffectiveStatus === "Active"

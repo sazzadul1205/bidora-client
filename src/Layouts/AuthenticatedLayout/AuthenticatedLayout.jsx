@@ -156,7 +156,7 @@ function AuthenticatedLayout() {
               hover:[&::-webkit-scrollbar-thumb]:bg-neutral-400
               scrollbar-thin
               [scrollbar-color:#d1d5db_transparent]"
-          >
+            >
             <div>
               <p className="px-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">
                 Overview
@@ -400,7 +400,7 @@ function AuthenticatedLayout() {
               </Link>
             )}
           </div>
-        </header>
+</header>
 
         <main
           className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 bg-neutral-50

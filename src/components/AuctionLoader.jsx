@@ -201,7 +201,7 @@ export default function AuctionLoader() {
             cy="100"
             rx="40"
             ry="5"
-            stroke="#2563eb"
+            stroke="var(--color-primary-600)"
             strokeWidth="2"
           />
 
