@@ -43,12 +43,16 @@ function ReceiptDropzone({ file, onFileChange }) {
 
   useEffect(() => {
     return () => {
-      if (objectUrlRef.current) {URL.revokeObjectURL(objectUrlRef.current);}
+      if (objectUrlRef.current) {
+        URL.revokeObjectURL(objectUrlRef.current);
+      }
     };
   }, []);
 
   const acceptFile = (selectedFile) => {
-    if (!selectedFile) {return;}
+    if (!selectedFile) {
+      return;
+    }
     if (!ALLOWED_IMAGE_TYPES.includes(selectedFile.type)) {
       toast.error("Choose a JPG, PNG, or WEBP image.");
       return;
@@ -57,7 +61,9 @@ function ReceiptDropzone({ file, onFileChange }) {
       toast.error("Receipt must be 5 MB or smaller.");
       return;
     }
-    if (objectUrlRef.current) {URL.revokeObjectURL(objectUrlRef.current);}
+    if (objectUrlRef.current) {
+      URL.revokeObjectURL(objectUrlRef.current);
+    }
 
     const objectUrl = URL.createObjectURL(selectedFile);
     objectUrlRef.current = objectUrl;
@@ -79,13 +85,15 @@ function ReceiptDropzone({ file, onFileChange }) {
       objectUrlRef.current = null;
     }
     setPreviewUrl("");
-    if (inputRef.current) {inputRef.current.value = "";}
+    if (inputRef.current) {
+      inputRef.current.value = "";
+    }
   };
 
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-2">
-        Receipt Image <span className="text-red-500">*</span>
+      <label className="block text-sm font-medium text-text-main mb-2">
+        Receipt Image <span className="text-danger-500">*</span>
       </label>
       <div
         role="button"
@@ -106,8 +114,8 @@ function ReceiptDropzone({ file, onFileChange }) {
         onDrop={handleDrop}
         className={`relative flex min-h-40 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-4 text-center transition ${
           dragActive
-            ? "border-blue-500 bg-blue-50"
-            : "border-gray-300 bg-gray-50 hover:border-blue-400 hover:bg-blue-50/50"
+            ? "border-primary-500 bg-primary-50"
+            : "border-border-main bg-neutral-50 hover:border-primary-400 hover:bg-primary-50/50"
         }`}
       >
         <input
@@ -128,22 +136,22 @@ function ReceiptDropzone({ file, onFileChange }) {
               alt="Receipt"
               className="mx-auto max-h-32 rounded-lg object-contain"
             />
-            <p className="mt-2 text-xs text-gray-600">{file.name}</p>
+            <p className="mt-2 text-xs text-text-muted">{file.name}</p>
             <button
               type="button"
               onClick={clearFile}
-              className="mt-2 inline-flex items-center gap-1 text-sm text-red-600 hover:bg-red-50 px-2 py-1 rounded"
+              className="mt-2 inline-flex items-center gap-1 text-sm text-danger-600 hover:bg-danger-50 px-2 py-1 rounded"
             >
               <X className="h-3.5 w-3.5" /> Remove
             </button>
           </div>
         ) : (
           <>
-            <UploadCloud className="mb-2 h-8 w-8 text-gray-400" />
-            <p className="text-sm font-medium text-gray-700">
+            <UploadCloud className="mb-2 h-8 w-8 text-neutral-400" />
+            <p className="text-sm font-medium text-text-main">
               Drag & drop or click to upload
             </p>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-text-muted mt-1">
               JPG, PNG, WEBP · Max 5 MB
             </p>
           </>
@@ -160,7 +168,6 @@ export default function Wallet() {
   const [showDepositModal, setShowDepositModal] = useState(false);
   const [receiptFile, setReceiptFile] = useState(null);
 
-  // Transactions
   const [transactions, setTransactions] = useState([]);
   const [txPage, setTxPage] = useState(1);
   const [txPageSize, setTxPageSize] = useState(20);
@@ -169,7 +176,6 @@ export default function Wallet() {
   const [txSearchTerm, setTxSearchTerm] = useState("");
   const [txDebouncedSearch, setTxDebouncedSearch] = useState("");
 
-  // Reservations
   const [reservations, setReservations] = useState([]);
   const [resPage, setResPage] = useState(1);
   const [resPageSize, setResPageSize] = useState(20);
@@ -178,7 +184,6 @@ export default function Wallet() {
   const [resSearchTerm, setResSearchTerm] = useState("");
   const [resDebouncedSearch, setResDebouncedSearch] = useState("");
 
-  // Deposit requests
   const [depositRequests, setDepositRequests] = useState([]);
   const [depPage, setDepPage] = useState(1);
   const [depPageSize, setDepPageSize] = useState(20);
@@ -194,7 +199,6 @@ export default function Wallet() {
     formState: { errors, isSubmitting },
   } = useForm();
 
-  // Debounce the 3 search boxes independently
   useEffect(() => {
     const t = setTimeout(() => setTxDebouncedSearch(txSearchTerm.trim()), 300);
     return () => clearTimeout(t);
@@ -216,12 +220,8 @@ export default function Wallet() {
     return () => clearTimeout(t);
   }, [depSearchTerm]);
 
-  // Fetch wallet + the 3 lists in parallel on mount, and whenever any of the
-  // 3 lists' params change. Each list is independent, but firing them all
-  // together keeps things simple and ensures the badge counts stay fresh.
   useEffect(() => {
     let cancelled = false;
-
     (async () => {
       try {
         const [w, t, r, d] = await Promise.all([
@@ -245,7 +245,9 @@ export default function Wallet() {
             filter: depStatusFilter !== "All" ? depStatusFilter : undefined,
           }),
         ]);
-        if (cancelled) {return;}
+        if (cancelled) {
+          return;
+        }
         setWallet(w.data.data);
         setTransactions(t.data.data?.items || []);
         setTxTotal(t.data.data?.totalCount || 0);
@@ -255,12 +257,15 @@ export default function Wallet() {
         setDepTotal(d.data.data?.totalCount || 0);
       } catch (err) {
         console.error(err);
-        if (!cancelled) {toast.error("Failed to load wallet data.");}
+        if (!cancelled) {
+          toast.error("Failed to load wallet data.");
+        }
       } finally {
-        if (!cancelled) {setLoading(false);}
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     })();
-
     return () => {
       cancelled = true;
     };
@@ -279,7 +284,6 @@ export default function Wallet() {
     depStatusFilter,
   ]);
 
-  // Refresh only the deposit list (used after a new deposit is submitted)
   const refreshDepositRequests = async () => {
     try {
       const d = await getMyDepositRequests({
@@ -301,7 +305,6 @@ export default function Wallet() {
       toast.error("Please upload a receipt image.");
       return;
     }
-
     try {
       const formData = new FormData();
       formData.append("Method", data.method);
@@ -329,11 +332,16 @@ export default function Wallet() {
   const formatDate = formatDateTime;
 
   const getTxColor = (type) => {
-    if (type === "Credit" || type === "Release")
-      {return "text-green-600 bg-green-50";}
-    if (type === "Debit" || type === "Penalty") {return "text-red-600 bg-red-50";}
-    if (type === "Commission") {return "text-purple-600 bg-purple-50";}
-    return "text-gray-600 bg-gray-50";
+    if (type === "Credit" || type === "Release") {
+      return "text-success-600 bg-success-50";
+    }
+    if (type === "Debit" || type === "Penalty") {
+      return "text-danger-600 bg-danger-50";
+    }
+    if (type === "Commission") {
+      return "text-accent-600 bg-accent-50";
+    }
+    return "text-text-muted bg-neutral-50";
   };
 
   if (loading) {
@@ -351,8 +359,10 @@ export default function Wallet() {
   }
 
   const safeReservedBalance = Math.max(0, wallet?.reservedBalance || 0);
-  const availableBalance = Math.max(0, (wallet?.balance || 0) - safeReservedBalance);
-
+  const availableBalance = Math.max(
+    0,
+    (wallet?.balance || 0) - safeReservedBalance,
+  );
   const disputeTransactions = transactions.filter((tx) =>
     tx.reference?.toLowerCase().includes("dispute"),
   );
@@ -360,399 +370,384 @@ export default function Wallet() {
   return (
     <>
       <PageTitle title="Wallet" />
-    <div className="max-w-6xl mx-auto space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">My Wallet</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Manage your funds, deposits, and history.
-          </p>
-        </div>
-        <button
-          onClick={() => setShowDepositModal(true)}
-          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors"
-        >
-          <ArrowDownToLine className="w-4 h-4" /> Deposit Funds
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-linear-to-br from-blue-600 to-blue-700 rounded-xl p-6 text-white shadow-md">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-sm text-blue-100">Available Balance</span>
-            <WalletIcon className="w-5 h-5 text-blue-200" />
+      <div className="max-w-6xl mx-auto space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-text-main">My Wallet</h1>
+            <p className="text-sm text-text-muted mt-1">
+              Manage your funds, deposits, and history.
+            </p>
           </div>
-          <p className="text-3xl font-bold">{formatMoney(availableBalance)}</p>
-          <p className="text-xs text-blue-200 mt-1">Ready to spend</p>
+          <button
+            onClick={() => setShowDepositModal(true)}
+            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-text-inverse text-sm font-semibold rounded-lg transition-colors"
+          >
+            <ArrowDownToLine className="w-4 h-4" /> Deposit Funds
+          </button>
         </div>
 
-        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-sm text-gray-500">Reserved Funds</span>
-            <Lock className="w-5 h-5 text-orange-500" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-linear-to-br from-primary-600 to-primary-700 rounded-xl p-6 text-text-inverse shadow-md">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm text-primary-100">
+                Available Balance
+              </span>
+              <WalletIcon className="w-5 h-5 text-primary-200" />
+            </div>
+            <p className="text-3xl font-bold">
+              {formatMoney(availableBalance)}
+            </p>
+            <p className="text-xs text-primary-200 mt-1">Ready to spend</p>
           </div>
-          <p className="text-3xl font-bold text-gray-900">
-            {formatMoney(safeReservedBalance)}
-          </p>
-          <p className="text-xs text-gray-400 mt-1">Locked in active bids</p>
-        </div>
 
-        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-sm text-gray-500">Total Balance</span>
-            <ArrowUpRight className="w-5 h-5 text-green-500" />
+          <div className="bg-surface rounded-xl p-6 border border-border-main shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm text-text-muted">Reserved Funds</span>
+              <Lock className="w-5 h-5 text-warning-500" />
+            </div>
+            <p className="text-3xl font-bold text-text-main">
+              {formatMoney(safeReservedBalance)}
+            </p>
+            <p className="text-xs text-text-muted mt-1">
+              Locked in active bids
+            </p>
           </div>
-          <p className="text-3xl font-bold text-gray-900">
-            {formatMoney(wallet?.balance)}
-          </p>
-          <p className="text-xs text-gray-400 mt-1">Available + Reserved</p>
-        </div>
-      </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="border-b border-gray-200">
-          <nav className="flex overflow-x-auto">
-            <button
-              onClick={() => setActiveTab("overview")}
-              className={`flex items-center gap-2 px-6 py-3.5 text-sm font-medium border-b-2 transition whitespace-nowrap ${
-                activeTab === "overview"
-                  ? "border-blue-600 text-blue-600"
-                  : "border-transparent text-gray-600 hover:text-gray-900"
-              }`}
-            >
-              <WalletIcon className="w-4 h-4" /> Overview
-            </button>
-            <button
-              onClick={() => setActiveTab("transactions")}
-              className={`flex items-center gap-2 px-6 py-3.5 text-sm font-medium border-b-2 transition whitespace-nowrap ${
-                activeTab === "transactions"
-                  ? "border-blue-600 text-blue-600"
-                  : "border-transparent text-gray-600 hover:text-gray-900"
-              }`}
-            >
-              <History className="w-4 h-4" /> Transactions ({txTotal})
-            </button>
-            <button
-              onClick={() => setActiveTab("reservations")}
-              className={`flex items-center gap-2 px-6 py-3.5 text-sm font-medium border-b-2 transition whitespace-nowrap ${
-                activeTab === "reservations"
-                  ? "border-blue-600 text-blue-600"
-                  : "border-transparent text-gray-600 hover:text-gray-900"
-              }`}
-            >
-              <Lock className="w-4 h-4" /> Reservations ({resTotal})
-            </button>
-            <button
-              onClick={() => setActiveTab("deposit-requests")}
-              className={`flex items-center gap-2 px-6 py-3.5 text-sm font-medium border-b-2 transition whitespace-nowrap ${
-                activeTab === "deposit-requests"
-                  ? "border-blue-600 text-blue-600"
-                  : "border-transparent text-gray-600 hover:text-gray-900"
-              }`}
-            >
-              <ArrowDownToLine className="w-4 h-4" /> Deposit Requests (
-              {depTotal})
-            </button>
-            <button
-              onClick={() => setActiveTab("disputes")}
-              className={`flex items-center gap-2 px-6 py-3.5 text-sm font-medium border-b-2 transition whitespace-nowrap ${
-                activeTab === "disputes"
-                  ? "border-blue-600 text-blue-600"
-                  : "border-transparent text-gray-600 hover:text-gray-900"
-              }`}
-            >
-              <Scale className="w-4 h-4" /> Disputes (
-              {disputeTransactions.length})
-            </button>
-          </nav>
+          <div className="bg-surface rounded-xl p-6 border border-border-main shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm text-text-muted">Total Balance</span>
+              <ArrowUpRight className="w-5 h-5 text-success-500" />
+            </div>
+            <p className="text-3xl font-bold text-text-main">
+              {formatMoney(wallet?.balance)}
+            </p>
+            <p className="text-xs text-text-muted mt-1">Available + Reserved</p>
+          </div>
         </div>
 
-        <div className="p-6">
-          {activeTab === "overview" && (
-            <OverviewTab
-              depositRequests={depositRequests}
-              transactions={transactions}
-              reservations={reservations}
-              onRequestDeposit={() => setShowDepositModal(true)}
-              onViewAllDeposits={() => setActiveTab("deposit-requests")}
-              onViewAllTransactions={() => setActiveTab("transactions")}
-              onViewAllReservations={() => setActiveTab("reservations")}
-              formatMoney={formatMoney}
-              getTxColor={getTxColor}
-            />
-          )}
-
-          {activeTab === "transactions" && (
-            <>
-              {/* Filter row */}
-              <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
-                <select
-                  value={txTypeFilter}
-                  onChange={(e) => {
-                    setTxTypeFilter(e.target.value);
-                    setTxPage(1);
-                  }}
-                  className="px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+        <div className="bg-surface rounded-xl border border-border-main shadow-sm overflow-hidden">
+          <div className="border-b border-border-main">
+            <nav className="flex overflow-x-auto">
+              {[
+                { id: "overview", label: "Overview", icon: WalletIcon },
+                {
+                  id: "transactions",
+                  label: `Transactions (${txTotal})`,
+                  icon: History,
+                },
+                {
+                  id: "reservations",
+                  label: `Reservations (${resTotal})`,
+                  icon: Lock,
+                },
+                {
+                  id: "deposit-requests",
+                  label: `Deposit Requests (${depTotal})`,
+                  icon: ArrowDownToLine,
+                },
+                {
+                  id: "disputes",
+                  label: `Disputes (${disputeTransactions.length})`,
+                  icon: Scale,
+                },
+              ].map(({ id, label, icon: Icon }) => (
+                <button
+                  key={id}
+                  onClick={() => setActiveTab(id)}
+                  className={`flex items-center gap-2 px-6 py-3.5 text-sm font-medium border-b-2 transition whitespace-nowrap ${
+                    activeTab === id
+                      ? "border-primary-600 text-primary-600"
+                      : "border-transparent text-text-muted hover:text-text-main"
+                  }`}
                 >
-                  <option value="All">All Types</option>
-                  <option value="Credit">Credit</option>
-                  <option value="Debit">Debit</option>
-                  <option value="Release">Release</option>
-                  <option value="Penalty">Penalty</option>
-                  <option value="Commission">Commission</option>
-                </select>
+                  <Icon className="w-4 h-4" /> {label}
+                </button>
+              ))}
+            </nav>
+          </div>
 
-                <input
-                  type="text"
-                  placeholder="Search all transactions..."
-                  value={txSearchTerm}
-                  onChange={(e) => {
-                    setTxSearchTerm(e.target.value);
+          <div className="p-6">
+            {activeTab === "overview" && (
+              <OverviewTab
+                depositRequests={depositRequests}
+                transactions={transactions}
+                reservations={reservations}
+                onRequestDeposit={() => setShowDepositModal(true)}
+                onViewAllDeposits={() => setActiveTab("deposit-requests")}
+                onViewAllTransactions={() => setActiveTab("transactions")}
+                onViewAllReservations={() => setActiveTab("reservations")}
+                formatMoney={formatMoney}
+                getTxColor={getTxColor}
+              />
+            )}
+
+            {activeTab === "transactions" && (
+              <>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
+                  <select
+                    value={txTypeFilter}
+                    onChange={(e) => {
+                      setTxTypeFilter(e.target.value);
+                      setTxPage(1);
+                    }}
+                    className="px-3 py-2 bg-surface border border-border-main rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"
+                  >
+                    <option value="All">All Types</option>
+                    <option value="Credit">Credit</option>
+                    <option value="Debit">Debit</option>
+                    <option value="Release">Release</option>
+                    <option value="Penalty">Penalty</option>
+                    <option value="Commission">Commission</option>
+                  </select>
+                  <input
+                    type="text"
+                    placeholder="Search all transactions..."
+                    value={txSearchTerm}
+                    onChange={(e) => {
+                      setTxSearchTerm(e.target.value);
+                      setTxPage(1);
+                    }}
+                    className="flex-1 px-3 py-2 bg-surface border border-border-main rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"
+                  />
+                </div>
+                <TransactionsTab
+                  transactions={transactions}
+                  formatMoney={formatMoney}
+                  formatDate={formatDate}
+                  getTxColor={getTxColor}
+                />
+                <Pagination
+                  page={txPage}
+                  pageSize={txPageSize}
+                  totalCount={txTotal}
+                  onPageChange={setTxPage}
+                  onPageSizeChange={(s) => {
+                    setTxPageSize(s);
                     setTxPage(1);
                   }}
-                  className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="border-t border-border-main mt-4 rounded-b-xl"
                 />
-              </div>
+              </>
+            )}
 
-              <TransactionsTab
-                transactions={transactions}
+            {activeTab === "reservations" && (
+              <>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
+                  <select
+                    value={resStatusFilter}
+                    onChange={(e) => {
+                      setResStatusFilter(e.target.value);
+                      setResPage(1);
+                    }}
+                    className="px-3 py-2 bg-surface border border-border-main rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"
+                  >
+                    <option value="All">All Statuses</option>
+                    <option value="Reserved">Reserved</option>
+                    <option value="Released">Released</option>
+                    <option value="Forfeited">Forfeited</option>
+                  </select>
+                  <input
+                    type="text"
+                    placeholder="Search all reservations..."
+                    value={resSearchTerm}
+                    onChange={(e) => {
+                      setResSearchTerm(e.target.value);
+                      setResPage(1);
+                    }}
+                    className="flex-1 px-3 py-2 bg-surface border border-border-main rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"
+                  />
+                </div>
+                <ReservationsTab
+                  reservations={reservations}
+                  formatMoney={formatMoney}
+                />
+                <Pagination
+                  page={resPage}
+                  pageSize={resPageSize}
+                  totalCount={resTotal}
+                  onPageChange={setResPage}
+                  onPageSizeChange={(s) => {
+                    setResPageSize(s);
+                    setResPage(1);
+                  }}
+                  className="border-t border-border-main mt-4 rounded-b-xl"
+                />
+              </>
+            )}
+
+            {activeTab === "deposit-requests" && (
+              <>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
+                  <select
+                    value={depStatusFilter}
+                    onChange={(e) => {
+                      setDepStatusFilter(e.target.value);
+                      setDepPage(1);
+                    }}
+                    className="px-3 py-2 bg-surface border border-border-main rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"
+                  >
+                    <option value="All">All Statuses</option>
+                    <option value="PendingVerification">Pending</option>
+                    <option value="Approved">Approved</option>
+                    <option value="Rejected">Rejected</option>
+                  </select>
+                  <input
+                    type="text"
+                    placeholder="Search all deposit requests..."
+                    value={depSearchTerm}
+                    onChange={(e) => {
+                      setDepSearchTerm(e.target.value);
+                      setDepPage(1);
+                    }}
+                    className="flex-1 px-3 py-2 bg-surface border border-border-main rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none"
+                  />
+                </div>
+                <DepositRequestsTab
+                  depositRequests={depositRequests}
+                  onRequestDeposit={() => setShowDepositModal(true)}
+                  formatMoney={formatMoney}
+                  formatDate={formatDate}
+                />
+                <Pagination
+                  page={depPage}
+                  pageSize={depPageSize}
+                  totalCount={depTotal}
+                  onPageChange={setDepPage}
+                  onPageSizeChange={(s) => {
+                    setDepPageSize(s);
+                    setDepPage(1);
+                  }}
+                  className="border-t border-border-main mt-4 rounded-b-xl"
+                />
+              </>
+            )}
+
+            {activeTab === "disputes" && (
+              <DisputesTab
+                disputeTransactions={disputeTransactions}
                 formatMoney={formatMoney}
                 formatDate={formatDate}
                 getTxColor={getTxColor}
               />
-              <Pagination
-                page={txPage}
-                pageSize={txPageSize}
-                totalCount={txTotal}
-                onPageChange={setTxPage}
-                onPageSizeChange={(s) => {
-                  setTxPageSize(s);
-                  setTxPage(1);
-                }}
-                className="border-t border-gray-200 mt-4 rounded-b-xl"
-              />
-            </>
-          )}
-
-          {activeTab === "reservations" && (
-            <>
-              <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
-                <select
-                  value={resStatusFilter}
-                  onChange={(e) => {
-                    setResStatusFilter(e.target.value);
-                    setResPage(1);
-                  }}
-                  className="px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                >
-                  <option value="All">All Statuses</option>
-                  <option value="Reserved">Reserved</option>
-                  <option value="Released">Released</option>
-                  <option value="Forfeited">Forfeited</option>
-                </select>
-
-                <input
-                  type="text"
-                  placeholder="Search all reservations..."
-                  value={resSearchTerm}
-                  onChange={(e) => {
-                    setResSearchTerm(e.target.value);
-                    setResPage(1);
-                  }}
-                  className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                />
-              </div>
-
-              <ReservationsTab
-                reservations={reservations}
-                formatMoney={formatMoney}
-              />
-              <Pagination
-                page={resPage}
-                pageSize={resPageSize}
-                totalCount={resTotal}
-                onPageChange={setResPage}
-                onPageSizeChange={(s) => {
-                  setResPageSize(s);
-                  setResPage(1);
-                }}
-                className="border-t border-gray-200 mt-4 rounded-b-xl"
-              />
-            </>
-          )}
-
-          {activeTab === "deposit-requests" && (
-            <>
-              <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
-                <select
-                  value={depStatusFilter}
-                  onChange={(e) => {
-                    setDepStatusFilter(e.target.value);
-                    setDepPage(1);
-                  }}
-                  className="px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                >
-                  <option value="All">All Statuses</option>
-                  <option value="PendingVerification">Pending</option>
-                  <option value="Approved">Approved</option>
-                  <option value="Rejected">Rejected</option>
-                </select>
-
-                <input
-                  type="text"
-                  placeholder="Search all deposit requests..."
-                  value={depSearchTerm}
-                  onChange={(e) => {
-                    setDepSearchTerm(e.target.value);
-                    setDepPage(1);
-                  }}
-                  className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                />
-              </div>
-
-              <DepositRequestsTab
-                depositRequests={depositRequests}
-                onRequestDeposit={() => setShowDepositModal(true)}
-                formatMoney={formatMoney}
-                formatDate={formatDate}
-              />
-              <Pagination
-                page={depPage}
-                pageSize={depPageSize}
-                totalCount={depTotal}
-                onPageChange={setDepPage}
-                onPageSizeChange={(s) => {
-                  setDepPageSize(s);
-                  setDepPage(1);
-                }}
-                className="border-t border-gray-200 mt-4 rounded-b-xl"
-              />
-            </>
-          )}
-
-          {activeTab === "disputes" && (
-            <DisputesTab
-              disputeTransactions={disputeTransactions}
-              formatMoney={formatMoney}
-              formatDate={formatDate}
-              getTxColor={getTxColor}
-            />
-          )}
-        </div>
-      </div>
-
-      {/* Deposit Modal */}
-      {showDepositModal && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl">
-            <div className="border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-              <div>
-                <h2 className="text-lg font-bold text-gray-900">
-                  Deposit Funds
-                </h2>
-                <p className="text-xs text-gray-500 mt-0.5">
-                  Funds will be added after admin approval.
-                </p>
-              </div>
-              <button
-                onClick={() => setShowDepositModal(false)}
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form
-              onSubmit={handleSubmit(onSubmitDeposit)}
-              className="p-6 space-y-4"
-            >
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Payment Method <span className="text-red-500">*</span>
-                </label>
-                <select
-                  {...register("method", { required: "Method is required" })}
-                  className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                >
-                  <option value="">Select method...</option>
-                  <option value="BankTransfer">Bank Transfer</option>
-                  <option value="bKash">bKash</option>
-                </select>
-                {errors.method && (
-                  <p className="text-xs text-red-600 mt-1">
-                    {errors.method.message}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Amount (BDT) <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="1"
-                  {...register("amount", {
-                    required: "Amount is required",
-                    min: { value: 1, message: "Minimum ৳1" },
-                  })}
-                  placeholder="100.00"
-                  className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                />
-                {errors.amount && (
-                  <p className="text-xs text-red-600 mt-1">
-                    {errors.amount.message}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Transaction Reference <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  {...register("transactionReference", {
-                    required: "Reference is required",
-                  })}
-                  placeholder="e.g. TXN-9845-ABCD"
-                  className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                />
-                {errors.transactionReference && (
-                  <p className="text-xs text-red-600 mt-1">
-                    {errors.transactionReference.message}
-                  </p>
-                )}
-              </div>
-
-              <ReceiptDropzone
-                file={receiptFile}
-                onFileChange={setReceiptFile}
-              />
-
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowDepositModal(false)}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="inline-flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg disabled:opacity-50"
-                >
-                  {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                  {isSubmitting ? "Submitting..." : "Submit Request"}
-                </button>
-              </div>
-            </form>
+            )}
           </div>
         </div>
-      )}
-    </div>
+
+        {/* Deposit Modal */}
+        {showDepositModal && (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
+            <div className="bg-surface rounded-2xl w-full max-w-md shadow-2xl">
+              <div className="border-b border-border-main px-6 py-4 flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-bold text-text-main">
+                    Deposit Funds
+                  </h2>
+                  <p className="text-xs text-text-muted mt-0.5">
+                    Funds will be added after admin approval.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowDepositModal(false)}
+                  className="p-2 text-neutral-400 hover:text-text-main hover:bg-neutral-100 rounded-lg"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form
+                onSubmit={handleSubmit(onSubmitDeposit)}
+                className="p-6 space-y-4"
+              >
+                <div>
+                  <label className="block text-sm font-medium text-text-main mb-1.5">
+                    Payment Method <span className="text-danger-500">*</span>
+                  </label>
+                  <select
+                    {...register("method", { required: "Method is required" })}
+                    className="w-full border border-border-main rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary-500 outline-none"
+                  >
+                    <option value="">Select method...</option>
+                    <option value="BankTransfer">Bank Transfer</option>
+                    <option value="bKash">bKash</option>
+                  </select>
+                  {errors.method && (
+                    <p className="text-xs text-danger-600 mt-1">
+                      {errors.method.message}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-text-main mb-1.5">
+                    Amount (BDT) <span className="text-danger-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="1"
+                    {...register("amount", {
+                      required: "Amount is required",
+                      min: { value: 1, message: "Minimum ৳1" },
+                    })}
+                    placeholder="100.00"
+                    className="w-full border border-border-main rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary-500 outline-none"
+                  />
+                  {errors.amount && (
+                    <p className="text-xs text-danger-600 mt-1">
+                      {errors.amount.message}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-text-main mb-1.5">
+                    Transaction Reference{" "}
+                    <span className="text-danger-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    {...register("transactionReference", {
+                      required: "Reference is required",
+                    })}
+                    placeholder="e.g. TXN-9845-ABCD"
+                    className="w-full border border-border-main rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary-500 outline-none"
+                  />
+                  {errors.transactionReference && (
+                    <p className="text-xs text-danger-600 mt-1">
+                      {errors.transactionReference.message}
+                    </p>
+                  )}
+                </div>
+
+                <ReceiptDropzone
+                  file={receiptFile}
+                  onFileChange={setReceiptFile}
+                />
+
+                <div className="flex justify-end gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowDepositModal(false)}
+                    className="px-4 py-2 text-sm font-medium text-text-main hover:bg-neutral-100 rounded-lg"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="inline-flex items-center gap-2 px-5 py-2 bg-primary-600 hover:bg-primary-700 text-text-inverse text-sm font-semibold rounded-lg disabled:opacity-50"
+                  >
+                    {isSubmitting && (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    )}
+                    {isSubmitting ? "Submitting..." : "Submit Request"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+      </div>
     </>
   );
 }
