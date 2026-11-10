@@ -5,7 +5,7 @@ import OfflineBanner from "../../components/OfflineBanner";
 
 function PublicLayout() {
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAFBFC]">
+    <div className="min-h-screen flex flex-col bg-bg-alt">
       <OfflineBanner />
       <Navbar />
       <main className="flex-1">
@@ -17,3 +17,4 @@ function PublicLayout() {
 }
 
 export default PublicLayout;
+

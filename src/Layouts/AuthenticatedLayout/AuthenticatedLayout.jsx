@@ -42,7 +42,9 @@ function AuthenticatedLayout() {
         setUserData(userRes.data);
 
         const currentRoles = userRes.data?.account?.roles || [];
-        const isStaffUser = currentRoles.includes("Admin") || currentRoles.some((r) => r !== "Buyer" && r !== "Seller");
+        const isStaffUser =
+          currentRoles.includes("Admin") ||
+          currentRoles.some((r) => r !== "Buyer" && r !== "Seller");
 
         if (!isStaffUser) {
           try {
@@ -75,8 +77,8 @@ function AuthenticatedLayout() {
   const navLinkClass = ({ isActive }) =>
     `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
       isActive
-        ? "bg-blue-50 text-blue-700"
-        : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+        ? "bg-primary-50 text-primary-700"
+        : "text-text-muted hover:bg-neutral-100 hover:text-text-main"
     }`;
 
   if (loading) {
@@ -84,7 +86,9 @@ function AuthenticatedLayout() {
   }
 
   const roles = userData?.account?.roles || [];
-  const isStaff = roles.includes("Admin") || roles.some((r) => r !== "Buyer" && r !== "Seller");
+  const isStaff =
+    roles.includes("Admin") ||
+    roles.some((r) => r !== "Buyer" && r !== "Seller");
   const isBuyer = roles.includes("Buyer");
   const isSeller = roles.includes("Seller");
   const currentDate = formatDateTime(new Date()) + " (Local)";
@@ -96,7 +100,7 @@ function AuthenticatedLayout() {
       : "/buyer/dashboard";
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
+    <div className="flex h-screen bg-neutral-50 overflow-hidden">
       {/* MOBILE SIDEBAR BACKDROP */}
       {sidebarOpen && (
         <div
@@ -107,15 +111,15 @@ function AuthenticatedLayout() {
 
       {/* SIDEBAR */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 flex flex-col shrink-0 transform transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-surface border-r border-border-main flex flex-col shrink-0 transform transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="h-16 flex items-center justify-between px-6 border-b border-gray-100 shrink-0">
+          <div className="h-16 flex items-center justify-between px-6 border-b border-border-main shrink-0">
             <Link to="/" className="flex items-center gap-2">
-              <div className="bg-blue-600 p-1.5 rounded-md text-white">
+              <div className="bg-primary-600 p-1.5 rounded-md text-text-inverse">
                 <svg
                   className="w-5 h-5"
                   fill="none"
@@ -130,13 +134,13 @@ function AuthenticatedLayout() {
                   />
                 </svg>
               </div>
-              <span className="text-xl font-bold text-gray-900 tracking-tight">
+              <span className="text-xl font-bold text-text-main tracking-tight">
                 Bidora
               </span>
             </Link>
             <button
               onClick={() => setSidebarOpen(false)}
-              className="lg:hidden p-1.5 text-gray-500 hover:bg-gray-100 rounded-lg"
+              className="lg:hidden p-1.5 text-text-muted hover:bg-neutral-100 rounded-lg"
             >
               <X className="w-5 h-5" />
             </button>
@@ -147,14 +151,14 @@ function AuthenticatedLayout() {
             className="flex-1 overflow-y-auto px-4 py-4 space-y-5
               [&::-webkit-scrollbar]:w-1.5
               [&::-webkit-scrollbar-track]:bg-transparent
-              [&::-webkit-scrollbar-thumb]:bg-gray-300
+              [&::-webkit-scrollbar-thumb]:bg-neutral-300
               [&::-webkit-scrollbar-thumb]:rounded-full
-              hover:[&::-webkit-scrollbar-thumb]:bg-gray-400
+              hover:[&::-webkit-scrollbar-thumb]:bg-neutral-400
               scrollbar-thin
               [scrollbar-color:#d1d5db_transparent]"
           >
             <div>
-              <p className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+              <p className="px-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">
                 Overview
               </p>
               <nav className="space-y-1">
@@ -222,7 +226,7 @@ function AuthenticatedLayout() {
                 {isStaff && (
                   <>
                     <div className="mt-3">
-                      <p className="px-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
+                      <p className="px-3 text-[11px] font-semibold text-neutral-400 uppercase tracking-wider mb-1.5">
                         Validation & Moderation
                       </p>
                       <nav className="space-y-1">
@@ -252,7 +256,7 @@ function AuthenticatedLayout() {
                     </div>
 
                     <div className="mt-4">
-                      <p className="px-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
+                      <p className="px-3 text-[11px] font-semibold text-neutral-400 uppercase tracking-wider mb-1.5">
                         Management
                       </p>
                       <nav className="space-y-1">
@@ -321,7 +325,7 @@ function AuthenticatedLayout() {
             </div>
 
             <div>
-              <p className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+              <p className="px-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">
                 Activity
               </p>
               <nav className="space-y-1">
@@ -336,13 +340,13 @@ function AuthenticatedLayout() {
             </div>
 
             <div>
-              <p className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+              <p className="px-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">
                 Explore
               </p>
               <nav className="space-y-1">
                 <Link
                   to="/"
-                  className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+                  className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-text-muted hover:bg-neutral-100 hover:text-text-main transition-colors"
                   onClick={() => setSidebarOpen(false)}
                 >
                   <ArrowLeft className="w-4 h-4" /> Back to marketplace
@@ -352,10 +356,10 @@ function AuthenticatedLayout() {
           </div>
 
           {/* Logout */}
-          <div className="border-t border-gray-100 p-3 shrink-0 bg-white">
+          <div className="border-t border-border-main p-3 shrink-0 bg-surface">
             <button
               onClick={handleLogout}
-              className="flex items-center gap-3 px-3 py-2 w-full rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+              className="flex items-center gap-3 px-3 py-2 w-full rounded-lg text-sm font-medium text-danger-600 hover:bg-danger-50 transition-colors"
             >
               <LogOut className="w-4 h-4" /> Log out
             </button>
@@ -365,28 +369,28 @@ function AuthenticatedLayout() {
 
       {/* MAIN CONTENT AREA */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 sm:px-6 md:px-8 shrink-0 z-5">
+        <header className="h-16 bg-surface border-b border-border-main flex items-center justify-between px-4 sm:px-6 md:px-8 shrink-0 z-5">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="lg:hidden p-2 -ml-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
+              className="lg:hidden p-2 -ml-2 text-text-muted hover:bg-neutral-100 rounded-lg transition-colors"
             >
               <Menu className="w-5 h-5" />
             </button>
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            <span className="hidden md:block text-xs text-gray-400">
+            <span className="hidden md:block text-xs text-neutral-400">
               {currentDate}
             </span>
             {!isStaff && (
               <Link
                 to="/wallet"
-                className="flex items-center gap-2 bg-blue-50 border border-blue-200 px-2.5 sm:px-3 py-1.5 rounded-lg hover:bg-blue-100 transition-colors cursor-pointer"
+                className="flex items-center gap-2 bg-primary-50 border border-primary-200 px-2.5 sm:px-3 py-1.5 rounded-lg hover:bg-primary-100 transition-colors cursor-pointer"
                 title="Go to Wallet"
               >
-                <Wallet className="w-4 h-4 text-blue-600" />
-                <span className="font-bold text-blue-800 text-sm">
+                <Wallet className="w-4 h-4 text-primary-600" />
+                <span className="font-bold text-primary-800 text-sm">
                   ৳
                   {balance.toLocaleString(undefined, {
                     minimumFractionDigits: 2,
@@ -399,13 +403,13 @@ function AuthenticatedLayout() {
         </header>
 
         <main
-          className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 bg-gray-50
+          className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 bg-neutral-50
             scrollbar-gutter-stable
             [&::-webkit-scrollbar]:w-1.5
             [&::-webkit-scrollbar-track]:bg-transparent
-            [&::-webkit-scrollbar-thumb]:bg-gray-300
+            [&::-webkit-scrollbar-thumb]:bg-neutral-300
             [&::-webkit-scrollbar-thumb]:rounded-full
-            hover:[&::-webkit-scrollbar-thumb]:bg-gray-400
+            hover:[&::-webkit-scrollbar-thumb]:bg-neutral-400
             scrollbar-thin
             [scrollbar-color:#d1d5db_transparent]"
         >

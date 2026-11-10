@@ -3,7 +3,9 @@ import { Wifi, WifiOff, Loader2 } from "lucide-react";
 import useOnlineStatus from "../hooks/useOnlineStatus";
 
 const formatTime = (date) => {
-  if (!date) {return "—";}
+  if (!date) {
+    return "—";
+  }
   return date.toLocaleTimeString("en-GB", {
     hour: "2-digit",
     minute: "2-digit",
@@ -17,22 +19,22 @@ export default function ConnectionStatus() {
 
   const config = {
     online: {
-      color: "bg-green-50 border-green-200 text-green-800",
-      dot: "bg-green-500",
+      color: "bg-success-50 border-success-200 text-success-800",
+      dot: "bg-success-500",
       icon: Wifi,
       label: "Online",
       pulse: false,
     },
     reconnecting: {
-      color: "bg-amber-50 border-amber-200 text-amber-800",
-      dot: "bg-amber-500",
+      color: "bg-warning-50 border-warning-200 text-warning-800",
+      dot: "bg-warning-500",
       icon: Loader2,
       label: "Reconnecting",
       pulse: true,
     },
     offline: {
-      color: "bg-red-50 border-red-200 text-red-800",
-      dot: "bg-red-500",
+      color: "bg-danger-50 border-danger-200 text-danger-800",
+      dot: "bg-danger-500",
       icon: WifiOff,
       label: "Offline",
       pulse: false,
@@ -66,24 +68,24 @@ export default function ConnectionStatus() {
       </button>
 
       {showTooltip && (
-        <div className="absolute right-0 top-full mt-2 z-50 w-56 rounded-lg border border-gray-200 bg-white p-3 shadow-lg text-xs text-gray-700">
-          <p className="font-semibold text-gray-900 mb-1.5">
+        <div className="absolute right-0 top-full mt-2 z-50 w-56 rounded-lg border border-border-main bg-surface p-3 shadow-lg text-xs text-text-main">
+          <p className="font-semibold text-text-main mb-1.5">
             Connection status
           </p>
           <div className="space-y-1">
             <p>
-              <span className="text-gray-500">State:</span>{" "}
+              <span className="text-text-muted">State:</span>{" "}
               <span className="font-medium capitalize">{status}</span>
             </p>
             <p>
-              <span className="text-gray-500">Last check:</span>{" "}
+              <span className="text-text-muted">Last check:</span>{" "}
               <span className="font-medium">
                 {status === "online" ? formatTime(lastOnlineAt) : "now"}
               </span>
             </p>
           </div>
           {status === "offline" && (
-            <p className="mt-2 pt-2 border-t border-gray-100 text-red-600">
+            <p className="mt-2 pt-2 border-t border-border-main text-danger-600">
               Some actions won't work until the connection is restored.
             </p>
           )}

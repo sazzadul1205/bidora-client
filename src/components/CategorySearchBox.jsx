@@ -16,16 +16,13 @@ export default function CategorySearchBox({
   const dropdownRef = useRef(null);
   const searchInputRef = useRef(null);
 
-  // Find the selected category.
   const selectedCategory =
     categories.find((c) => c.id.toString() === value?.toString()) || null;
 
-  // Filter categories based on the search text.
   const filteredCategories = categories.filter((c) =>
     c.name.toLowerCase().includes(query.toLowerCase()),
   );
 
-  // Close the dropdown when clicking outside.
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
@@ -41,14 +38,12 @@ export default function CategorySearchBox({
     };
   }, []);
 
-  // Focus the search input when the dropdown opens.
   useEffect(() => {
     if (open) {
       searchInputRef.current?.focus();
     }
   }, [open]);
 
-  // Keep the highlighted option visible.
   useEffect(() => {
     if (highlightedIndex >= 0 && dropdownRef.current) {
       const item = dropdownRef.current.querySelector(
@@ -59,7 +54,6 @@ export default function CategorySearchBox({
     }
   }, [highlightedIndex]);
 
-  // Select a category.
   const handleSelect = (categoryId) => {
     onChange(categoryId);
     setQuery("");
@@ -67,7 +61,6 @@ export default function CategorySearchBox({
     setHighlightedIndex(-1);
   };
 
-  // Clear the selected category.
   const handleClear = () => {
     onChange("");
     setQuery("");
@@ -75,7 +68,6 @@ export default function CategorySearchBox({
     setHighlightedIndex(-1);
   };
 
-  // Handle keyboard navigation.
   const handleKeyDown = (e) => {
     if (e.key === "Escape") {
       setOpen(false);
@@ -83,7 +75,9 @@ export default function CategorySearchBox({
       return;
     }
 
-    if (!open) {return;}
+    if (!open) {
+      return;
+    }
 
     if (e.key === "ArrowDown") {
       e.preventDefault();
@@ -106,9 +100,8 @@ export default function CategorySearchBox({
 
   return (
     <div ref={wrapperRef} className="relative w-full">
-      {/* Search input */}
       <div className="relative w-full">
-        <SearchIcon className="absolute left-3.5 top-3.5 w-4 h-4 text-gray-400" />
+        <SearchIcon className="absolute left-3.5 top-3.5 w-4 h-4 text-neutral-400" />
 
         <input
           type="text"
@@ -128,25 +121,24 @@ export default function CategorySearchBox({
           }}
           onKeyDown={handleKeyDown}
           disabled={disabled}
-          className={`w-full pl-10 pr-9 py-3 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${
+          className={`w-full pl-10 pr-9 py-3 bg-surface border border-border-main rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors ${
             disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
           }`}
         />
 
-        {/* Clear selection or show dropdown arrow */}
         {selectedCategory && !disabled ? (
           <button
             type="button"
             onClick={handleClear}
             aria-label="Clear selected category"
-            className="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600"
+            className="absolute right-3 top-3.5 text-neutral-400 hover:text-text-main"
           >
             <X className="w-4 h-4" />
           </button>
         ) : (
           !disabled && (
             <ArrowRight
-              className={`absolute right-3 top-3.5 w-4 h-4 text-gray-400 transition-transform duration-200 ${
+              className={`absolute right-3 top-3.5 w-4 h-4 text-neutral-400 transition-transform duration-200 ${
                 open ? "rotate-90" : ""
               }`}
             />
@@ -154,20 +146,17 @@ export default function CategorySearchBox({
         )}
       </div>
 
-      {/* Category dropdown */}
       {open && !disabled && (
-        <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-64 overflow-y-auto">
-
+        <div className="absolute z-50 mt-1 w-full bg-surface border border-border-main rounded-lg shadow-lg max-h-64 overflow-y-auto">
           <div ref={dropdownRef} className="px-2 py-1">
-            {/* Show the all-categories option */}
             {!query && !selectedCategory && (
               <button
                 type="button"
                 onClick={() => handleSelect("")}
                 className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
                   !value
-                    ? "bg-blue-50 text-blue-700 font-medium"
-                    : "text-gray-600 hover:bg-gray-100"
+                    ? "bg-primary-50 text-primary-700 font-medium"
+                    : "text-text-muted hover:bg-neutral-100"
                 }`}
               >
                 {placeholder === "Search categories..."
@@ -176,7 +165,6 @@ export default function CategorySearchBox({
               </button>
             )}
 
-            {/* Display matching categories */}
             {filteredCategories.map((c, index) => (
               <button
                 type="button"
@@ -187,17 +175,16 @@ export default function CategorySearchBox({
                 className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
                   highlightedIndex === index ||
                   value?.toString() === c.id.toString()
-                    ? "bg-blue-50 text-blue-700 font-medium"
-                    : "text-gray-600 hover:bg-gray-100"
+                    ? "bg-primary-50 text-primary-700 font-medium"
+                    : "text-text-muted hover:bg-neutral-100"
                 }`}
               >
                 {c.name}
               </button>
             ))}
 
-            {/* Show a message when nothing matches */}
             {query && filteredCategories.length === 0 && (
-              <p className="px-3 py-2 text-xs text-gray-400 text-center">
+              <p className="px-3 py-2 text-xs text-neutral-400 text-center">
                 No matching categories
               </p>
             )}

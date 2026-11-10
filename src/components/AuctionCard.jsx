@@ -4,17 +4,15 @@ import { Tag, Gavel, ArrowRight } from "lucide-react";
 import { imageUrl, handleImageError } from "../utils/image";
 import Countdown from "./Countdown";
 
-// Helper to force UTC parsing
 const parseUtc = (str) => {
-  if (!str) {return 0;}
+  if (!str) {
+    return 0;
+  }
   const hasTimezone = str.endsWith("Z") || str.includes("+");
   return new Date(hasTimezone ? str : `${str}Z`).getTime();
 };
 
-export default function AuctionCard({
-  auction,
-  variant = "home", // "home" | "browse"
-}) {
+export default function AuctionCard({ auction, variant = "home" }) {
   const {
     id,
     productTitle,
@@ -37,11 +35,8 @@ export default function AuctionCard({
   }, []);
 
   const endMs = parseUtc(endTime);
-
   const isTimeUp = endMs > 0 && endMs <= now;
 
-  // TRUST THE BACKEND: If the backend says Upcoming, keep it Upcoming visually.
-  // Only override to "Completed" if the time has explicitly expired.
   let effectiveStatus = status;
   if (isTimeUp && status !== "Completed" && status !== "Cancelled") {
     effectiveStatus = "Completed";
@@ -55,7 +50,6 @@ export default function AuctionCard({
   const safeStartingPrice = Number(startingPrice) || 0;
   const safeCurrentBid = Number(currentHighestBid) || 0;
 
-  // Show the current bid if live and bids exist, otherwise show starting price
   const displayPrice =
     isLive && safeCurrentBid > 0 ? safeCurrentBid : safeStartingPrice;
 
@@ -63,43 +57,43 @@ export default function AuctionCard({
     <Link
       to={`/auction/${id}`}
       key={id}
-      className="group bg-white rounded-2xl border border-gray-200 overflow-hidden hover:-translate-y-1 hover:shadow-xl transition-all duration-200 flex flex-col"
+      className="group bg-surface rounded-2xl border border-border-main overflow-hidden hover:-translate-y-1 hover:shadow-xl transition-all duration-200 flex flex-col"
     >
-      <div className="relative aspect-4/3 bg-gray-100 overflow-hidden">
+      <div className="relative aspect-4/3 bg-neutral-100 overflow-hidden">
         {mainImageUrl ? (
           <img
             src={imageUrl(mainImageUrl)}
             alt={productTitle}
             onError={handleImageError}
-            className={`w-full h-full object-contain bg-gray-100 ${
+            className={`w-full h-full object-contain bg-neutral-100 ${
               isEnded ? "grayscale opacity-60" : ""
             } ${variant === "browse" ? "group-hover:scale-105 transition-transform duration-200" : ""}`}
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-gray-300">
+          <div className="w-full h-full flex items-center justify-center text-neutral-300">
             <Gavel className="w-10 h-10" />
           </div>
         )}
 
         {/* Status badges */}
         {variant === "browse" && isLive && (
-          <span className="absolute top-3 left-3 bg-red-600 text-white text-xs font-bold px-2.5 py-1 rounded-md shadow-sm flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>{" "}
+          <span className="absolute top-3 left-3 bg-danger-600 text-text-inverse text-xs font-bold px-2.5 py-1 rounded-md shadow-sm flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 bg-surface rounded-full animate-pulse"></span>{" "}
             LIVE
           </span>
         )}
         {variant === "browse" && isUpcoming && (
-          <span className="absolute top-3 left-3 bg-orange-500 text-white text-xs font-bold px-2.5 py-1 rounded-md shadow-sm">
+          <span className="absolute top-3 left-3 bg-warning-500 text-text-inverse text-xs font-bold px-2.5 py-1 rounded-md shadow-sm">
             UPCOMING
           </span>
         )}
         {variant === "browse" && isEnded && (
           <>
-            <span className="absolute top-3 left-3 bg-gray-700 text-white text-xs font-bold px-2.5 py-1 rounded-md shadow-sm">
+            <span className="absolute top-3 left-3 bg-neutral-700 text-text-inverse text-xs font-bold px-2.5 py-1 rounded-md shadow-sm">
               ENDED
             </span>
             <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
-              <div className="relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-red-600 text-white shadow-2xl transform -rotate-6">
+              <div className="relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-danger-600 text-text-inverse shadow-2xl transform -rotate-6">
                 <svg
                   className="w-4 h-4 shrink-0"
                   fill="currentColor"
@@ -117,31 +111,31 @@ export default function AuctionCard({
       </div>
 
       <div className="p-5 flex flex-col flex-1">
-        <p className="text-xs text-blue-600 font-medium mb-1 flex items-center gap-1">
+        <p className="text-xs text-primary-600 font-medium mb-1 flex items-center gap-1">
           <Tag className="w-3 h-3" /> {categoryName || "Uncategorized"}
         </p>
         <h3
-          className={`font-bold text-gray-900 text-lg line-clamp-1 ${
+          className={`font-bold text-text-main text-lg line-clamp-1 ${
             variant === "home" ? "mb-3" : "mb-1"
-          } group-hover:text-blue-600 transition-colors`}
+          } group-hover:text-primary-600 transition-colors`}
         >
           {productTitle}
         </h3>
 
-        <div className="mt-auto pt-4 border-t border-gray-100">
+        <div className="mt-auto pt-4 border-t border-border-main">
           {isLive && (
             <div className="flex justify-between items-end gap-2">
               <div className="min-w-0">
-                <p className="text-xs text-gray-500 mb-0.5">
+                <p className="text-xs text-text-muted mb-0.5">
                   {safeCurrentBid > 0 ? "Current Bid" : "Starting Price"}
                 </p>
-                <p className="text-base sm:text-lg font-bold text-blue-600 truncate">
+                <p className="text-base sm:text-lg font-bold text-primary-600 truncate">
                   ৳{displayPrice.toLocaleString()}
                 </p>
               </div>
               <div className="text-right shrink-0">
-                <p className="text-xs text-gray-500 mb-0.5">Ends in</p>
-                <p className="text-xs font-semibold text-red-600">
+                <p className="text-xs text-text-muted mb-0.5">Ends in</p>
+                <p className="text-xs font-semibold text-danger-600">
                   {endTime ? (
                     <Countdown targetDate={endTime} />
                   ) : (
@@ -155,16 +149,16 @@ export default function AuctionCard({
           {isUpcoming && (
             <div className="flex justify-between items-end gap-2">
               <div className="min-w-0">
-                <p className="text-xs text-gray-500 mb-0.5">Start Price</p>
-                <p className="text-base sm:text-lg font-bold text-gray-900 truncate">
+                <p className="text-xs text-text-muted mb-0.5">Start Price</p>
+                <p className="text-base sm:text-lg font-bold text-text-main truncate">
                   ৳{displayPrice.toLocaleString()}
                 </p>
               </div>
               <div className="text-right shrink-0">
-                <p className="text-xs text-gray-500 mb-0.5">
+                <p className="text-xs text-text-muted mb-0.5">
                   {startTime ? "Starts in" : "Schedule"}
                 </p>
-                <p className="text-xs font-semibold text-orange-600">
+                <p className="text-xs font-semibold text-warning-600">
                   {startTime ? <Countdown targetDate={startTime} /> : "Pending"}
                 </p>
               </div>
@@ -174,10 +168,10 @@ export default function AuctionCard({
           {isEnded && (
             <div className="flex justify-between items-center">
               <div>
-                <p className="text-xs text-gray-500 mb-0.5">Final Status</p>
-                <p className="text-sm font-bold text-gray-700">{status}</p>
+                <p className="text-xs text-text-muted mb-0.5">Final Status</p>
+                <p className="text-sm font-bold text-neutral-700">{status}</p>
               </div>
-              <span className="text-sm font-semibold text-gray-500 flex items-center gap-1">
+              <span className="text-sm font-semibold text-text-muted flex items-center gap-1">
                 View <ArrowRight className="w-4 h-4" />
               </span>
             </div>
@@ -186,14 +180,14 @@ export default function AuctionCard({
           {variant === "home" && !isLive && !isUpcoming && !isEnded && (
             <div className="flex justify-between items-end gap-2">
               <div className="min-w-0">
-                <p className="text-xs text-gray-500 mb-0.5">Starting price</p>
-                <p className="text-base sm:text-lg font-bold text-blue-600 truncate">
+                <p className="text-xs text-text-muted mb-0.5">Starting price</p>
+                <p className="text-base sm:text-lg font-bold text-primary-600 truncate">
                   ৳{displayPrice.toLocaleString()}
                 </p>
               </div>
               <div className="text-right shrink-0">
-                <p className="text-xs text-gray-500 mb-0.5">Ends in</p>
-                <p className="text-xs font-semibold text-red-600">
+                <p className="text-xs text-text-muted mb-0.5">Ends in</p>
+                <p className="text-xs font-semibold text-danger-600">
                   {endTime ? (
                     <Countdown targetDate={endTime} />
                   ) : (
