@@ -1,10 +1,8 @@
 import { useForm, useWatch } from "react-hook-form";
 import { X, Lock, Unlock, Clock, Loader2 } from "lucide-react";
 
-//  OUTER WRAPPER: Handles the null check BEFORE any hooks are called
 export default function ManageLockModal({ selectedUser, ...props }) {
   if (!selectedUser) {return null;}
-
   return (
     <ManageLockModalContent
       key={selectedUser.userId}
@@ -14,7 +12,6 @@ export default function ManageLockModal({ selectedUser, ...props }) {
   );
 }
 
-//  INNER COMPONENT: Safe to use hooks here because it only mounts when selectedUser exists
 function ManageLockModalContent({
   selectedUser,
   onClose,
@@ -26,30 +23,29 @@ function ManageLockModalContent({
   const { register, handleSubmit, control } = useForm({
     defaultValues: { action: initialAction || "unlock", durationMinutes: "" },
   });
-
   const lockAction = useWatch({ control, name: "action" });
   const info = getLockInfo(selectedUser);
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden animate-in fade-in zoom-in-95">
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+      <div className="bg-surface rounded-2xl w-full max-w-md shadow-xl overflow-hidden animate-in fade-in zoom-in-95">
+        <div className="px-6 py-4 border-b border-border-main flex items-center justify-between bg-neutral-50/50">
           <div>
-            <h2 className="text-lg font-bold text-gray-900">Manage Access</h2>
-            <p className="text-xs text-gray-500 mt-0.5 truncate max-w-70">
+            <h2 className="text-lg font-bold text-text-main">Manage Access</h2>
+            <p className="text-xs text-text-muted mt-0.5 truncate max-w-68">
               {selectedUser.email}
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-lg"
+            className="p-2 text-neutral-400 hover:text-text-main hover:bg-neutral-200 rounded-lg"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {info && (
-          <div className="mx-6 mt-4 bg-red-50 border border-red-200 text-red-800 p-3 rounded-lg text-xs flex items-start gap-2">
+          <div className="mx-6 mt-4 bg-danger-50 border border-danger-200 text-danger-800 p-3 rounded-lg text-xs flex items-start gap-2">
             <Lock className="w-4 h-4 shrink-0 mt-0.5" />
             <div>
               <p className="font-bold">{info.label}</p>
@@ -64,12 +60,12 @@ function ManageLockModalContent({
 
         <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-5">
           <div>
-            <label className="block text-sm font-bold text-gray-900 mb-2">
+            <label className="block text-sm font-bold text-text-main mb-2">
               Account Status
             </label>
             <div className="grid grid-cols-1 gap-2">
               <label
-                className={`cursor-pointer border-2 rounded-xl p-3 flex items-center gap-3 transition ${lockAction === "unlock" ? "border-green-500 bg-green-50" : "border-gray-200 hover:border-gray-300"}`}
+                className={`cursor-pointer border-2 rounded-xl p-3 flex items-center gap-3 transition ${lockAction === "unlock" ? "border-success-500 bg-success-50" : "border-border-main hover:border-neutral-300"}`}
               >
                 <input
                   type="radio"
@@ -78,21 +74,18 @@ function ManageLockModalContent({
                   className="hidden"
                 />
                 <div
-                  className={`p-2 rounded-lg ${lockAction === "unlock" ? "bg-green-100 text-green-600" : "bg-gray-100 text-gray-400"}`}
+                  className={`p-2 rounded-lg ${lockAction === "unlock" ? "bg-success-100 text-success-600" : "bg-neutral-100 text-neutral-400"}`}
                 >
                   <Unlock className="w-4 h-4" />
                 </div>
-                <div>
-                  <p
-                    className={`text-sm font-bold ${lockAction === "unlock" ? "text-green-800" : "text-gray-700"}`}
-                  >
-                    Unlock Account
-                  </p>
-                </div>
+                <p
+                  className={`text-sm font-bold ${lockAction === "unlock" ? "text-success-800" : "text-text-main"}`}
+                >
+                  Unlock Account
+                </p>
               </label>
-
               <label
-                className={`cursor-pointer border-2 rounded-xl p-3 flex items-center gap-3 transition ${lockAction === "temporary" ? "border-orange-500 bg-orange-50" : "border-gray-200 hover:border-gray-300"}`}
+                className={`cursor-pointer border-2 rounded-xl p-3 flex items-center gap-3 transition ${lockAction === "temporary" ? "border-warning-500 bg-warning-50" : "border-border-main hover:border-neutral-300"}`}
               >
                 <input
                   type="radio"
@@ -101,21 +94,18 @@ function ManageLockModalContent({
                   className="hidden"
                 />
                 <div
-                  className={`p-2 rounded-lg ${lockAction === "temporary" ? "bg-orange-100 text-orange-600" : "bg-gray-100 text-gray-400"}`}
+                  className={`p-2 rounded-lg ${lockAction === "temporary" ? "bg-warning-100 text-warning-600" : "bg-neutral-100 text-neutral-400"}`}
                 >
                   <Clock className="w-4 h-4" />
                 </div>
-                <div>
-                  <p
-                    className={`text-sm font-bold ${lockAction === "temporary" ? "text-orange-800" : "text-gray-700"}`}
-                  >
-                    Temporary Lock
-                  </p>
-                </div>
+                <p
+                  className={`text-sm font-bold ${lockAction === "temporary" ? "text-warning-800" : "text-text-main"}`}
+                >
+                  Temporary Lock
+                </p>
               </label>
-
               <label
-                className={`cursor-pointer border-2 rounded-xl p-3 flex items-center gap-3 transition ${lockAction === "permanent" ? "border-red-500 bg-red-50" : "border-gray-200 hover:border-gray-300"}`}
+                className={`cursor-pointer border-2 rounded-xl p-3 flex items-center gap-3 transition ${lockAction === "permanent" ? "border-danger-500 bg-danger-50" : "border-border-main hover:border-neutral-300"}`}
               >
                 <input
                   type="radio"
@@ -124,24 +114,22 @@ function ManageLockModalContent({
                   className="hidden"
                 />
                 <div
-                  className={`p-2 rounded-lg ${lockAction === "permanent" ? "bg-red-100 text-red-600" : "bg-gray-100 text-gray-400"}`}
+                  className={`p-2 rounded-lg ${lockAction === "permanent" ? "bg-danger-100 text-danger-600" : "bg-neutral-100 text-neutral-400"}`}
                 >
                   <Lock className="w-4 h-4" />
                 </div>
-                <div>
-                  <p
-                    className={`text-sm font-bold ${lockAction === "permanent" ? "text-red-800" : "text-gray-700"}`}
-                  >
-                    Permanent Lock
-                  </p>
-                </div>
+                <p
+                  className={`text-sm font-bold ${lockAction === "permanent" ? "text-danger-800" : "text-text-main"}`}
+                >
+                  Permanent Lock
+                </p>
               </label>
             </div>
           </div>
 
           {lockAction === "temporary" && (
             <div className="animate-in fade-in slide-in-from-top-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-text-main mb-1">
                 Duration (Minutes)
               </label>
               <input
@@ -149,24 +137,30 @@ function ManageLockModalContent({
                 {...register("durationMinutes", {
                   required: lockAction === "temporary",
                 })}
-                className="w-full border border-gray-300 p-2.5 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none text-sm"
+                className="w-full border border-border-main p-2.5 rounded-lg focus:ring-2 focus:ring-warning-500 outline-none text-sm"
                 placeholder="e.g. 60 for 1 hour"
               />
             </div>
           )}
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+          <div className="flex justify-end gap-3 pt-4 border-t border-border-main">
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg"
+              className="px-5 py-2.5 text-sm font-medium text-text-main hover:bg-neutral-100 rounded-lg"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className={`inline-flex items-center gap-2 px-5 py-2.5 text-white text-sm font-bold rounded-lg transition-all disabled:opacity-50 ${lockAction === "unlock" ? "bg-green-600 hover:bg-green-700" : lockAction === "permanent" ? "bg-red-600 hover:bg-red-700" : "bg-orange-600 hover:bg-orange-700"}`}
+              className={`inline-flex items-center gap-2 px-5 py-2.5 text-text-inverse text-sm font-bold rounded-lg transition-all disabled:opacity-50 ${
+                lockAction === "unlock"
+                  ? "bg-success-600 hover:bg-success-700"
+                  : lockAction === "permanent"
+                    ? "bg-danger-600 hover:bg-danger-700"
+                    : "bg-warning-600 hover:bg-warning-700"
+              }`}
             >
               {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
               {submitting
