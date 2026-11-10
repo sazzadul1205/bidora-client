@@ -48,7 +48,9 @@ const ICON_POOL = [
 
 // Helper to force UTC parsing
 const parseUtc = (str) => {
-  if (!str) {return 0;}
+  if (!str) {
+    return 0;
+  }
   const hasTimezone = str.endsWith("Z") || str.includes("+");
   return new Date(hasTimezone ? str : `${str}Z`).getTime();
 };
@@ -71,10 +73,13 @@ function HeroStatusBadge({ status, hasStartTime, endTime, startTime }) {
   const hasStarted = startMs > 0 && startMs <= now;
 
   let effectiveStatus = status;
-  if (status === "Active" && isTimeUp) {effectiveStatus = "Completed";}
-  else if (status === "Upcoming" && isTimeUp) {effectiveStatus = "Completed";}
-  else if (status === "Upcoming" && hasStarted && !isTimeUp)
-    {effectiveStatus = "Active";}
+  if (status === "Active" && isTimeUp) {
+    effectiveStatus = "Completed";
+  } else if (status === "Upcoming" && isTimeUp) {
+    effectiveStatus = "Completed";
+  } else if (status === "Upcoming" && hasStarted && !isTimeUp) {
+    effectiveStatus = "Active";
+  }
 
   if (effectiveStatus === "Active") {
     return (
@@ -133,44 +138,98 @@ export default function Home() {
   const isDown = useRef(false);
   const startX = useRef(0);
   const scrollLeft = useRef(0);
-  const handleMouseDown = (e) => { isDown.current = true; scrollRef.current.classList.add("active"); startX.current = e.pageX - scrollRef.current.offsetLeft; scrollLeft.current = scrollRef.current.scrollLeft; };
-  const handleMouseLeave = () => { isDown.current = false; scrollRef.current.classList.remove("active"); };
-  const handleMouseUp = () => { isDown.current = false; scrollRef.current.classList.remove("active"); };
-  const handleMouseMove = (e) => { if (!isDown.current) {return;} e.preventDefault(); const x = e.pageX - scrollRef.current.offsetLeft; const walk = (x - startX.current) * 2; scrollRef.current.scrollLeft = scrollLeft.current - walk; };
-  const scroll = (direction) => { if (scrollRef.current) {scrollRef.current.scrollBy({ left: direction === "left" ? -300 : 300, behavior: "smooth" });} };
+  const handleMouseDown = (e) => {
+    isDown.current = true;
+    scrollRef.current.classList.add("active");
+    startX.current = e.pageX - scrollRef.current.offsetLeft;
+    scrollLeft.current = scrollRef.current.scrollLeft;
+  };
+  const handleMouseLeave = () => {
+    isDown.current = false;
+    scrollRef.current.classList.remove("active");
+  };
+  const handleMouseUp = () => {
+    isDown.current = false;
+    scrollRef.current.classList.remove("active");
+  };
+  const handleMouseMove = (e) => {
+    if (!isDown.current) {
+      return;
+    }
+    e.preventDefault();
+    const x = e.pageX - scrollRef.current.offsetLeft;
+    const walk = (x - startX.current) * 2;
+    scrollRef.current.scrollLeft = scrollLeft.current - walk;
+  };
+  const scroll = (direction) => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({
+        left: direction === "left" ? -300 : 300,
+        behavior: "smooth",
+      });
+    }
+  };
 
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
         const params = {};
-        if (searchTerm.trim()) {params.search = searchTerm.trim();}
-        if (selectedCategory) {params.categoryId = Number(selectedCategory);}
-        const [homeRes, catRes] = await Promise.all([getHomeAuctions(params), getCategories()]);
-        if (!mounted) {return;}
+        if (searchTerm.trim()) {
+          params.search = searchTerm.trim();
+        }
+        if (selectedCategory) {
+          params.categoryId = Number(selectedCategory);
+        }
+        const [homeRes, catRes] = await Promise.all([
+          getHomeAuctions(params),
+          getCategories(),
+        ]);
+        if (!mounted) {
+          return;
+        }
         const home = homeRes.data.data || {};
         setBannerAuction(home.banner || null);
         setActiveAuctions(home.active || []);
         setUpcomingAuctions(home.upcoming || []);
         setCategories(catRes.data.data || []);
-      } catch (err) { console.error(err); }
-      finally { if (mounted) {setLoading(false);} }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
     })();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, [searchTerm, selectedCategory]);
 
   const getEffectiveStatus = (a) => {
-    if (!a) {return "";}
-    const endMs = parseUtc(a.endTime), startMs = parseUtc(a.startTime);
-    const isTimeUp = endMs > 0 && endMs <= now, hasStarted = startMs > 0 && startMs <= now;
-    if (a.status === "Active" && isTimeUp) {return "Completed";}
-    if (a.status === "Upcoming" && isTimeUp) {return "Completed";}
-    if (a.status === "Upcoming" && hasStarted && !isTimeUp) {return "Active";}
+    if (!a) {
+      return "";
+    }
+    const endMs = parseUtc(a.endTime),
+      startMs = parseUtc(a.startTime);
+    const isTimeUp = endMs > 0 && endMs <= now,
+      hasStarted = startMs > 0 && startMs <= now;
+    if (a.status === "Active" && isTimeUp) {
+      return "Completed";
+    }
+    if (a.status === "Upcoming" && isTimeUp) {
+      return "Completed";
+    }
+    if (a.status === "Upcoming" && hasStarted && !isTimeUp) {
+      return "Active";
+    }
     return a.status;
   };
 
   const heroAuction = bannerAuction;
-  const heroEffectiveStatus = heroAuction ? getEffectiveStatus(heroAuction) : "";
+  const heroEffectiveStatus = heroAuction
+    ? getEffectiveStatus(heroAuction)
+    : "";
   const activeGrid = activeAuctions.slice(0, 8);
   const upcomingGrid = upcomingAuctions.slice(0, 8);
 
@@ -184,7 +243,7 @@ export default function Home() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
         {/* HERO BANNER SECTION */}
         {heroAuction && (
-          <div className="relative bg-[var(--color-bg-alt)] rounded-3xl overflow-hidden mb-8 flex flex-col md:flex-row items-center">
+          <div className="relative bg-bg-alt rounded-3xl overflow-hidden mb-8 flex flex-col md:flex-row items-center">
             <div className="p-6 sm:p-10 md:p-16 md:w-1/2 relative z-10">
               <p className="text-blue-600 font-semibold text-sm mb-3">
                 {heroEffectiveStatus === "Active"
