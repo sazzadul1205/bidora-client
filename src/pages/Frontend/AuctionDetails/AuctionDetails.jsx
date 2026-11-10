@@ -291,6 +291,7 @@ export default function AuctionDetails() {
 
   return (
     <div className="bg-gray-50 min-h-screen pb-20 pt-8">
+      <PageTitle title={auction.productTitle || "Auction Details"} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <button
           onClick={() => navigate(-1)}

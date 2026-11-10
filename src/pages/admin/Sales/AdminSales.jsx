@@ -134,10 +134,6 @@ export default function AdminSales() {
     });
   };
 
-  // NOTE: no early return for the loading state here.
-  // Returning a different tree while loading unmounts the search input
-  // (losing focus). Loading is handled inside <tbody> below instead.
-
   return (
     <>
       <PageTitle title="Admin Sales" />
