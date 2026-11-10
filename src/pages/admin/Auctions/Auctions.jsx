@@ -63,14 +63,14 @@ export default function Auctions() {
           search: debouncedSearch || undefined,
           filter: activeTab !== "All" ? activeTab : undefined,
         });
-        if (cancelled) return;
+        if (cancelled) {return;}
         setAuctions(res.data.data?.items || []);
         setTotalCount(res.data.data?.totalCount || 0);
       } catch (err) {
         console.error(err);
-        if (!cancelled) toast.error("Failed to load auctions.");
+        if (!cancelled) {toast.error("Failed to load auctions.");}
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {setLoading(false);}
       }
     })();
 
@@ -114,13 +114,13 @@ export default function Auctions() {
 
   // Pagination handlers
   const goToPage = (p) => {
-    if (p === page) return;
+    if (p === page) {return;}
     setLoading(true);
     setPage(p);
   };
 
   const changePageSize = (s) => {
-    if (s === pageSize) return;
+    if (s === pageSize) {return;}
     setLoading(true);
     setPageSize(s);
     setPage(1);
@@ -134,7 +134,7 @@ export default function Auctions() {
   };
 
   const handleTabChange = (tab) => {
-    if (tab === activeTab) return;
+    if (tab === activeTab) {return;}
     setActiveTab(tab);
     setPage(1);
     setLoading(true);
@@ -172,7 +172,7 @@ export default function Auctions() {
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return "Not set";
+    if (!dateString) {return "Not set";}
     return formatDateTime(dateString);
   };
 

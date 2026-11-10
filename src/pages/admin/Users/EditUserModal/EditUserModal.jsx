@@ -31,8 +31,8 @@ export default function EditUserModal({ target, onClose, onSubmit }) {
         const res = await getRoles();
         const list = (res.data.data || []).filter((r) => {
           const n = (r.name || "").toLowerCase();
-          if (EXCLUDED.has(n)) return false;
-          if (!callerIsSuperAdmin && ADMIN_ROLES.has(n)) return false; // non-Super-Admin can't assign Admin/Super Admin
+          if (EXCLUDED.has(n)) {return false;}
+          if (!callerIsSuperAdmin && ADMIN_ROLES.has(n)) {return false;} // non-Super-Admin can't assign Admin/Super Admin
           return true;
         });
         setRoles(list);

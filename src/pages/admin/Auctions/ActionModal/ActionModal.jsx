@@ -38,7 +38,7 @@ export default function ActionModal({ selected, action, onClose, onSubmit }) {
     onSubmit(data);
   };
 
-  if (!selected) return null;
+  if (!selected) {return null;}
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">

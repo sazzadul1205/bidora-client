@@ -1,11 +1,11 @@
 ﻿// Global date formatter: DD-Mon-YYYY 12 HR Format time
 
 export const formatDateTime = (dateString) => {
-  if (!dateString) return "-";
+  if (!dateString) {return "-";}
 
   const date = new Date(dateString);
 
-  if (isNaN(date.getTime())) return dateString;
+  if (isNaN(date.getTime())) {return dateString;}
 
   const day = date.getDate().toString().padStart(2, "0");
   const monthNames = [
@@ -37,11 +37,11 @@ export const formatDateTime = (dateString) => {
 };
 
 export const formatDate = (dateString) => {
-  if (!dateString) return "-";
+  if (!dateString) {return "-";}
 
   const date = new Date(dateString);
 
-  if (isNaN(date.getTime())) return dateString;
+  if (isNaN(date.getTime())) {return dateString;}
 
   const day = date.getDate().toString().padStart(2, "0");
   const monthNames = [
@@ -65,11 +65,11 @@ export const formatDate = (dateString) => {
 };
 
 export const formatTime = (dateString) => {
-  if (!dateString) return "-";
+  if (!dateString) {return "-";}
 
   const date = new Date(dateString);
 
-  if (isNaN(date.getTime())) return dateString;
+  if (isNaN(date.getTime())) {return dateString;}
 
   let hours = date.getHours();
   const minutes = date.getMinutes().toString().padStart(2, "0");

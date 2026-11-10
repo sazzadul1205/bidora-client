@@ -21,7 +21,7 @@ export default function useOnlineStatus() {
 
   // Backend ping
   const pingBackend = async () => {
-    if (pingInFlight.current) return;
+    if (pingInFlight.current) {return;}
     if (!navigator.onLine) {
       setStatus("offline");
       return;
@@ -70,15 +70,15 @@ export default function useOnlineStatus() {
   // Poll the backend every 20s while online. Pauses when the tab is hidden.
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      if (navigator.onLine && !document.hidden) pingBackend();
+      if (navigator.onLine && !document.hidden) {pingBackend();}
     }, 0);
 
     const intervalId = setInterval(() => {
-      if (navigator.onLine && !document.hidden) pingBackend();
+      if (navigator.onLine && !document.hidden) {pingBackend();}
     }, 20000);
 
     const handleVisibilityChange = () => {
-      if (!document.hidden && navigator.onLine) pingBackend();
+      if (!document.hidden && navigator.onLine) {pingBackend();}
     };
 
     window.addEventListener("visibilitychange", handleVisibilityChange);
@@ -92,7 +92,7 @@ export default function useOnlineStatus() {
 
   // Toast on status change 
   useEffect(() => {
-    if (prevStatus.current === status) return;
+    if (prevStatus.current === status) {return;}
 
     if (status === "offline") {
       toast.error("You're offline. Some features may not work.");

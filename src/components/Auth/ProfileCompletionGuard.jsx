@@ -94,7 +94,7 @@ export default function ProfileCompletionGuard({ children }) {
 
   // If the user is not allowed, we return null because we have
   // already called navigate() to redirect them elsewhere.
-  if (!allowed) return null;
+  if (!allowed) {return null;}
 
 
   // If everything checks out, render the protected children.

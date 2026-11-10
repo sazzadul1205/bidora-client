@@ -26,12 +26,12 @@ function NidDropzone({ label, file, existingUrl, onFileChange, disabled }) {
 
   useEffect(() => {
     return () => {
-      if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+      if (objectUrlRef.current) {URL.revokeObjectURL(objectUrlRef.current);}
     };
   }, []);
 
   const acceptFile = (selectedFile) => {
-    if (disabled || !selectedFile) return;
+    if (disabled || !selectedFile) {return;}
 
     if (!ALLOWED_IMAGE_TYPES.includes(selectedFile.type)) {
       toast.error("Choose a JPG, PNG, or WEBP image.");
@@ -43,7 +43,7 @@ function NidDropzone({ label, file, existingUrl, onFileChange, disabled }) {
       return;
     }
 
-    if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+    if (objectUrlRef.current) {URL.revokeObjectURL(objectUrlRef.current);}
 
     const objectUrl = URL.createObjectURL(selectedFile);
     objectUrlRef.current = objectUrl;
@@ -54,19 +54,19 @@ function NidDropzone({ label, file, existingUrl, onFileChange, disabled }) {
   const handleDrop = (event) => {
     event.preventDefault();
     setDragActive(false);
-    if (!disabled) acceptFile(event.dataTransfer.files?.[0]);
+    if (!disabled) {acceptFile(event.dataTransfer.files?.[0]);}
   };
 
   const clearFile = (event) => {
     event.stopPropagation();
-    if (disabled) return;
+    if (disabled) {return;}
     onFileChange(null);
     if (objectUrlRef.current) {
       URL.revokeObjectURL(objectUrlRef.current);
       objectUrlRef.current = null;
     }
     setPreviewUrl("");
-    if (inputRef.current) inputRef.current.value = "";
+    if (inputRef.current) {inputRef.current.value = "";}
   };
 
   const displayImage = previewUrl || savedImageUrl;
@@ -94,11 +94,11 @@ function NidDropzone({ label, file, existingUrl, onFileChange, disabled }) {
         }}
         onDragEnter={(event) => {
           event.preventDefault();
-          if (!disabled) setDragActive(true);
+          if (!disabled) {setDragActive(true);}
         }}
         onDragOver={(event) => {
           event.preventDefault();
-          if (!disabled) setDragActive(true);
+          if (!disabled) {setDragActive(true);}
         }}
         onDragLeave={(event) => {
           event.preventDefault();
@@ -213,7 +213,7 @@ export default function ProfileTab({ userData, refreshUser }) {
   });
 
   const onSubmit = async (data) => {
-    if (isLocked) return;
+    if (isLocked) {return;}
     try {
       await updateProfile(data, frontNidFile, backNidFile);
       setFrontNidFile(null);

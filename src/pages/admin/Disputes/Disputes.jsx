@@ -52,7 +52,7 @@ export default function Disputes() {
           search: searchTerm,
           filter: activeTab !== "All" ? activeTab : undefined,
         });
-        if (cancelled) return;
+        if (cancelled) {return;}
         const payload = res.data.data || res.data || [];
         const items = Array.isArray(payload) ? payload : payload.items || [];
         setDisputes(items);
@@ -62,13 +62,13 @@ export default function Disputes() {
           setTotalCount(payload.totalCount);
         }
         // Update counts from API response
-        if (res.data.openCount !== undefined) setOpenCount(res.data.openCount);
-        if (res.data.underReviewCount !== undefined) setReviewingCount(res.data.underReviewCount);
-        if (res.data.resolvedCount !== undefined) setResolvedCount(res.data.resolvedCount);
+        if (res.data.openCount !== undefined) {setOpenCount(res.data.openCount);}
+        if (res.data.underReviewCount !== undefined) {setReviewingCount(res.data.underReviewCount);}
+        if (res.data.resolvedCount !== undefined) {setResolvedCount(res.data.resolvedCount);}
       } catch (err) {
         console.error(err);
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {setLoading(false);}
       }
     })();
 
@@ -94,9 +94,9 @@ export default function Disputes() {
       } else if (typeof payload.totalCount === "number") {
         setTotalCount(payload.totalCount);
       }
-      if (res.data.openCount !== undefined) setOpenCount(res.data.openCount);
-      if (res.data.underReviewCount !== undefined) setReviewingCount(res.data.underReviewCount);
-      if (res.data.resolvedCount !== undefined) setResolvedCount(res.data.resolvedCount);
+      if (res.data.openCount !== undefined) {setOpenCount(res.data.openCount);}
+      if (res.data.underReviewCount !== undefined) {setReviewingCount(res.data.underReviewCount);}
+      if (res.data.resolvedCount !== undefined) {setResolvedCount(res.data.resolvedCount);}
     } catch (err) {
       console.error(err);
       toast.error(err.response?.data?.message || "Failed to load disputes.");
@@ -107,7 +107,7 @@ export default function Disputes() {
 
   // Tab change resets pagination — done in the handler, not an effect.
   const handleTabChange = (tab) => {
-    if (tab === activeTab) return;
+    if (tab === activeTab) {return;}
     setActiveTab(tab);
     setPage(1);
   };
@@ -152,7 +152,7 @@ export default function Disputes() {
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
+    if (!dateString) {return "N/A";}
     return new Date(dateString).toLocaleString("en-GB", {
       day: "2-digit",
       month: "short",
@@ -163,9 +163,6 @@ export default function Disputes() {
     });
   };
 
-  const openCountDisplay = openCount;
-  const reviewingCountDisplay = reviewingCount;
-  const resolvedCountDisplay = resolvedCount;
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
   const safePage = Math.min(page, totalPages);
   const pageItems = disputes;

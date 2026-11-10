@@ -21,32 +21,32 @@ export default function ConfirmReceiptModal({
   const [receiptNotes, setReceiptNotes] = useState("");
   const receiptInputRef = useRef(null);
 
-  if (!target) return null;
+  if (!target) {return null;}
 
   const clearImage = () => {
-    if (receiptImagePreview) URL.revokeObjectURL(receiptImagePreview);
+    if (receiptImagePreview) {URL.revokeObjectURL(receiptImagePreview);}
     setReceiptImage(null);
     setReceiptImagePreview(null);
-    if (receiptInputRef.current) receiptInputRef.current.value = "";
+    if (receiptInputRef.current) {receiptInputRef.current.value = "";}
   };
 
   const handleFile = (file) => {
-    if (!file) return;
-    if (receiptImagePreview) URL.revokeObjectURL(receiptImagePreview);
+    if (!file) {return;}
+    if (receiptImagePreview) {URL.revokeObjectURL(receiptImagePreview);}
     setReceiptImage(file);
     setReceiptImagePreview(URL.createObjectURL(file));
   };
 
   const handleSubmit = async () => {
     if (!receiptImage)
-      return toast.error("Proof of receipt image is required.");
+      {return toast.error("Proof of receipt image is required.");}
 
     setIsSubmitting(true);
     try {
       const formData = new FormData();
       formData.append("ReceiptProofImage", receiptImage);
       if (receiptNotes.trim())
-        formData.append("ReceiptNotes", receiptNotes.trim());
+        {formData.append("ReceiptNotes", receiptNotes.trim());}
 
       await confirmReceipt(target.saleId, formData);
 

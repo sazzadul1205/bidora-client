@@ -80,7 +80,7 @@ export default function AuctionDetails() {
       try {
         const aucRes = await getAuctionById(id);
         const auctionData = aucRes.data.data;
-        if (!mounted) return;
+        if (!mounted) {return;}
         setAuction(auctionData);
 
         if (auctionData.images?.length > 0) {
@@ -91,7 +91,7 @@ export default function AuctionDetails() {
 
         try {
           const bidsRes = await getAuctionBids(id);
-          if (mounted) setBids(bidsRes.data.data || []);
+          if (mounted) {setBids(bidsRes.data.data || []);}
         } catch {
           console.error("Could not load bids");
         }
@@ -99,7 +99,7 @@ export default function AuctionDetails() {
         toast.error("Failed to load auction details.");
         navigate("/auctions");
       } finally {
-        if (mounted) setLoading(false);
+        if (mounted) {setLoading(false);}
       }
     })();
     return () => {
@@ -111,11 +111,11 @@ export default function AuctionDetails() {
   // Re-fetches bids + auction state every 4s while the auction is Active
   // OR while it's in the transition window.
   useEffect(() => {
-    if (!auction) return;
+    if (!auction) {return;}
 
     const nowMsCheck = Date.now();
     const parseUtc = (str) => {
-      if (!str) return 0;
+      if (!str) {return 0;}
       const hasTimezone = str.endsWith("Z") || str.includes("+");
       return new Date(hasTimezone ? str : `${str}Z`).getTime();
     };
@@ -130,7 +130,7 @@ export default function AuctionDetails() {
         startMsCheck <= nowMsCheck &&
         endMsCheck > nowMsCheck);
 
-    if (!shouldPoll) return;
+    if (!shouldPoll) {return;}
 
     let isMounted = true;
 
@@ -141,7 +141,7 @@ export default function AuctionDetails() {
           getAuctionById(id),
         ]);
 
-        if (!isMounted) return;
+        if (!isMounted) {return;}
 
         setBids(bidsRes.data.data || []);
 
@@ -179,20 +179,20 @@ export default function AuctionDetails() {
         currentBid >= startingPrice + range / 3 &&
         currentBid < startingPrice + (range * 2) / 3
       )
-        currentIncrement = 50;
+        {currentIncrement = 50;}
       else if (currentBid >= startingPrice + (range * 2) / 3)
-        currentIncrement = 100;
+        {currentIncrement = 100;}
     }
     const calculatedMinBid = auction.currentHighestBid
       ? auction.currentHighestBid + currentIncrement
       : startingPrice;
 
     if (!bidAmount || Number(bidAmount) <= 0)
-      return toast.error("Please enter a valid bid amount.");
+      {return toast.error("Please enter a valid bid amount.");}
     if (Number(bidAmount) < calculatedMinBid)
-      return toast.error(
+      {return toast.error(
         `Minimum bid is ৳${calculatedMinBid.toLocaleString()}`,
-      );
+      );}
 
     setIsBidding(true);
     try {
@@ -218,7 +218,7 @@ export default function AuctionDetails() {
         "You will be charged the buyout price immediately.",
       ))
     )
-      return;
+      {return;}
 
     try {
       await buyoutAuction(id);
@@ -237,7 +237,7 @@ export default function AuctionDetails() {
 
   //  STATUS DERIVATION (With Forced UTC Parsing)
   const parseUtc = (str) => {
-    if (!str) return 0;
+    if (!str) {return 0;}
     const hasTimezone = str.endsWith("Z") || str.includes("+");
     return new Date(hasTimezone ? str : `${str}Z`).getTime();
   };
@@ -277,8 +277,8 @@ export default function AuctionDetails() {
 
   let currentIncrement = 20;
   if (range > 0) {
-    if (currentBid >= tier1End && currentBid < tier2End) currentIncrement = 50;
-    else if (currentBid >= tier2End) currentIncrement = 100;
+    if (currentBid >= tier1End && currentBid < tier2End) {currentIncrement = 50;}
+    else if (currentBid >= tier2End) {currentIncrement = 100;}
   }
 
   const calculatedMinBid = auction.currentHighestBid

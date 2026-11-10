@@ -57,8 +57,8 @@ function ProductImageDropzone({ images, setImages, mainIndex, setMainIndex }) {
 
   const removeImage = (index) => {
     setImages((prev) => prev.filter((_, i) => i !== index));
-    if (mainIndex === index) setMainIndex(0);
-    else if (mainIndex > index) setMainIndex(mainIndex - 1);
+    if (mainIndex === index) {setMainIndex(0);}
+    else if (mainIndex > index) {setMainIndex(mainIndex - 1);}
   };
 
   return (
@@ -103,7 +103,7 @@ function ProductImageDropzone({ images, setImages, mainIndex, setMainIndex }) {
           accept="image/jpeg,image/png,image/webp"
           className="hidden"
           onChange={(e) => {
-            if (e.target.files) handleFiles(e.target.files);
+            if (e.target.files) {handleFiles(e.target.files);}
             e.target.value = "";
           }}
         />
@@ -189,7 +189,7 @@ export default function CreateProduct() {
     (async () => {
       try {
         const res = await getCategories();
-        if (mounted) setCategories(res.data.data);
+        if (mounted) {setCategories(res.data.data);}
       } catch {
         toast.error("Failed to load categories.");
       }

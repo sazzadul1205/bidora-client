@@ -66,7 +66,7 @@ export default function AdminSales() {
               : undefined,
           deliveryStatus: deliveryFilter !== "All" ? deliveryFilter : undefined,
         });
-        if (cancelled) return;
+        if (cancelled) {return;}
 
         const data = res.data.data || {};
 
@@ -80,9 +80,9 @@ export default function AdminSales() {
         });
       } catch (err) {
         console.error(err);
-        if (!cancelled) toast.error("Failed to load sales.");
+        if (!cancelled) {toast.error("Failed to load sales.");}
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {setLoading(false);}
       }
     })();
 
@@ -93,13 +93,13 @@ export default function AdminSales() {
 
   // Pagination handlers
   const goToPage = (p) => {
-    if (p === page) return;
+    if (p === page) {return;}
     setLoading(true);
     setPage(p);
   };
 
   const changePageSize = (s) => {
-    if (s === pageSize) return;
+    if (s === pageSize) {return;}
     setLoading(true);
     setPageSize(s);
     setPage(1);
@@ -113,7 +113,7 @@ export default function AdminSales() {
   };
 
   const handleStatusChange = (tab) => {
-    if (tab === filterStatus) return;
+    if (tab === filterStatus) {return;}
     setFilterStatus(tab);
     setPage(1);
     setLoading(true);
@@ -126,7 +126,7 @@ export default function AdminSales() {
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
+    if (!dateString) {return "N/A";}
     return new Date(dateString).toLocaleDateString("en-GB", {
       day: "2-digit",
       month: "short",

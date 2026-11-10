@@ -2,8 +2,8 @@
 // The API stores paths like "/uploads/..." relative to the site root.
 // If the path is already absolute (http/https) it is returned unchanged.
 export const imageUrl = (path) => {
-  if (!path) return "";
-  if (path.startsWith("http")) return path;
+  if (!path) {return "";}
+  if (path.startsWith("http")) {return path;}
 
   // Get the base URL from .env, or fallback to the hardcoded backend port
   let base = import.meta.env.VITE_API_BASE_URL || "http://localhost:5102/api";

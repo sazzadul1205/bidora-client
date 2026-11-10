@@ -25,11 +25,11 @@ export default function SellerDashboard() {
     (async () => {
       try {
         const res = await getSellerDashboard();
-        if (mounted) setData(res.data.data);
+        if (mounted) {setData(res.data.data);}
       } catch (err) {
         console.error("Failed to load dashboard", err);
       } finally {
-        if (mounted) setLoading(false);
+        if (mounted) {setLoading(false);}
       }
     })();
     return () => { mounted = false; };

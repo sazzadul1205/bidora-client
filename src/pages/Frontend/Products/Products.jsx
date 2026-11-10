@@ -48,7 +48,7 @@ const ICON_POOL = [
 
 // Helper to force UTC parsing
 const parseUtc = (str) => {
-  if (!str) return 0;
+  if (!str) {return 0;}
   const hasTimezone = str.endsWith("Z") || str.includes("+");
   return new Date(hasTimezone ? str : `${str}Z`).getTime();
 };
@@ -71,10 +71,10 @@ function HeroStatusBadge({ status, hasStartTime, endTime, startTime }) {
   const hasStarted = startMs > 0 && startMs <= now;
 
   let effectiveStatus = status;
-  if (status === "Active" && isTimeUp) effectiveStatus = "Completed";
-  else if (status === "Upcoming" && isTimeUp) effectiveStatus = "Completed";
+  if (status === "Active" && isTimeUp) {effectiveStatus = "Completed";}
+  else if (status === "Upcoming" && isTimeUp) {effectiveStatus = "Completed";}
   else if (status === "Upcoming" && hasStarted && !isTimeUp)
-    effectiveStatus = "Active";
+    {effectiveStatus = "Active";}
 
   if (effectiveStatus === "Active") {
     return (
@@ -113,7 +113,6 @@ export default function Home() {
   const [activeAuctions, setActiveAuctions] = useState([]);
   const [upcomingAuctions, setUpcomingAuctions] = useState([]);
   const [bannerAuction, setBannerAuction] = useState(null);
-  console.log("home:", { bannerAuction, activeAuctions, upcomingAuctions });
 
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -137,36 +136,36 @@ export default function Home() {
   const handleMouseDown = (e) => { isDown.current = true; scrollRef.current.classList.add("active"); startX.current = e.pageX - scrollRef.current.offsetLeft; scrollLeft.current = scrollRef.current.scrollLeft; };
   const handleMouseLeave = () => { isDown.current = false; scrollRef.current.classList.remove("active"); };
   const handleMouseUp = () => { isDown.current = false; scrollRef.current.classList.remove("active"); };
-  const handleMouseMove = (e) => { if (!isDown.current) return; e.preventDefault(); const x = e.pageX - scrollRef.current.offsetLeft; const walk = (x - startX.current) * 2; scrollRef.current.scrollLeft = scrollLeft.current - walk; };
-  const scroll = (direction) => { if (scrollRef.current) scrollRef.current.scrollBy({ left: direction === "left" ? -300 : 300, behavior: "smooth" }); };
+  const handleMouseMove = (e) => { if (!isDown.current) {return;} e.preventDefault(); const x = e.pageX - scrollRef.current.offsetLeft; const walk = (x - startX.current) * 2; scrollRef.current.scrollLeft = scrollLeft.current - walk; };
+  const scroll = (direction) => { if (scrollRef.current) {scrollRef.current.scrollBy({ left: direction === "left" ? -300 : 300, behavior: "smooth" });} };
 
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
         const params = {};
-        if (searchTerm.trim()) params.search = searchTerm.trim();
-        if (selectedCategory) params.categoryId = Number(selectedCategory);
+        if (searchTerm.trim()) {params.search = searchTerm.trim();}
+        if (selectedCategory) {params.categoryId = Number(selectedCategory);}
         const [homeRes, catRes] = await Promise.all([getHomeAuctions(params), getCategories()]);
-        if (!mounted) return;
+        if (!mounted) {return;}
         const home = homeRes.data.data || {};
         setBannerAuction(home.banner || null);
         setActiveAuctions(home.active || []);
         setUpcomingAuctions(home.upcoming || []);
         setCategories(catRes.data.data || []);
       } catch (err) { console.error(err); }
-      finally { if (mounted) setLoading(false); }
+      finally { if (mounted) {setLoading(false);} }
     })();
     return () => { mounted = false; };
   }, [searchTerm, selectedCategory]);
 
   const getEffectiveStatus = (a) => {
-    if (!a) return "";
+    if (!a) {return "";}
     const endMs = parseUtc(a.endTime), startMs = parseUtc(a.startTime);
     const isTimeUp = endMs > 0 && endMs <= now, hasStarted = startMs > 0 && startMs <= now;
-    if (a.status === "Active" && isTimeUp) return "Completed";
-    if (a.status === "Upcoming" && isTimeUp) return "Completed";
-    if (a.status === "Upcoming" && hasStarted && !isTimeUp) return "Active";
+    if (a.status === "Active" && isTimeUp) {return "Completed";}
+    if (a.status === "Upcoming" && isTimeUp) {return "Completed";}
+    if (a.status === "Upcoming" && hasStarted && !isTimeUp) {return "Active";}
     return a.status;
   };
 

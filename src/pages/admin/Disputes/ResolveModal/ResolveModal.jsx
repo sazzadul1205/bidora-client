@@ -27,7 +27,7 @@ export default function ResolveModal({
   const applyPenalty = useWatch({ control, name: "applyPenalty" });
   const faultType = useWatch({ control, name: "faultType" });
 
-  if (!selected) return null;
+  if (!selected) {return null;}
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">

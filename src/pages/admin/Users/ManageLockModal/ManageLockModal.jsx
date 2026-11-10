@@ -3,7 +3,7 @@ import { X, Lock, Unlock, Clock, Loader2 } from "lucide-react";
 
 //  OUTER WRAPPER: Handles the null check BEFORE any hooks are called
 export default function ManageLockModal({ selectedUser, ...props }) {
-  if (!selectedUser) return null;
+  if (!selectedUser) {return null;}
 
   return (
     <ManageLockModalContent

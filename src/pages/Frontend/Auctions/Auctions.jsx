@@ -41,9 +41,9 @@ export default function Auctions() {
         setLoading(true);
 
         let backendFilter = undefined;
-        if (activeStatus === "Live") backendFilter = "Active";
-        else if (activeStatus === "Upcoming") backendFilter = "Upcoming";
-        else if (activeStatus === "Ended") backendFilter = "Ended";
+        if (activeStatus === "Live") {backendFilter = "Active";}
+        else if (activeStatus === "Upcoming") {backendFilter = "Upcoming";}
+        else if (activeStatus === "Ended") {backendFilter = "Ended";}
 
         const [aucRes, catRes] = await Promise.all([
           getAuctions({
@@ -56,7 +56,7 @@ export default function Auctions() {
           getCategories(),
         ]);
 
-        if (!mounted) return;
+        if (!mounted) {return;}
 
         setAuctions(aucRes.data.data?.items || []);
         setTotalCount(aucRes.data.data?.totalCount || 0);
@@ -64,7 +64,7 @@ export default function Auctions() {
       } catch (err) {
         console.error("Failed to fetch auctions:", err);
       } finally {
-        if (mounted) setLoading(false);
+        if (mounted) {setLoading(false);}
       }
     })();
     return () => {
@@ -79,7 +79,7 @@ export default function Auctions() {
   };
 
   const handleTabChange = (status) => {
-    if (status === activeStatus) return;
+    if (status === activeStatus) {return;}
     setLoading(true);
     setActiveStatus(status);
     setPage(1);

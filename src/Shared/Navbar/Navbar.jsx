@@ -53,10 +53,10 @@ function Navbar() {
   };
 
   const getDashboardPath = () => {
-    if (!user) return "/login";
+    if (!user) {return "/login";}
     const role = user?.account?.roles?.[0];
-    if (role === "Admin") return "/admin/dashboard";
-    if (role === "Seller") return "/seller/dashboard";
+    if (role === "Admin") {return "/admin/dashboard";}
+    if (role === "Seller") {return "/seller/dashboard";}
     return "/buyer/dashboard";
   };
 

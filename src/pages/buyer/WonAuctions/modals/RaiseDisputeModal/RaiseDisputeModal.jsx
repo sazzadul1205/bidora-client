@@ -15,35 +15,35 @@ export default function RaiseDisputeModal({
   const [evidenceImagePreview, setEvidenceImagePreview] = useState(null);
   const fileInputRef = useRef(null);
 
-  if (!target) return null;
+  if (!target) {return null;}
 
   const clearImage = () => {
-    if (evidenceImagePreview) URL.revokeObjectURL(evidenceImagePreview);
+    if (evidenceImagePreview) {URL.revokeObjectURL(evidenceImagePreview);}
     setEvidenceImage(null);
     setEvidenceImagePreview(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
+    if (fileInputRef.current) {fileInputRef.current.value = "";}
   };
 
   const handleFile = (file) => {
-    if (!file) return;
-    if (evidenceImagePreview) URL.revokeObjectURL(evidenceImagePreview);
+    if (!file) {return;}
+    if (evidenceImagePreview) {URL.revokeObjectURL(evidenceImagePreview);}
     setEvidenceImage(file);
     setEvidenceImagePreview(URL.createObjectURL(file));
   };
 
   const handleSubmit = async () => {
-    if (!complaint.trim()) return toast.error("Please describe the issue.");
+    if (!complaint.trim()) {return toast.error("Please describe the issue.");}
     if (complaint.trim().length < 20)
-      return toast.error(
+      {return toast.error(
         "Please provide more detail (at least 20 characters).",
-      );
+      );}
 
     setIsSubmitting(true);
     try {
       const formData = new FormData();
       formData.append("SaleId", target.saleId);
       formData.append("Complaint", complaint.trim());
-      if (evidenceImage) formData.append("EvidenceImage", evidenceImage);
+      if (evidenceImage) {formData.append("EvidenceImage", evidenceImage);}
       await createDisputeImage(formData);
 
       toast.success("Dispute submitted. Awaiting admin review.");

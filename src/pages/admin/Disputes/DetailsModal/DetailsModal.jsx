@@ -10,7 +10,7 @@ import {
 import { imageUrl } from "../../../../utils/image";
 
 export default function DetailsModal({ target, onClose }) {
-  if (!target) return null;
+  if (!target) {return null;}
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">

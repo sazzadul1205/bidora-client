@@ -43,12 +43,12 @@ function ReceiptDropzone({ file, onFileChange }) {
 
   useEffect(() => {
     return () => {
-      if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+      if (objectUrlRef.current) {URL.revokeObjectURL(objectUrlRef.current);}
     };
   }, []);
 
   const acceptFile = (selectedFile) => {
-    if (!selectedFile) return;
+    if (!selectedFile) {return;}
     if (!ALLOWED_IMAGE_TYPES.includes(selectedFile.type)) {
       toast.error("Choose a JPG, PNG, or WEBP image.");
       return;
@@ -57,7 +57,7 @@ function ReceiptDropzone({ file, onFileChange }) {
       toast.error("Receipt must be 5 MB or smaller.");
       return;
     }
-    if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+    if (objectUrlRef.current) {URL.revokeObjectURL(objectUrlRef.current);}
 
     const objectUrl = URL.createObjectURL(selectedFile);
     objectUrlRef.current = objectUrl;
@@ -79,7 +79,7 @@ function ReceiptDropzone({ file, onFileChange }) {
       objectUrlRef.current = null;
     }
     setPreviewUrl("");
-    if (inputRef.current) inputRef.current.value = "";
+    if (inputRef.current) {inputRef.current.value = "";}
   };
 
   return (
@@ -245,7 +245,7 @@ export default function Wallet() {
             filter: depStatusFilter !== "All" ? depStatusFilter : undefined,
           }),
         ]);
-        if (cancelled) return;
+        if (cancelled) {return;}
         setWallet(w.data.data);
         setTransactions(t.data.data?.items || []);
         setTxTotal(t.data.data?.totalCount || 0);
@@ -255,9 +255,9 @@ export default function Wallet() {
         setDepTotal(d.data.data?.totalCount || 0);
       } catch (err) {
         console.error(err);
-        if (!cancelled) toast.error("Failed to load wallet data.");
+        if (!cancelled) {toast.error("Failed to load wallet data.");}
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {setLoading(false);}
       }
     })();
 
@@ -330,9 +330,9 @@ export default function Wallet() {
 
   const getTxColor = (type) => {
     if (type === "Credit" || type === "Release")
-      return "text-green-600 bg-green-50";
-    if (type === "Debit" || type === "Penalty") return "text-red-600 bg-red-50";
-    if (type === "Commission") return "text-purple-600 bg-purple-50";
+      {return "text-green-600 bg-green-50";}
+    if (type === "Debit" || type === "Penalty") {return "text-red-600 bg-red-50";}
+    if (type === "Commission") {return "text-purple-600 bg-purple-50";}
     return "text-gray-600 bg-gray-50";
   };
 

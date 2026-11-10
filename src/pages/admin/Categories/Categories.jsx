@@ -1,5 +1,5 @@
 import PageTitle from "../../../components/PageTitle";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { getCategories } from "../../../services/publicApi";
 import { createCategory, deleteCategory } from "../../../services/adminApi";
@@ -32,16 +32,16 @@ export default function Categories() {
     (async () => {
       try {
         const res = await getCategories({ page, pageSize, search: searchTerm });
-        if (cancelled) return;
+        if (cancelled) {return;}
         setCategories(res.data.data || []);
         if (typeof res.data.totalCount === "number") {
           setTotalCount(res.data.totalCount);
         }
       } catch (err) {
         console.error(err);
-        if (!cancelled) toast.error("Failed to load categories.");
+        if (!cancelled) {toast.error("Failed to load categories.");}
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {setLoading(false);}
       }
     })();
 
@@ -105,8 +105,6 @@ export default function Categories() {
       }
     }
   };
-
-  const filteredCategories = useMemo(() => categories, [categories]);
 
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
   const safePage = Math.min(page, totalPages);

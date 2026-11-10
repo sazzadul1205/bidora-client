@@ -6,7 +6,7 @@ import Countdown from "./Countdown";
 
 // Helper to force UTC parsing
 const parseUtc = (str) => {
-  if (!str) return 0;
+  if (!str) {return 0;}
   const hasTimezone = str.endsWith("Z") || str.includes("+");
   return new Date(hasTimezone ? str : `${str}Z`).getTime();
 };

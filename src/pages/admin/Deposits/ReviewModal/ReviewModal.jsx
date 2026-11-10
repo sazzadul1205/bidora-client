@@ -25,11 +25,11 @@ export default function ReviewModal({
   const actionStatus = useWatch({ control, name: "status" });
 
   const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
+    if (!dateString) {return "N/A";}
     return formatDateTime(dateString);
   };
 
-  if (!selected) return null;
+  if (!selected) {return null;}
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50 backdrop-blur-sm">

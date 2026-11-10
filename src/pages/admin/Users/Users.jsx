@@ -92,14 +92,14 @@ export default function Users() {
           search: debouncedSearch || undefined,
           filter: roleFilter !== "All" ? roleFilter : undefined,
         });
-        if (cancelled) return;
+        if (cancelled) {return;}
         const payload = res.data.data;
         setUsers(payload?.items || []);
         setTotalCount(payload?.totalCount || 0);
       } catch {
-        if (!cancelled) toast.error("Failed to load users.");
+        if (!cancelled) {toast.error("Failed to load users.");}
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {setLoading(false);}
       }
     })();
 
@@ -118,7 +118,7 @@ export default function Users() {
     (async () => {
       try {
         const res = await getUserRoleCounts();
-        if (cancelled) return;
+        if (cancelled) {return;}
         const data = res.data.data || {};
         setRoleCounts({
           staff: data.staff ?? data.admin ?? 0,
@@ -153,12 +153,12 @@ export default function Users() {
 
   // Pagination handlers
   const goToPage = (p) => {
-    if (p === page) return;
+    if (p === page) {return;}
     setPage(p);
   };
 
   const changePageSize = (s) => {
-    if (s === pageSize) return;
+    if (s === pageSize) {return;}
     setPageSize(s);
     setPage(1);
   };
@@ -231,7 +231,7 @@ export default function Users() {
       toast.success("Admin account created successfully!");
       setShowCreateModal(false);
       await fetchRoleCounts();
-      if (page === 1) await refreshUsers({ page: 1, pageSize });
+      if (page === 1) {await refreshUsers({ page: 1, pageSize });}
       else { setLoading(true); setPage(1); }
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to create admin.");
@@ -239,7 +239,7 @@ export default function Users() {
   };
 
   const onEditSubmit = async (data) => {
-    if (!editTarget) return;
+    if (!editTarget) {return;}
     setSubmitting(true);
     try {
       await editUser(editTarget.userId, data);
@@ -255,7 +255,7 @@ export default function Users() {
   };
 
   const onResetPassword = async (data) => {
-    if (!resetTarget) return;
+    if (!resetTarget) {return;}
     setSubmitting(true);
     try {
       await resetUserPassword(resetTarget.userId, data);
@@ -269,7 +269,7 @@ export default function Users() {
   };
 
   const getInitials = (name) => {
-    if (!name) return "?";
+    if (!name) {return "?";}
     return name
       .split(" ")
       .map((n) => n[0])
@@ -279,7 +279,7 @@ export default function Users() {
   };
 
   const getLockInfo = (user) => {
-    if (!user?.isLocked) return null;
+    if (!user?.isLocked) {return null;}
     const end = user.lockoutEnd ? new Date(user.lockoutEnd) : null;
     const isPermanent = end && end.getFullYear() >= 9000;
     return {
@@ -586,10 +586,10 @@ export default function Users() {
                               onClick={() => {
                                 setSelectedUser(u);
                                 if (lockInfo?.isPermanent)
-                                  setInitialLockAction("permanent");
+                                  {setInitialLockAction("permanent");}
                                 else if (lockInfo)
-                                  setInitialLockAction("temporary");
-                                else setInitialLockAction("unlock");
+                                  {setInitialLockAction("temporary");}
+                                else {setInitialLockAction("unlock");}
                               }}
                               className={`inline-flex items-center justify-center p-2 text-xs font-semibold border rounded-lg transition-colors ${
                                 lockInfo

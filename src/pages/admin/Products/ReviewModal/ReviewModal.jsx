@@ -26,7 +26,7 @@ export default function ReviewModal({
  
   const actionStatus = useWatch({ control, name: "status" });
 
-  if (!selectedProduct) return null;
+  if (!selectedProduct) {return null;}
 
   return (
     <>

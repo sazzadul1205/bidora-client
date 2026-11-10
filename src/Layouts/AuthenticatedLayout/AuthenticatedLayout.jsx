@@ -47,7 +47,6 @@ function AuthenticatedLayout() {
         if (!isStaffUser) {
           try {
             const walletRes = await authApi.get("/wallet/me", getAuthConfig());
-            console.log(walletRes);
 
             setBalance(Math.max(0, walletRes.data.data.availableBalance || 0));
           } catch (walletErr) {
@@ -85,7 +84,6 @@ function AuthenticatedLayout() {
   }
 
   const roles = userData?.account?.roles || [];
-  const role = roles[0] || "User";
   const isStaff = roles.includes("Admin") || roles.some((r) => r !== "Buyer" && r !== "Seller");
   const isBuyer = roles.includes("Buyer");
   const isSeller = roles.includes("Seller");

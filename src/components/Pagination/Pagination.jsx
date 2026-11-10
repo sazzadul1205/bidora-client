@@ -9,7 +9,7 @@ export default function Pagination({
   pageSizeOptions = [10, 20, 50, 100],
   className = "",
 }) {
-  if (!totalCount || totalCount <= 0) return null;
+  if (!totalCount || totalCount <= 0) {return null;}
 
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
   const startItem = (page - 1) * pageSize + 1;
@@ -23,20 +23,20 @@ export default function Pagination({
     const addEllipsis = () => pages.push("...");
 
     if (totalPages <= 7) {
-      for (let i = 1; i <= totalPages; i++) addPage(i);
+      for (let i = 1; i <= totalPages; i++) {addPage(i);}
       return pages;
     }
 
     addPage(1);
 
-    if (page > 3) addEllipsis();
+    if (page > 3) {addEllipsis();}
 
     const windowStart = Math.max(2, page - 1);
     const windowEnd = Math.min(totalPages - 1, page + 1);
 
-    for (let i = windowStart; i <= windowEnd; i++) addPage(i);
+    for (let i = windowStart; i <= windowEnd; i++) {addPage(i);}
 
-    if (page < totalPages - 2) addEllipsis();
+    if (page < totalPages - 2) {addEllipsis();}
 
     addPage(totalPages);
 
@@ -44,7 +44,7 @@ export default function Pagination({
   };
 
   const goTo = (p) => {
-    if (p < 1 || p > totalPages || p === page) return;
+    if (p < 1 || p > totalPages || p === page) {return;}
     onPageChange?.(p);
   };
 

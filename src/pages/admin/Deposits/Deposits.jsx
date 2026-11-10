@@ -5,7 +5,7 @@ import { CheckCircle2, CreditCard, Hash, Receipt, Wallet, Clock, XCircle } from 
 import { formatDateTime } from "../../../utils/date";
 import { toast } from "../../../utils/toast";
 import { formatCurrency as formatMoney } from "../../../utils/currency";
-import { SkeletonRow, Skeleton } from "../../../components/Skeleton";
+import { SkeletonRow } from "../../../components/Skeleton";
 import Pagination from "../../../components/Pagination/Pagination";
 import ReviewModal from "./ReviewModal/ReviewModal";
 
@@ -36,10 +36,10 @@ export default function Deposits() {
   const [pageSize, setPageSize] = useState(20);
   const [totalCount, setTotalCount] = useState(0);
 
-  const fetchRequests = useCallback(async (p = page, ps = pageSize, s = statusFilter) => {
+  const fetchRequests = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await getDepositRequests({ status: s, page: p, pageSize: ps });
+      const res = await getDepositRequests({ status: statusFilter, page, pageSize });
       const payload = res.data;
       setItems(Array.isArray(payload?.data) ? payload.data : []);
       setTotalCount(payload?.pagination?.totalCount ?? payload?.data?.length ?? 0);
@@ -51,7 +51,12 @@ export default function Deposits() {
     }
   }, [page, pageSize, statusFilter]);
 
-  useEffect(() => { fetchRequests(page, pageSize, statusFilter); }, [fetchRequests, page, pageSize, statusFilter]);
+  useEffect(() => {
+    const t = setTimeout(() => {
+      fetchRequests();
+    }, 0);
+    return () => clearTimeout(t);
+  }, [fetchRequests]);
 
   const onSubmit = async (data) => {
     setSubmitting(true);
@@ -65,7 +70,7 @@ export default function Deposits() {
       const serverMsg = err.response?.data?.message;
       const validationErrors = err.response?.data?.errors;
       let detail = serverMsg || "Error reviewing deposit.";
-      if (validationErrors) detail = Object.values(validationErrors).flat().join(" ");
+      if (validationErrors) {detail = Object.values(validationErrors).flat().join(" ");}
       toast.error(detail);
     } finally {
       setSubmitting(false);

@@ -15,7 +15,7 @@ export default function UserDetailsModal({
   getInitials,
   formatMoney,
 }) {
-  if (!target) return null;
+  if (!target) {return null;}
   const info = getLockInfo(target);
 
   return (

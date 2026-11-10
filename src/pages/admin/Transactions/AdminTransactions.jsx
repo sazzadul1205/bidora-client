@@ -84,7 +84,7 @@ export default function AdminTransactions() {
             search: resDebouncedSearch || undefined,
           }),
         ]);
-        if (cancelled) return;
+        if (cancelled) {return;}
 
         const txData = txRes.data.data || {};
 
@@ -107,9 +107,9 @@ export default function AdminTransactions() {
         }
       } catch (err) {
         console.error(err);
-        if (!cancelled) toast.error("Failed to load financial ledger.");
+        if (!cancelled) {toast.error("Failed to load financial ledger.");}
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {setLoading(false);}
       }
     })();
 
@@ -120,13 +120,13 @@ export default function AdminTransactions() {
 
   // Pagination handlers — transactions
   const goToTxPage = (p) => {
-    if (p === txPage) return;
+    if (p === txPage) {return;}
     setLoading(true);
     setTxPage(p);
   };
 
   const changeTxPageSize = (s) => {
-    if (s === txPageSize) return;
+    if (s === txPageSize) {return;}
     setLoading(true);
     setTxPageSize(s);
     setTxPage(1);
@@ -152,19 +152,17 @@ export default function AdminTransactions() {
 
   // Tab switch also resets client-side reservation page.
   const handleTabChange = (tab) => {
-    if (tab === activeTab) return;
+    if (tab === activeTab) {return;}
     setActiveTab(tab);
-    if (tab === "reservations") setResPage(1);
+    if (tab === "reservations") {setResPage(1);}
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
+    if (!dateString) {return "N/A";}
     return formatDateTime(dateString);
   };
 
   // Reservations now server-side paginated
-  const activeReservations = reservations;
-  const filteredReservations = reservations;
   const resTotalPages = Math.max(1, Math.ceil(resTotal / resPageSize));
   const safeResPage = Math.min(resPage, resTotalPages);
   const resPageItems = reservations;

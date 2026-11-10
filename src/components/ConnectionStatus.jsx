@@ -3,7 +3,7 @@ import { Wifi, WifiOff, Loader2 } from "lucide-react";
 import useOnlineStatus from "../hooks/useOnlineStatus";
 
 const formatTime = (date) => {
-  if (!date) return "—";
+  if (!date) {return "—";}
   return date.toLocaleTimeString("en-GB", {
     hour: "2-digit",
     minute: "2-digit",

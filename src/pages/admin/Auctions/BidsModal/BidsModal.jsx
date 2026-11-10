@@ -2,7 +2,7 @@ import { X, Gavel, ArrowUp, Users } from "lucide-react";
 import { SkeletonRow } from "../../../../components/Skeleton";
 
 export default function BidsModal({ bidsData, bidsLoading, onClose }) {
-  if (!bidsData) return null;
+  if (!bidsData) {return null;}
 
   return (
     <div
@@ -53,7 +53,7 @@ export default function BidsModal({ bidsData, bidsLoading, onClose }) {
           <div>
             <p className="text-xs text-gray-500">Current Highest</p>
             <p className="text-sm font-bold text-green-700">
-              {bidsData.currentHighestBid != null
+              {bidsData.currentHighestBid !== null && bidsData.currentHighestBid !== undefined
                 ? `৳${bidsData.currentHighestBid.toLocaleString()}`
                 : "None"}
             </p>

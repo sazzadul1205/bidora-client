@@ -38,11 +38,11 @@ export default function Verifications() {
     (async () => {
       try {
         const res = await getPendingVerifications();
-        if (mounted) setProfiles(res.data.data);
+        if (mounted) {setProfiles(res.data.data);}
       } catch (err) {
         console.error(err);
       } finally {
-        if (mounted) setLoading(false);
+        if (mounted) {setLoading(false);}
       }
     })();
     return () => {
@@ -79,7 +79,7 @@ export default function Verifications() {
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
+    if (!dateString) {return "N/A";}
     return new Date(dateString).toLocaleDateString("en-GB", {
       day: "2-digit",
       month: "short",
@@ -96,7 +96,7 @@ export default function Verifications() {
   );
 
   if (loading)
-    return (
+    {return (
       <div>
         <div className="flex items-center justify-between mb-6">
           <Skeleton className="h-7 w-44" />
@@ -122,7 +122,7 @@ export default function Verifications() {
           </div>
         </div>
       </div>
-    );
+    );}
 
   return (
     <>

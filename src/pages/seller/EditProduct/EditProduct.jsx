@@ -53,14 +53,14 @@ function ImageManager({
     if (validFiles.length > 0) {
       setNewImages((prev) => [...prev, ...validFiles]);
       // If no main image is set, make the first new image the main one
-      if (!mainImage) setMainImage({ type: "new", index: 0 });
+      if (!mainImage) {setMainImage({ type: "new", index: 0 });}
     }
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
     setDragActive(false);
-    if (e.dataTransfer.files?.length > 0) handleFiles(e.dataTransfer.files);
+    if (e.dataTransfer.files?.length > 0) {handleFiles(e.dataTransfer.files);}
   };
 
   const toggleDeleteExisting = (id) => {
@@ -126,7 +126,7 @@ function ImageManager({
             accept="image/jpeg,image/png,image/webp"
             className="hidden"
             onChange={(e) => {
-              if (e.target.files) handleFiles(e.target.files);
+              if (e.target.files) {handleFiles(e.target.files);}
               e.target.value = "";
             }}
           />
@@ -333,9 +333,9 @@ export default function EditProduct() {
 
       // Append text fields
       Object.keys(data).forEach((key) => {
-        if (key === "purchaseDate" && !data[key]) return;
+        if (key === "purchaseDate" && !data[key]) {return;}
         if (data[key] === undefined || data[key] === null || data[key] === "")
-          return;
+          {return;}
 
         if (numericFields.includes(key)) {
           formData.append(key, Number(data[key]));
@@ -372,12 +372,12 @@ export default function EditProduct() {
   };
 
   if (loading)
-    return (
+    {return (
       <div className="max-w-4xl mx-auto p-12 text-center text-gray-500">
         <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
         Loading product details...
       </div>
-    );
+    );}
 
   return (
     <>

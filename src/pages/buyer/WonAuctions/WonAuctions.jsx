@@ -60,7 +60,7 @@ export default function WonAuctions() {
           search: searchTerm,
           filter: filterStatus !== "All" ? filterStatus : undefined,
         });
-        if (cancelled) return;
+        if (cancelled) {return;}
         const payload = res.data.data || {};
         const items = Array.isArray(payload) ? payload : payload.items || [];
         setAuctions(items);
@@ -69,13 +69,13 @@ export default function WonAuctions() {
         } else {
           setTotalCount(items.length);
         }
-      if (payload.totalWon !== undefined) setTotalWonCountState(payload.totalWon);
-      if (payload.pendingPaymentCount !== undefined) setPendingPaymentCountState(payload.pendingPaymentCount);
-      if (payload.totalSpent !== undefined) setTotalSpentState(payload.totalSpent);
+      if (payload.totalWon !== undefined) {setTotalWonCountState(payload.totalWon);}
+      if (payload.pendingPaymentCount !== undefined) {setPendingPaymentCountState(payload.pendingPaymentCount);}
+      if (payload.totalSpent !== undefined) {setTotalSpentState(payload.totalSpent);}
       } catch {
-        if (!cancelled) toast.error("Failed to load won auctions.");
+        if (!cancelled) {toast.error("Failed to load won auctions.");}
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {setLoading(false);}
       }
     })();
 
@@ -113,7 +113,7 @@ export default function WonAuctions() {
   };
 
   const handleFilterChange = (status) => {
-    if (status === filterStatus) return;
+    if (status === filterStatus) {return;}
     setFilterStatus(status);
     setPage(1);
   };
@@ -124,7 +124,7 @@ export default function WonAuctions() {
       "This will deduct the winning amount from your wallet and hold it in escrow.",
       "Pay Now",
     );
-    if (!confirmed) return;
+    if (!confirmed) {return;}
 
     try {
       await payForSale(saleId);

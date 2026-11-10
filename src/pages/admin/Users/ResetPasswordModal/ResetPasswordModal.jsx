@@ -2,7 +2,7 @@ import { useForm } from "react-hook-form";
 import { X, KeyRound, Loader2 } from "lucide-react";
 
 export default function ResetPasswordModal({ target, onClose, onSubmit }) {
-  if (!target) return null;
+  if (!target) {return null;}
   return <Content key={target.userId} target={target} onClose={onClose} onSubmit={onSubmit} />;
 }
 

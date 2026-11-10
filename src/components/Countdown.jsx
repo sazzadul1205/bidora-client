@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 // Helper to force UTC parsing if the backend forgot the 'Z'
 const parseUtcDate = (dateString) => {
-  if (!dateString) return NaN;
+  if (!dateString) {return NaN;}
   // If it doesn't end with 'Z' and has no timezone offset, append 'Z' to force UTC
   const hasTimezone = dateString.endsWith("Z") || dateString.includes("+");
   return new Date(hasTimezone ? dateString : `${dateString}Z`).getTime();
@@ -20,11 +20,11 @@ export default function Countdown({
   const [timeLeft, setTimeLeft] = useState({ d: 0, h: 0, m: 0, s: 0 });
 
   useEffect(() => {
-    if (!hasValidTarget) return;
+    if (!hasValidTarget) {return;}
 
     const calculateTime = () => {
       const diff = targetMs - Date.now();
-      if (diff <= 0) return setTimeLeft({ d: 0, h: 0, m: 0, s: 0 });
+      if (diff <= 0) {return setTimeLeft({ d: 0, h: 0, m: 0, s: 0 });}
 
       setTimeLeft({
         d: Math.floor(diff / (1000 * 60 * 60 * 24)),

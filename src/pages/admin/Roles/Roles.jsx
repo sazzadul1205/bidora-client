@@ -42,12 +42,12 @@ export default function Roles() {
     (async () => {
       try {
         const res = await getRoles();
-        if (cancelled) return;
+        if (cancelled) {return;}
         setRoles(res.data.data || []);
       } catch {
-        if (!cancelled) toast.error("Failed to load roles.");
+        if (!cancelled) {toast.error("Failed to load roles.");}
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {setLoading(false);}
       }
     })();
     return () => { cancelled = true; };
@@ -60,7 +60,7 @@ export default function Roles() {
   const onCreate = async (e) => {
     e.preventDefault();
     const trimmed = name.trim();
-    if (!trimmed) return;
+    if (!trimmed) {return;}
 
     setSaving(true);
     try {
@@ -78,7 +78,7 @@ export default function Roles() {
   const onUpdate = async (e) => {
     e.preventDefault();
     const trimmed = editing?.name?.trim();
-    if (!editing || !trimmed) return;
+    if (!editing || !trimmed) {return;}
 
     setSaving(true);
     try {
@@ -100,7 +100,7 @@ export default function Roles() {
       "Delete",
       "Cancel",
     );
-    if (!confirmed) return;
+    if (!confirmed) {return;}
 
     try {
       await deleteRole(r.id);

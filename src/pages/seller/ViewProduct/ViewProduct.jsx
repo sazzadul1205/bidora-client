@@ -43,7 +43,7 @@ export default function ViewProduct() {
         toast.error(err.response?.data?.message || "Failed to load product.");
         navigate("/seller/products");
       } finally {
-        if (mounted) setLoading(false);
+        if (mounted) {setLoading(false);}
       }
     })();
     return () => {
@@ -60,10 +60,10 @@ export default function ViewProduct() {
     );
   }
 
-  if (!product) return null;
+  if (!product) {return null;}
 
   const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
+    if (!dateString) {return "N/A";}
     return new Date(dateString).toLocaleDateString("en-GB", {
       day: "2-digit",
       month: "long",

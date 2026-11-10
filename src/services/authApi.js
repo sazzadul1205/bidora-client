@@ -10,8 +10,7 @@ const authApi = axios.create({
 // DEBUG LOGGING
 const DEBUG = true;
 const reqLog = (cfg) => {
-  if (!DEBUG) return;
-  console.log("%c[API REQUEST]", "color: #2563eb; font-weight: bold", {
+  if (!DEBUG) {return;} console.warn("%c[API REQUEST]", "color: #2563eb; font-weight: bold", {
     method: cfg.method?.toUpperCase(),
     url: cfg.url,
     params: cfg.params,
@@ -20,16 +19,14 @@ const reqLog = (cfg) => {
 };
 
 const resLog = (res) => {
-  if (!DEBUG) return;
-  console.log("%c[API RESPONSE]", "color: #16a34a; font-weight: bold", {
+  if (!DEBUG) {return;} console.warn("%c[API RESPONSE]", "color: #16a34a; font-weight: bold", {
     url: res.config?.url,
     status: res.status,
     data: res.data,
   });
 };
 const errLog = (err) => {
-  if (!DEBUG) return;
-  console.log("%c[API ERROR]", "color: #dc2626; font-weight: bold", {
+  if (!DEBUG) {return;} console.warn("%c[API ERROR]", "color: #dc2626; font-weight: bold", {
     url: err.config?.url,
     status: err.response?.status,
     data: err.response?.data,
@@ -93,8 +90,8 @@ export const updateProfile = (profileData, frontNidFile, backNidFile) => {
   formData.append("NationalIdNumber", profileData.nationalId || "");
   formData.append("PhoneNumber", profileData.phoneNumber || "");
 
-  if (frontNidFile) formData.append("NationalIdFrontImage", frontNidFile);
-  if (backNidFile) formData.append("NationalIdBackImage", backNidFile);
+  if (frontNidFile) {formData.append("NationalIdFrontImage", frontNidFile);}
+  if (backNidFile) {formData.append("NationalIdBackImage", backNidFile);}
 
   const token = localStorage.getItem("token");
   const headers = {

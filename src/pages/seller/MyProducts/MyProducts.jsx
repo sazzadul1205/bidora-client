@@ -55,15 +55,15 @@ export default function MyProducts() {
           approvalStatus: filterStatus,
           auctionStatus: filterAuction,
         });
-        if (cancelled) return;
+        if (cancelled) {return;}
         setProducts(res.data.data || []);
         if (typeof res.data.totalCount === "number") {
           setTotalCount(res.data.totalCount);
         }
       } catch {
-        if (!cancelled) toast.error("Failed to load products.");
+        if (!cancelled) {toast.error("Failed to load products.");}
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {setLoading(false);}
       }
     })();
 
@@ -91,13 +91,13 @@ export default function MyProducts() {
   };
 
   const handleStatusChange = (status) => {
-    if (status === filterStatus) return;
+    if (status === filterStatus) {return;}
     setFilterStatus(status);
     setPage(1);
   };
 
   const handleAuctionChange = (status) => {
-    if (status === filterAuction) return;
+    if (status === filterAuction) {return;}
     setFilterAuction(status);
     setPage(1);
   };
@@ -107,7 +107,7 @@ export default function MyProducts() {
       "Submit for approval?",
       "A 25% deposit will be reserved from your wallet.",
     );
-    if (!confirmed) return;
+    if (!confirmed) {return;}
 
     try {
       await submitProductForApproval(id);
@@ -125,7 +125,7 @@ export default function MyProducts() {
       "Withdraw submission?",
       "The product will return to draft and your reserved deposit will be released.",
     );
-    if (!confirmed) return;
+    if (!confirmed) {return;}
 
     try {
       await withdrawProductSubmission(id);
@@ -141,7 +141,7 @@ export default function MyProducts() {
       "Delete draft?",
       "This action cannot be undone.",
     );
-    if (!confirmed) return;
+    if (!confirmed) {return;}
 
     try {
       await deleteProduct(id);
@@ -157,7 +157,7 @@ export default function MyProducts() {
       "Reset for re-auction?",
       "Product will return to draft for re-approval.",
     );
-    if (!confirmed) return;
+    if (!confirmed) {return;}
 
     try {
       await resetForReAuction(id);

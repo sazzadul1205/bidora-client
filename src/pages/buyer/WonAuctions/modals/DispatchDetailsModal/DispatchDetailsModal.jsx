@@ -2,7 +2,7 @@ import { Truck, X, FileText, ImagePlus } from "lucide-react";
 import { imageUrl, handleImageError } from "../../../../../utils/image";
 
 export default function DispatchDetailsModal({ target, onClose }) {
-  if (!target) return null;
+  if (!target) {return null;}
 
   return (
     <div

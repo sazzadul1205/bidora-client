@@ -50,7 +50,7 @@ export default function MyBids() {
           search: debouncedSearch || undefined,
           filter: activeTab !== "All" ? activeTab : undefined,
         });
-        if (cancelled) return;
+        if (cancelled) {return;}
         setBids(res.data.data?.items || []);
         setTotalCount(res.data.data?.totalCount || 0);
         setTotalBidsCount(res.data.data?.totalBidsCount || 0);
@@ -59,7 +59,7 @@ export default function MyBids() {
       } catch (err) {
         console.error(err);
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {setLoading(false);}
       }
     })();
 
@@ -70,13 +70,13 @@ export default function MyBids() {
 
   // Pagination handlers
   const goToPage = (p) => {
-    if (p === page) return;
+    if (p === page) {return;}
     setLoading(true);
     setPage(p);
   };
 
   const changePageSize = (s) => {
-    if (s === pageSize) return;
+    if (s === pageSize) {return;}
     setLoading(true);
     setPageSize(s);
     setPage(1);
@@ -90,7 +90,7 @@ export default function MyBids() {
   };
 
   const handleTabChange = (tab) => {
-    if (tab === activeTab) return;
+    if (tab === activeTab) {return;}
     setActiveTab(tab);
     setPage(1);
     setLoading(true);

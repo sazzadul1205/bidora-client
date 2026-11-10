@@ -27,19 +27,19 @@ export default function CreateAdminModal({ onClose, onSubmit }) {
     (async () => {
       try {
         const res = await getRoles();
-        if (cancelled) return;
+        if (cancelled) {return;}
 
         const filtered = (res.data.data || []).filter((r) => {
           const n = (r.name || "").toLowerCase();
-          if (EXCLUDED_ROLES.has(n)) return false;
-          if (!callerIsSuperAdmin && ADMIN_ROLES.has(n)) return false;
+          if (EXCLUDED_ROLES.has(n)) {return false;}
+          if (!callerIsSuperAdmin && ADMIN_ROLES.has(n)) {return false;}
           return true;
         });
         setRoles(filtered);
       } catch {
-        if (!cancelled) setRoles([]);
+        if (!cancelled) {setRoles([]);}
       } finally {
-        if (!cancelled) setLoadingRoles(false);
+        if (!cancelled) {setLoadingRoles(false);}
       }
     })();
 

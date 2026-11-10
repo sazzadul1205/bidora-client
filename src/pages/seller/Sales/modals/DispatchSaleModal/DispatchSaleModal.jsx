@@ -11,18 +11,18 @@ export default function DispatchSaleModal({ target, onClose, onSuccess }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const trackingInputRef = useRef(null);
 
-  if (!target) return null;
+  if (!target) {return null;}
 
   const clearImage = () => {
-    if (trackingImagePreview) URL.revokeObjectURL(trackingImagePreview);
+    if (trackingImagePreview) {URL.revokeObjectURL(trackingImagePreview);}
     setTrackingImage(null);
     setTrackingImagePreview(null);
-    if (trackingInputRef.current) trackingInputRef.current.value = "";
+    if (trackingInputRef.current) {trackingInputRef.current.value = "";}
   };
 
   const handleFile = (file) => {
-    if (!file) return;
-    if (trackingImagePreview) URL.revokeObjectURL(trackingImagePreview);
+    if (!file) {return;}
+    if (trackingImagePreview) {URL.revokeObjectURL(trackingImagePreview);}
     setTrackingImage(file);
     setTrackingImagePreview(URL.createObjectURL(file));
   };
@@ -34,7 +34,7 @@ export default function DispatchSaleModal({ target, onClose, onSuccess }) {
   };
 
   const handleClose = () => {
-    if (isSubmitting) return;
+    if (isSubmitting) {return;}
     resetForm();
     onClose();
   };
@@ -115,7 +115,7 @@ export default function DispatchSaleModal({ target, onClose, onSuccess }) {
                 value={dispatchInfo}
                 onChange={(e) => {
                   setDispatchInfo(e.target.value);
-                  if (dispatchInfoError) setDispatchInfoError("");
+                  if (dispatchInfoError) {setDispatchInfoError("");}
                 }}
                 className={`w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm transition ${
                   dispatchInfoError ? "border-red-500" : "border-gray-300"

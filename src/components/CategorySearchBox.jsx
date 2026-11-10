@@ -83,7 +83,7 @@ export default function CategorySearchBox({
       return;
     }
 
-    if (!open) return;
+    if (!open) {return;}
 
     if (e.key === "ArrowDown") {
       e.preventDefault();

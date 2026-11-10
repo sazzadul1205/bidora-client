@@ -9,7 +9,7 @@ import useOnlineStatus from "../hooks/useOnlineStatus";
 export default function OfflineBanner() {
   const { status } = useOnlineStatus();
 
-  if (status !== "offline") return null;
+  if (status !== "offline") {return null;}
 
   return (
     <div className="bg-red-600 text-white text-sm font-medium px-4 py-2 flex items-center justify-center gap-2">

@@ -55,7 +55,7 @@ export default function SellerAuctionView() {
           toast.error("Failed to load auction details.");
         }
       } finally {
-        if (mounted) setLoading(false);
+        if (mounted) {setLoading(false);}
       }
     })();
     return () => {

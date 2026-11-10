@@ -24,7 +24,7 @@ export default function ReviewModal({
   const actionStatus = useWatch({ control, name: "status" });
 
   const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
+    if (!dateString) {return "N/A";}
     return new Date(dateString).toLocaleDateString("en-GB", {
       day: "2-digit",
       month: "short",
@@ -32,7 +32,7 @@ export default function ReviewModal({
     });
   };
 
-  if (!selected) return null;
+  if (!selected) {return null;}
 
   return (
     <>

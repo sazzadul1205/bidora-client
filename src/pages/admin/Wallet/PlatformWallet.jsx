@@ -48,7 +48,7 @@ export default function PlatformWallet() {
           search: debouncedSearch || undefined,
           filter: filterType !== "All" ? filterType : undefined,
         });
-        if (cancelled) return;
+        if (cancelled) {return;}
         const d = res.data.data;
         setData({
           wallet: d.wallet,
@@ -60,7 +60,7 @@ export default function PlatformWallet() {
       } catch (e) {
         console.error(e);
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {setLoading(false);}
       }
     })();
 
@@ -71,13 +71,13 @@ export default function PlatformWallet() {
 
   // Pagination handlers
   const goToPage = (p) => {
-    if (p === page) return;
+    if (p === page) {return;}
     setLoading(true);
     setPage(p);
   };
 
   const changePageSize = (s) => {
-    if (s === pageSize) return;
+    if (s === pageSize) {return;}
     setLoading(true);
     setPageSize(s);
     setPage(1);
@@ -91,7 +91,7 @@ export default function PlatformWallet() {
   };
 
   const handleTypeChange = (type) => {
-    if (type === filterType) return;
+    if (type === filterType) {return;}
     setFilterType(type);
     setPage(1);
     setLoading(true);

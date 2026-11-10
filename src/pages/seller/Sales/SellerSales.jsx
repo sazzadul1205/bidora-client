@@ -64,7 +64,7 @@ export default function SellerSales() {
           search: debouncedSearch || undefined,
           filter: filterStatus !== "All" ? filterStatus : undefined,
         });
-        if (cancelled) return;
+        if (cancelled) {return;}
         setSales(res.data.data?.items || []);
         setTotalCount(res.data.data?.totalCount || 0);
         setTotalSalesCount(res.data.data?.totalSalesCount || 0);
@@ -72,9 +72,9 @@ export default function SellerSales() {
         setServerTotalRevenue(res.data.data?.totalRevenue || 0);
       } catch (err) {
         console.error(err);
-        if (!cancelled) toast.error("Failed to load sales.");
+        if (!cancelled) {toast.error("Failed to load sales.");}
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {setLoading(false);}
       }
     })();
 
@@ -109,13 +109,13 @@ export default function SellerSales() {
 
   // Pagination handlers
   const goToPage = (p) => {
-    if (p === page) return;
+    if (p === page) {return;}
     setLoading(true);
     setPage(p);
   };
 
   const changePageSize = (s) => {
-    if (s === pageSize) return;
+    if (s === pageSize) {return;}
     setLoading(true);
     setPageSize(s);
     setPage(1);
@@ -129,14 +129,14 @@ export default function SellerSales() {
   };
 
   const handleFilterChange = (tab) => {
-    if (tab === filterStatus) return;
+    if (tab === filterStatus) {return;}
     setFilterStatus(tab);
     setPage(1);
     setLoading(true);
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
+    if (!dateString) {return "N/A";}
     return new Date(dateString).toLocaleDateString("en-GB", {
       day: "2-digit",
       month: "short",
@@ -147,7 +147,7 @@ export default function SellerSales() {
   };
 
   const getDaysSinceDispatch = (dispatchedAt) => {
-    if (!dispatchedAt) return 0;
+    if (!dispatchedAt) {return 0;}
     const diffMs = new Date().getTime() - new Date(dispatchedAt).getTime();
     return Math.floor(diffMs / (1000 * 60 * 60 * 24));
   };
@@ -158,7 +158,7 @@ export default function SellerSales() {
       "The buyer will be notified. You must wait the full 10-day pickup window before this is allowed.",
       "Report",
     );
-    if (!confirmed) return;
+    if (!confirmed) {return;}
 
     try {
       await reportNonDelivery(saleId);

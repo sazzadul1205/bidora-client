@@ -1,5 +1,5 @@
 import PageTitle from "../../../components/PageTitle";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import {
   getPendingProducts,
   getPendingProductById,
@@ -37,7 +37,7 @@ export default function AdminProducts() {
           pageSize,
           search: searchTerm,
         });
-        if (cancelled) return;
+        if (cancelled) {return;}
         setProducts(res.data.data || []);
         if (typeof res.data.totalCount === "number") {
           setTotalCount(res.data.totalCount);
@@ -45,7 +45,7 @@ export default function AdminProducts() {
       } catch (err) {
         console.error(err);
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {setLoading(false);}
       }
     })();
 
@@ -115,7 +115,7 @@ export default function AdminProducts() {
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
+    if (!dateString) {return "N/A";}
     return new Date(dateString).toLocaleDateString("en-GB", {
       day: "2-digit",
       month: "short",
@@ -123,14 +123,12 @@ export default function AdminProducts() {
     });
   };
 
-  const filteredProducts = useMemo(() => products, [products]);
-
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
   const safePage = Math.min(page, totalPages);
   const pageItems = products;
 
   if (loading)
-    return (
+    {return (
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <Skeleton className="h-8 w-48" />
@@ -156,7 +154,7 @@ export default function AdminProducts() {
           </div>
         </div>
       </div>
-    );
+    );}
 
   return (
     <>
