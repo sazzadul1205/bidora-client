@@ -2,7 +2,9 @@ import { X, Gavel, ArrowUp, Users } from "lucide-react";
 import { SkeletonRow } from "../../../../components/Skeleton";
 
 export default function BidsModal({ bidsData, bidsLoading, onClose }) {
-  if (!bidsData) {return null;}
+  if (!bidsData) {
+    return null;
+  }
 
   return (
     <div
@@ -10,50 +12,46 @@ export default function BidsModal({ bidsData, bidsLoading, onClose }) {
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl w-full max-w-3xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col"
+        className="bg-surface rounded-2xl w-full max-w-3xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+        <div className="px-6 py-4 border-b border-border-main flex items-center justify-between bg-neutral-50/50">
           <div>
-            <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-              <Gavel className="w-5 h-5 text-purple-600" />
-              Auction Bids
+            <h2 className="text-lg font-bold text-text-main flex items-center gap-2">
+              <Gavel className="w-5 h-5 text-accent-600" /> Auction Bids
             </h2>
-            <p className="text-xs text-gray-500 mt-0.5 truncate max-w-70">
+            <p className="text-xs text-text-muted mt-0.5 truncate max-w-68">
               {bidsData.productTitle}
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
+            className="p-2 text-neutral-400 hover:text-text-main hover:bg-neutral-200 rounded-lg transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="px-6 py-4 bg-purple-50/50 border-b border-purple-100 grid grid-cols-3 gap-4 text-center">
+        <div className="px-6 py-4 bg-accent-50/50 border-b border-accent-100 grid grid-cols-3 gap-4 text-center">
           <div>
-            <p className="text-xs text-gray-500">Status</p>
+            <p className="text-xs text-text-muted">Status</p>
             <p
-              className={`text-sm font-bold ${
-                bidsData.auctionStatus === "Active"
-                  ? "text-green-700"
-                  : "text-gray-700"
-              }`}
+              className={`text-sm font-bold ${bidsData.auctionStatus === "Active" ? "text-success-700" : "text-neutral-700"}`}
             >
               {bidsData.auctionStatus}
             </p>
           </div>
           <div>
-            <p className="text-xs text-gray-500">Total Bids</p>
-            <p className="text-sm font-bold text-gray-900">
+            <p className="text-xs text-text-muted">Total Bids</p>
+            <p className="text-sm font-bold text-text-main">
               {bidsData.bidCount}
             </p>
           </div>
           <div>
-            <p className="text-xs text-gray-500">Current Highest</p>
-            <p className="text-sm font-bold text-green-700">
-              {bidsData.currentHighestBid !== null && bidsData.currentHighestBid !== undefined
+            <p className="text-xs text-text-muted">Current Highest</p>
+            <p className="text-sm font-bold text-success-700">
+              {bidsData.currentHighestBid !== null &&
+              bidsData.currentHighestBid !== undefined
                 ? `৳${bidsData.currentHighestBid.toLocaleString()}`
                 : "None"}
             </p>
@@ -68,8 +66,8 @@ export default function BidsModal({ bidsData, bidsLoading, onClose }) {
               <SkeletonRow cols={3} />
             </div>
           ) : bidsData.bids && bidsData.bids.length > 0 ? (
-            <table className="w-full text-left text-sm text-gray-600">
-              <thead className="bg-gray-50 border-b border-gray-200 text-gray-900 sticky top-0">
+            <table className="w-full text-left text-sm text-text-muted">
+              <thead className="bg-neutral-50 border-b border-border-main text-text-main sticky top-0">
                 <tr>
                   <th className="px-6 py-3 font-medium">Bidder</th>
                   <th className="px-6 py-3 font-medium text-right">Amount</th>
@@ -77,38 +75,38 @@ export default function BidsModal({ bidsData, bidsLoading, onClose }) {
                   <th className="px-6 py-3 font-medium text-center">Flag</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-border-main">
                 {bidsData.bids.map((b) => (
                   <tr
                     key={b.bidId}
                     className={
                       b.isHighest
-                        ? "bg-green-50 hover:bg-green-100"
-                        : "hover:bg-gray-50"
+                        ? "bg-success-50 hover:bg-success-100"
+                        : "hover:bg-neutral-50"
                     }
                   >
                     <td className="px-6 py-3">
                       <div className="flex items-center gap-2">
-                        <Users className="w-4 h-4 text-gray-400" />
+                        <Users className="w-4 h-4 text-neutral-400" />
                         <div>
-                          <p className="font-bold text-gray-900 text-sm">
+                          <p className="font-bold text-text-main text-sm">
                             {b.bidderName}
                           </p>
-                          <p className="text-[11px] text-gray-500">
+                          <p className="text-[11px] text-text-muted">
                             {b.bidderEmail}
                           </p>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-3 text-right font-bold text-blue-600">
+                    <td className="px-6 py-3 text-right font-bold text-primary-600">
                       ৳{b.amount?.toLocaleString()}
                       {b.isBuyout && (
-                        <span className="ml-1 text-[10px] font-semibold text-purple-700">
+                        <span className="ml-1 text-[10px] font-semibold text-accent-700">
                           (buyout)
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-3 text-xs text-gray-500">
+                    <td className="px-6 py-3 text-xs text-text-muted">
                       {new Date(b.placedAt).toLocaleString("en-GB", {
                         day: "2-digit",
                         month: "short",
@@ -119,16 +117,15 @@ export default function BidsModal({ bidsData, bidsLoading, onClose }) {
                     </td>
                     <td className="px-6 py-3 text-center">
                       {b.isHighest ? (
-                        <span className="inline-flex items-center gap-1 text-xs font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
-                          <ArrowUp className="w-3 h-3" />
-                          Highest
+                        <span className="inline-flex items-center gap-1 text-xs font-bold text-success-700 bg-success-100 px-2 py-0.5 rounded-full">
+                          <ArrowUp className="w-3 h-3" /> Highest
                         </span>
                       ) : b.isBuyout ? (
-                        <span className="text-[10px] font-semibold text-purple-600">
+                        <span className="text-[10px] font-semibold text-accent-600">
                           Buyout
                         </span>
                       ) : (
-                        <span className="text-[10px] text-gray-400">
+                        <span className="text-[10px] text-neutral-400">
                           Outbid
                         </span>
                       )}
@@ -139,18 +136,18 @@ export default function BidsModal({ bidsData, bidsLoading, onClose }) {
             </table>
           ) : (
             <div className="text-center py-16">
-              <Gavel className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-500 font-medium">
+              <Gavel className="w-12 h-12 text-neutral-300 mx-auto mb-3" />
+              <p className="text-text-muted font-medium">
                 No bids have been placed yet.
               </p>
             </div>
           )}
         </div>
 
-        <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3 bg-gray-50/50">
+        <div className="px-6 py-4 border-t border-border-main flex justify-end gap-3 bg-neutral-50/50">
           <button
             onClick={onClose}
-            className="px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+            className="px-5 py-2.5 text-sm font-medium text-text-main hover:bg-neutral-100 rounded-lg transition-colors"
           >
             Close
           </button>
