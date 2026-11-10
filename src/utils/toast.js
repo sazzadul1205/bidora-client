@@ -1,4 +1,5 @@
 import Swal from 'sweetalert2'
+import { theme } from './theme.js'
 
 // Reusable toast notifications (top-right, non-blocking)
 export const toast = {
@@ -128,7 +129,7 @@ export const modalAlert = async (title, text, icon = 'info') => {
     title,
     text,
     icon,
-    confirmButtonColor: '#3b82f6',
+    confirmButtonColor: theme.colors.primary[600],
     customClass: {
       confirmButton: 'bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg',
     },

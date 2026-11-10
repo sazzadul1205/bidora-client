@@ -105,8 +105,8 @@
   --shadow-xl:
     0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
 
-  /* =========================================
-     5. Z-INDEX SCALE
+/* =========================================
+      5. Z-INDEX SCALE
      ========================================= */
   --z-base: 0;
   --z-dropdown: 40;
@@ -114,4 +114,60 @@
   --z-modal-backdrop: 60;
   --z-modal: 70;
   --z-tooltip: 80;
+
+  /* =========================================
+      6. ALIAS DEFAULT PALETTE TO SEMANTIC THEME
+      Maps Tailwind's default gray/blue/red/green/yellow/orange
+      scales to the semantic variables above so every existing
+      utility class (bg-gray-50, text-blue-600, border-gray-200...)
+      automatically respects the theme. No per-page edits needed.
+     ========================================= */
+  --color-gray-50: var(--color-neutral-50);
+  --color-gray-100: var(--color-neutral-100);
+  --color-gray-200: var(--color-neutral-200);
+  --color-gray-300: var(--color-neutral-300);
+  --color-gray-400: var(--color-neutral-400);
+  --color-gray-500: var(--color-neutral-500);
+  --color-gray-600: var(--color-neutral-600);
+  --color-gray-700: var(--color-neutral-700);
+  --color-gray-800: var(--color-neutral-800);
+  --color-gray-900: var(--color-neutral-900);
+
+  --color-blue-50: var(--color-primary-50);
+  --color-blue-100: var(--color-primary-100);
+  --color-blue-200: var(--color-primary-200);
+  --color-blue-300: var(--color-primary-300);
+  --color-blue-400: var(--color-primary-400);
+  --color-blue-500: var(--color-primary-500);
+  --color-blue-600: var(--color-primary-600);
+  --color-blue-700: var(--color-primary-700);
+  --color-blue-800: var(--color-primary-800);
+  --color-blue-900: var(--color-primary-900);
+
+  --color-red-50: var(--color-danger-50);
+  --color-red-100: var(--color-danger-100);
+  --color-red-500: var(--color-danger-500);
+  --color-red-600: var(--color-danger-600);
+  --color-red-700: var(--color-danger-700);
+
+  --color-green-50: var(--color-success-50);
+  --color-green-100: var(--color-success-100);
+  --color-green-500: var(--color-success-500);
+  --color-green-600: var(--color-success-600);
+  --color-green-700: var(--color-success-700);
+
+  --color-yellow-50: var(--color-warning-50);
+  --color-yellow-100: var(--color-warning-100);
+  --color-yellow-500: var(--color-warning-500);
+  --color-yellow-600: var(--color-warning-600);
+
+  --color-orange-50: #fffbeb;
+  --color-orange-100: #fef3c7;
+  --color-orange-500: var(--color-warning-500);
+  --color-orange-600: var(--color-warning-600);
+  --color-orange-700: var(--color-warning-700);
+
+  /* Pure white/black stay as-is for contrast elements */
+  --color-white: #ffffff;
+  --color-black: #000000;
 }

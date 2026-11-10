@@ -6,7 +6,7 @@ export const Skeleton = memo(
       className={`rounded bg-neutral-200 ${className} ${height} ${width} shimmer-bg`}
       style={{
         background:
-          "linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%)",
+          "linear-gradient(90deg, var(--color-neutral-200) 25%, var(--color-neutral-100) 50%, var(--color-neutral-200) 75%)",
         backgroundSize: "200% 100%",
         animation: "shimmer 1.5s infinite",
       }}

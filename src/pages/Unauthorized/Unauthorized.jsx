@@ -19,28 +19,28 @@ export default function Unauthorized() {
           ? "/buyer/dashboard"
           : null;
 
-  return (
+return (
     <>
       <PageTitle title="Unauthorized" />
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <div className="max-w-md w-full bg-white rounded-2xl border border-gray-200 shadow-sm p-8 text-center">
+    <div className="min-h-screen bg-neutral-50 flex items-center justify-center px-4">
+      <div className="max-w-md w-full bg-surface rounded-2xl border border-neutral-200 shadow-sm p-8 text-center">
         {/* Icon */}
-        <div className="inline-flex p-4 bg-red-50 text-red-600 rounded-full mb-5">
+        <div className="inline-flex p-4 bg-danger-50 text-danger-600 rounded-full mb-5">
           <ShieldOff className="w-10 h-10" />
         </div>
 
         {/* Error code */}
-        <p className="text-xs font-bold uppercase tracking-wider text-red-600 mb-2">
+        <p className="text-xs font-bold uppercase tracking-wider text-danger-600 mb-2">
           403 — Access Denied
         </p>
 
         {/* Title */}
-        <h1 className="text-2xl font-bold text-gray-900 mb-3">
+        <h1 className="text-2xl font-bold text-text-main mb-3">
           You don't have access to this page
         </h1>
 
         {/* Message */}
-        <p className="text-sm text-gray-600 leading-relaxed mb-6">
+        <p className="text-sm text-text-muted leading-relaxed mb-6">
           {token
             ? `Your account (${
                 primaryRole || "guest"
@@ -53,7 +53,7 @@ export default function Unauthorized() {
           {dashboardLink && (
             <Link
               to={dashboardLink}
-              className="inline-flex items-center justify-center gap-2 bg-gray-900 hover:bg-black text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors"
+              className="inline-flex items-center justify-center gap-2 bg-neutral-900 hover:bg-neutral-800 text-text-inverse text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               Go to my dashboard
@@ -63,7 +63,7 @@ export default function Unauthorized() {
           {!token && (
             <Link
               to="/login"
-              className="inline-flex items-center justify-center gap-2 bg-gray-900 hover:bg-black text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors"
+              className="inline-flex items-center justify-center gap-2 bg-neutral-900 hover:bg-neutral-800 text-text-inverse text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors"
             >
               <LogIn className="w-4 h-4" />
               Sign in
@@ -72,7 +72,7 @@ export default function Unauthorized() {
 
           <Link
             to="/"
-            className="inline-flex items-center justify-center gap-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors"
+            className="inline-flex items-center justify-center gap-2 bg-surface border border-neutral-300 hover:bg-neutral-50 text-text-main text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors"
           >
             <Home className="w-4 h-4" />
             Go to home
@@ -82,7 +82,7 @@ export default function Unauthorized() {
         {/* Back link */}
         <button
           onClick={() => navigate(-1)}
-          className="mt-6 text-xs text-gray-500 hover:text-gray-700 transition-colors"
+          className="mt-6 text-xs text-neutral-500 hover:text-neutral-700 transition-colors"
         >
           ← Go back to previous page
         </button>
