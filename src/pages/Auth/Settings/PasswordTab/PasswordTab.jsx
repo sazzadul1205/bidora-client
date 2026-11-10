@@ -36,14 +36,16 @@ export default function PasswordTab() {
       className="max-w-md space-y-5 w-full"
     >
       <div>
-        <h2 className="text-lg font-semibold text-gray-900">Change Password</h2>
-        <p className="mt-1 text-sm text-gray-500">
+        <h2 className="text-lg font-semibold text-text-main">
+          Change Password
+        </h2>
+        <p className="mt-1 text-sm text-text-muted">
           Choose a strong password that you do not use elsewhere.
         </p>
       </div>
 
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-gray-700">
+        <label className="mb-1.5 block text-sm font-medium text-text-main">
           Current Password
         </label>
         <input
@@ -52,17 +54,17 @@ export default function PasswordTab() {
           {...register("currentPassword", {
             required: "Current password is required.",
           })}
-          className={`w-full rounded-lg border px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500 ${errors.currentPassword ? "border-red-500" : "border-gray-300"}`}
+          className={`w-full rounded-lg border px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary-500 ${errors.currentPassword ? "border-danger-500" : "border-border-main"}`}
         />
         {errors.currentPassword && (
-          <p className="mt-1 text-xs text-red-600">
+          <p className="mt-1 text-xs text-danger-600">
             {errors.currentPassword.message}
           </p>
         )}
       </div>
 
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-gray-700">
+        <label className="mb-1.5 block text-sm font-medium text-text-main">
           New Password
         </label>
         <input
@@ -75,17 +77,17 @@ export default function PasswordTab() {
               message: "Password must be at least 6 characters.",
             },
           })}
-          className={`w-full rounded-lg border px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500 ${errors.newPassword ? "border-red-500" : "border-gray-300"}`}
+          className={`w-full rounded-lg border px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary-500 ${errors.newPassword ? "border-danger-500" : "border-border-main"}`}
         />
         {errors.newPassword && (
-          <p className="mt-1 text-xs text-red-600">
+          <p className="mt-1 text-xs text-danger-600">
             {errors.newPassword.message}
           </p>
         )}
       </div>
 
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-gray-700">
+        <label className="mb-1.5 block text-sm font-medium text-text-main">
           Confirm New Password
         </label>
         <input
@@ -96,10 +98,10 @@ export default function PasswordTab() {
             validate: (value) =>
               value === newPassword || "Passwords do not match.",
           })}
-          className={`w-full rounded-lg border px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500 ${errors.confirmNewPassword ? "border-red-500" : "border-gray-300"}`}
+          className={`w-full rounded-lg border px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary-500 ${errors.confirmNewPassword ? "border-danger-500" : "border-border-main"}`}
         />
         {errors.confirmNewPassword && (
-          <p className="mt-1 text-xs text-red-600">
+          <p className="mt-1 text-xs text-danger-600">
             {errors.confirmNewPassword.message}
           </p>
         )}
@@ -109,7 +111,7 @@ export default function PasswordTab() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-primary-600 px-5 py-2.5 text-sm font-semibold text-text-inverse hover:bg-primary-700 disabled:opacity-50"
         >
           <Lock className="h-4 w-4" />
           {isSubmitting ? "Changing..." : "Change Password"}

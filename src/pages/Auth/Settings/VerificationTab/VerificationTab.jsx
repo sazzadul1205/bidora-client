@@ -60,17 +60,17 @@ export default function VerificationTab({ userData, role, refreshUser }) {
   return (
     <div className="space-y-5 w-full">
       {isRejected && (
-        <div className="flex flex-col sm:flex-row items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 sm:p-5">
-          <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-600" />
+        <div className="flex flex-col sm:flex-row items-start gap-3 rounded-xl border border-danger-200 bg-danger-50 p-4 sm:p-5">
+          <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-danger-600" />
           <div>
-            <h2 className="text-lg font-semibold text-red-950">
+            <h2 className="text-lg font-semibold text-danger-950">
               Verification Rejected
             </h2>
-            <p className="mt-1 text-sm text-red-900">
+            <p className="mt-1 text-sm text-danger-900">
               <strong>Reason:</strong>{" "}
               {profile.rejectionReason || "No specific reason provided."}
             </p>
-            <p className="mt-2 text-sm text-red-800">
+            <p className="mt-2 text-sm text-danger-800">
               Please go back to the <strong>Profile Information</strong> tab,
               correct your details or images, save your changes, and submit
               again.
@@ -79,23 +79,23 @@ export default function VerificationTab({ userData, role, refreshUser }) {
         </div>
       )}
 
-      <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 sm:p-5">
-        <h2 className="text-lg font-semibold text-blue-950">
+      <div className="rounded-xl border border-primary-200 bg-primary-50 p-4 sm:p-5">
+        <h2 className="text-lg font-semibold text-primary-950">
           Profile Verification
         </h2>
-        <p className="mt-2 text-sm leading-6 text-blue-800">
+        <p className="mt-2 text-sm leading-6 text-primary-800">
           Complete your profile, upload both sides of your National ID, save
           your changes, and submit your profile for review.
         </p>
 
-        <div className="mt-5 space-y-3 rounded-lg bg-white/70 p-4 text-sm">
+        <div className="mt-5 space-y-3 rounded-lg bg-surface/70 p-4 text-sm">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-3">
-            <span className="text-gray-600">Profile information</span>
+            <span className="text-text-muted">Profile information</span>
             <span
               className={
                 isProfileComplete
-                  ? "font-medium text-green-700"
-                  : "font-medium text-orange-700"
+                  ? "font-medium text-success-700"
+                  : "font-medium text-warning-700"
               }
             >
               {isProfileComplete ? "Complete" : "Incomplete"}
@@ -103,12 +103,12 @@ export default function VerificationTab({ userData, role, refreshUser }) {
           </div>
 
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-3">
-            <span className="text-gray-600">Front NID image</span>
+            <span className="text-text-muted">Front NID image</span>
             <span
               className={
                 profile.nationalIdFrontImageUrl
-                  ? "font-medium text-green-700"
-                  : "font-medium text-orange-700"
+                  ? "font-medium text-success-700"
+                  : "font-medium text-warning-700"
               }
             >
               {profile.nationalIdFrontImageUrl ? "Uploaded" : "Missing"}
@@ -116,12 +116,12 @@ export default function VerificationTab({ userData, role, refreshUser }) {
           </div>
 
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-3">
-            <span className="text-gray-600">Back NID image</span>
+            <span className="text-text-muted">Back NID image</span>
             <span
               className={
                 profile.nationalIdBackImageUrl
-                  ? "font-medium text-green-700"
-                  : "font-medium text-orange-700"
+                  ? "font-medium text-success-700"
+                  : "font-medium text-warning-700"
               }
             >
               {profile.nationalIdBackImageUrl ? "Uploaded" : "Missing"}
@@ -129,16 +129,16 @@ export default function VerificationTab({ userData, role, refreshUser }) {
           </div>
 
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-3">
-            <span className="text-gray-600">Verification status</span>
+            <span className="text-text-muted">Verification status</span>
             <span
               className={
                 isVerified
-                  ? "font-medium text-green-700"
+                  ? "font-medium text-success-700"
                   : isPending
-                    ? "font-medium text-orange-700"
+                    ? "font-medium text-warning-700"
                     : isRejected
-                      ? "font-medium text-red-600"
-                      : "font-medium text-gray-700"
+                      ? "font-medium text-danger-600"
+                      : "font-medium text-text-main"
               }
             >
               {verificationStatus}
@@ -149,7 +149,7 @@ export default function VerificationTab({ userData, role, refreshUser }) {
 
       {!isVerified && !isPending && (
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-text-muted">
             {isRejected
               ? "Make sure you saved your updated profile details above before resubmitting."
               : "Save any profile changes before submitting your request."}
@@ -158,7 +158,7 @@ export default function VerificationTab({ userData, role, refreshUser }) {
             type="button"
             onClick={handleSubmitVerification}
             disabled={submitting}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-primary-600 px-5 py-2.5 text-sm font-semibold text-text-inverse hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <ShieldCheck className="h-4 w-4" />
             {submitting
@@ -171,9 +171,9 @@ export default function VerificationTab({ userData, role, refreshUser }) {
       )}
 
       {isPending && (
-        <div className="flex flex-col sm:flex-row items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4">
-          <Lock className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
-          <p className="text-sm text-amber-900">
+        <div className="flex flex-col sm:flex-row items-start gap-3 rounded-lg border border-warning-200 bg-warning-50 p-4">
+          <Lock className="mt-0.5 h-5 w-5 shrink-0 text-warning-600" />
+          <p className="text-sm text-warning-900">
             Your verification request is pending review. Your profile and
             documents are locked until an admin makes a decision.
           </p>
@@ -181,9 +181,9 @@ export default function VerificationTab({ userData, role, refreshUser }) {
       )}
 
       {isVerified && (
-        <div className="flex flex-col sm:flex-row items-start gap-3 rounded-lg border border-green-200 bg-green-50 p-4">
-          <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-green-600" />
-          <p className="text-sm text-green-800">
+        <div className="flex flex-col sm:flex-row items-start gap-3 rounded-lg border border-success-200 bg-success-50 p-4">
+          <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-success-600" />
+          <p className="text-sm text-success-800">
             Your profile has been successfully verified. Your account is fully
             active.
           </p>
