@@ -150,14 +150,15 @@ export default function Roles() {
         </form>
 
         <div className="bg-surface border border-border-main rounded-xl overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-neutral-50 border-b border-border-main text-text-main">
-              <tr>
-                <th className="px-5 py-3 text-left font-medium">Role</th>
-                <th className="px-5 py-3 text-left font-medium">Users</th>
-                <th className="px-5 py-3 text-right font-medium">Actions</th>
-              </tr>
-            </thead>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-130 text-sm">
+              <thead className="bg-neutral-50 border-b border-border-main text-text-main">
+                <tr>
+                  <th className="px-5 py-3 text-left font-medium">Role</th>
+                  <th className="px-5 py-3 text-left font-medium">Users</th>
+                  <th className="px-5 py-3 text-right font-medium">Actions</th>
+                </tr>
+              </thead>
             <tbody className="divide-y divide-border-main">
               {loading ? (
                 <>
@@ -266,6 +267,7 @@ export default function Roles() {
               )}
             </tbody>
           </table>
+          </div>
         </div>
 
         <p className="text-xs text-text-muted mt-3">

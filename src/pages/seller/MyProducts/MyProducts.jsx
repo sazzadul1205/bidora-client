@@ -213,29 +213,31 @@ export default function MyProducts() {
           <Skeleton className="h-10 w-full sm:w-36 rounded-lg" />
         </div>
         <div className="bg-surface rounded-xl border border-border-main overflow-hidden shadow-sm">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-neutral-50 border-b border-border-main">
-              <tr>
-                <th className="px-4 sm:px-6 py-3 sm:py-4 font-medium">
-                  Product
-                </th>
-                <th className="px-4 sm:px-6 py-3 sm:py-4 font-medium hidden md:table-cell">
-                  Pricing
-                </th>
-                <th className="px-4 sm:px-6 py-3 sm:py-4 font-medium hidden lg:table-cell">
-                  Status
-                </th>
-                <th className="px-4 sm:px-6 py-3 sm:py-4 font-medium text-right">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border-main">
-              <SkeletonRow cols={2} />
-              <SkeletonRow cols={2} />
-              <SkeletonRow cols={2} />
-            </tbody>
-          </table>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-140 text-left text-sm">
+              <thead className="bg-neutral-50 border-b border-border-main">
+                <tr>
+                  <th className="px-4 sm:px-6 py-3 sm:py-4 font-medium">
+                    Product
+                  </th>
+                  <th className="px-4 sm:px-6 py-3 sm:py-4 font-medium hidden md:table-cell">
+                    Pricing
+                  </th>
+                  <th className="px-4 sm:px-6 py-3 sm:py-4 font-medium hidden lg:table-cell">
+                    Status
+                  </th>
+                  <th className="px-4 sm:px-6 py-3 sm:py-4 font-medium text-right">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border-main">
+                <SkeletonRow cols={2} />
+                <SkeletonRow cols={2} />
+                <SkeletonRow cols={2} />
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     );

@@ -194,21 +194,23 @@ export default function Disputes() {
           <Skeleton className="h-24 rounded-xl" />
         </div>
         <div className="bg-surface rounded-xl border border-border-main overflow-hidden shadow-sm">
-          <table className="w-full text-left text-sm text-text-muted">
-            <thead className="bg-neutral-50 border-b border-border-main text-text-main">
-              <tr>
-                <th className="px-6 py-4 font-medium">Dispute</th>
-                <th className="px-6 py-4 font-medium">Parties Involved</th>
-                <th className="px-6 py-4 font-medium">Status</th>
-                <th className="px-6 py-4 font-medium text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border-main">
-              <SkeletonRow cols={4} />
-              <SkeletonRow cols={4} />
-              <SkeletonRow cols={4} />
-            </tbody>
-          </table>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-175 text-left text-sm text-text-muted">
+              <thead className="bg-neutral-50 border-b border-border-main text-text-main">
+                <tr>
+                  <th className="px-6 py-4 font-medium">Dispute</th>
+                  <th className="px-6 py-4 font-medium">Parties Involved</th>
+                  <th className="px-6 py-4 font-medium">Status</th>
+                  <th className="px-6 py-4 font-medium text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border-main">
+                <SkeletonRow cols={4} />
+                <SkeletonRow cols={4} />
+                <SkeletonRow cols={4} />
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     );

@@ -97,24 +97,24 @@ export default function UserDetailsModal({
               <Wallet className="w-4 h-4 text-text-muted" /> Wallet Overview
             </h3>
             {target.wallet ? (
-              <div className="grid grid-cols-3 gap-4 bg-neutral-50 p-4 rounded-xl border border-border-main text-center">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 bg-neutral-50 p-4 rounded-xl border border-border-main text-center">
                 <div>
                   <p className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-1">
                     Available
                   </p>
-                  <p className="text-xl font-bold text-success-600">
+                  <p className="text-lg sm:text-xl font-bold text-success-600 break-all">
                     {formatMoney(target.wallet.availableBalance)}
                   </p>
                 </div>
-                <div className="border-l border-border-main">
+                <div className="sm:border-l border-border-main pt-2 sm:pt-0 border-t sm:border-t-0">
                   <p className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-1">
                     Reserved
                   </p>
-                  <p className="text-xl font-bold text-warning-600">
+                  <p className="text-lg sm:text-xl font-bold text-warning-600 break-all">
                     {formatMoney(target.wallet.reservedBalance)}
                   </p>
                 </div>
-                <div className="border-l border-border-main">
+                <div className="sm:border-l border-border-main pt-2 sm:pt-0 border-t sm:border-t-0">
                   <p className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-1">
                     Total
                   </p>

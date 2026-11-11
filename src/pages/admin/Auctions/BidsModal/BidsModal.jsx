@@ -32,7 +32,7 @@ export default function BidsModal({ bidsData, bidsLoading, onClose }) {
           </button>
         </div>
 
-        <div className="px-6 py-4 bg-accent-50/50 border-b border-accent-100 grid grid-cols-3 gap-4 text-center">
+        <div className="px-4 sm:px-6 py-4 bg-accent-50/50 border-b border-accent-100 grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 text-center">
           <div>
             <p className="text-xs text-text-muted">Status</p>
             <p
@@ -66,74 +66,80 @@ export default function BidsModal({ bidsData, bidsLoading, onClose }) {
               <SkeletonRow cols={3} />
             </div>
           ) : bidsData.bids && bidsData.bids.length > 0 ? (
-            <table className="w-full text-left text-sm text-text-muted">
-              <thead className="bg-neutral-50 border-b border-border-main text-text-main sticky top-0">
-                <tr>
-                  <th className="px-6 py-3 font-medium">Bidder</th>
-                  <th className="px-6 py-3 font-medium text-right">Amount</th>
-                  <th className="px-6 py-3 font-medium">Placed At</th>
-                  <th className="px-6 py-3 font-medium text-center">Flag</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border-main">
-                {bidsData.bids.map((b) => (
-                  <tr
-                    key={b.bidId}
-                    className={
-                      b.isHighest
-                        ? "bg-success-50 hover:bg-success-100"
-                        : "hover:bg-neutral-50"
-                    }
-                  >
-                    <td className="px-6 py-3">
-                      <div className="flex items-center gap-2">
-                        <Users className="w-4 h-4 text-neutral-400" />
-                        <div>
-                          <p className="font-bold text-text-main text-sm">
-                            {b.bidderName}
-                          </p>
-                          <p className="text-[11px] text-text-muted">
-                            {b.bidderEmail}
-                          </p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-3 text-right font-bold text-primary-600">
-                      ৳{b.amount?.toLocaleString()}
-                      {b.isBuyout && (
-                        <span className="ml-1 text-[10px] font-semibold text-accent-700">
-                          (buyout)
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-3 text-xs text-text-muted">
-                      {new Date(b.placedAt).toLocaleString("en-GB", {
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </td>
-                    <td className="px-6 py-3 text-center">
-                      {b.isHighest ? (
-                        <span className="inline-flex items-center gap-1 text-xs font-bold text-success-700 bg-success-100 px-2 py-0.5 rounded-full">
-                          <ArrowUp className="w-3 h-3" /> Highest
-                        </span>
-                      ) : b.isBuyout ? (
-                        <span className="text-[10px] font-semibold text-accent-600">
-                          Buyout
-                        </span>
-                      ) : (
-                        <span className="text-[10px] text-neutral-400">
-                          Outbid
-                        </span>
-                      )}
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-140 text-left text-sm text-text-muted">
+                <thead className="bg-neutral-50 border-b border-border-main text-text-main sticky top-0">
+                  <tr>
+                    <th className="px-4 sm:px-6 py-3 font-medium">Bidder</th>
+                    <th className="px-4 sm:px-6 py-3 font-medium text-right">
+                      Amount
+                    </th>
+                    <th className="px-4 sm:px-6 py-3 font-medium">Placed At</th>
+                    <th className="px-4 sm:px-6 py-3 font-medium text-center">
+                      Flag
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-border-main">
+                  {bidsData.bids.map((b) => (
+                    <tr
+                      key={b.bidId}
+                      className={
+                        b.isHighest
+                          ? "bg-success-50 hover:bg-success-100"
+                          : "hover:bg-neutral-50"
+                      }
+                    >
+                      <td className="px-6 py-3">
+                        <div className="flex items-center gap-2">
+                          <Users className="w-4 h-4 text-neutral-400" />
+                          <div>
+                            <p className="font-bold text-text-main text-sm">
+                              {b.bidderName}
+                            </p>
+                            <p className="text-[11px] text-text-muted">
+                              {b.bidderEmail}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-3 text-right font-bold text-primary-600">
+                        ৳{b.amount?.toLocaleString()}
+                        {b.isBuyout && (
+                          <span className="ml-1 text-[10px] font-semibold text-accent-700">
+                            (buyout)
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-3 text-xs text-text-muted">
+                        {new Date(b.placedAt).toLocaleString("en-GB", {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </td>
+                      <td className="px-6 py-3 text-center">
+                        {b.isHighest ? (
+                          <span className="inline-flex items-center gap-1 text-xs font-bold text-success-700 bg-success-100 px-2 py-0.5 rounded-full">
+                            <ArrowUp className="w-3 h-3" /> Highest
+                          </span>
+                        ) : b.isBuyout ? (
+                          <span className="text-[10px] font-semibold text-accent-600">
+                            Buyout
+                          </span>
+                        ) : (
+                          <span className="text-[10px] text-neutral-400">
+                            Outbid
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           ) : (
             <div className="text-center py-16">
               <Gavel className="w-12 h-12 text-neutral-300 mx-auto mb-3" />

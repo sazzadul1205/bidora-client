@@ -640,7 +640,7 @@ export default function AuctionDetails() {
                         key={idx}
                         className="flex justify-between items-center gap-2 text-sm"
                       >
-                        <span className="text-gray-700 font-medium truncate max-w-37.5">
+                        <span className="text-gray-700 font-medium truncate max-w-36 sm:max-w-44">
                           {bid.bidderName}
                         </span>
                         <span className="font-bold text-gray-900 whitespace-nowrap">

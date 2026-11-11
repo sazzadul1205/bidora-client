@@ -184,29 +184,31 @@ export default function WonAuctions() {
           <Skeleton className="h-24 rounded-xl" />
         </div>
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-          <table className="w-full text-left text-sm text-gray-600">
-            <thead className="bg-gray-50 border-b border-gray-200 text-gray-900">
-              <tr>
-                <th className="px-4 sm:px-6 py-3 sm:py-4 font-medium">
-                  Product
-                </th>
-                <th className="px-4 sm:px-6 py-3 sm:py-4 font-medium hidden md:table-cell">
-                  Amount
-                </th>
-                <th className="px-4 sm:px-6 py-3 sm:py-4 font-medium">
-                  Status
-                </th>
-                <th className="px-4 sm:px-6 py-3 sm:py-4 font-medium text-right">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              <SkeletonRow cols={3} />
-              <SkeletonRow cols={3} />
-              <SkeletonRow cols={3} />
-            </tbody>
-          </table>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-140 text-left text-sm text-gray-600">
+              <thead className="bg-gray-50 border-b border-gray-200 text-gray-900">
+                <tr>
+                  <th className="px-4 sm:px-6 py-3 sm:py-4 font-medium">
+                    Product
+                  </th>
+                  <th className="px-4 sm:px-6 py-3 sm:py-4 font-medium hidden md:table-cell">
+                    Amount
+                  </th>
+                  <th className="px-4 sm:px-6 py-3 sm:py-4 font-medium">
+                    Status
+                  </th>
+                  <th className="px-4 sm:px-6 py-3 sm:py-4 font-medium text-right">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                <SkeletonRow cols={3} />
+                <SkeletonRow cols={3} />
+                <SkeletonRow cols={3} />
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     );

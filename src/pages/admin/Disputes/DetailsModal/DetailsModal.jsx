@@ -154,7 +154,7 @@ export default function DetailsModal({ target, onClose }) {
                 <DollarSign className="w-4 h-4 text-neutral-600" /> Penalty
                 Breakdown
               </h3>
-              <div className="grid grid-cols-3 gap-4 text-center">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 text-center">
                 <div className="bg-surface p-3 rounded-lg border border-border-main">
                   <p className="text-xs text-text-muted mb-1">
                     Total Forfeited
