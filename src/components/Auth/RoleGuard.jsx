@@ -1,45 +1,77 @@
 ﻿import { Navigate, Outlet } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { getCurrentUser } from "../../services/authApi";
 
-// Blocks users whose role doesn't match what the route allows.
-// Can be used as a wrapper (<RoleGuard>...</RoleGuard>) or as a layout route.
-export default function RoleGuard({ allowedRoles = [], allowStaff = false, children }) {
+export default function RoleGuard({
+  allowedRoles = [],
+  allowStaff = false,
+  children,
+}) {
   const [loading, setLoading] = useState(true);
   const [authorized, setAuthorized] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
+  // Stable dependency: serialize the roles array so new array literals
+  // from the caller don't cause the effect to re-run every render.
+  const rolesKey = useMemo(
+    () => [...allowedRoles].sort().join("|"),
+    [allowedRoles],
+  );
+
   useEffect(() => {
-    const checkRole = async () => {
+    let mounted = true;
+
+    (async () => {
       const token = localStorage.getItem("token");
       if (!token) {
-        setIsLoggedIn(false);
-        setAuthorized(false);
-        setLoading(false);
+        if (mounted) {
+          setIsLoggedIn(false);
+          setAuthorized(false);
+          setLoading(false);
+        }
         return;
       }
 
       try {
         const res = await getCurrentUser();
+        if (!mounted) {
+          return;
+        }
+
         const user = res.data;
         const roles = user?.account?.roles || user?.roles || [];
-        setIsLoggedIn(true);
         const roleList = Array.isArray(roles) ? roles : [];
+
+        setIsLoggedIn(true);
+
+        const isStaff = roleList.some(
+          (r) => r === "Admin" || !["Buyer", "Seller"].includes(r),
+        );
+
         const hasAccess =
           roleList.some((r) => allowedRoles.includes(r)) ||
-          (allowStaff && roleList.some((r) => r === "Admin" || !["Buyer", "Seller"].includes(r)));
+          (allowStaff && isStaff);
+
         setAuthorized(hasAccess);
       } catch (err) {
         console.error("Role check failed:", err);
-        setIsLoggedIn(false);
-        setAuthorized(false);
+        if (mounted) {
+          setIsLoggedIn(false);
+          setAuthorized(false);
+        }
       } finally {
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
-    };
+    })();
 
-    checkRole();
-  }, [allowedRoles, allowStaff]);
+    return () => {
+      mounted = false;
+    };
+    // rolesKey covers the array; allowedRoles is read from the closure.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rolesKey, allowStaff]);
 
   if (loading) {
     return (
@@ -52,7 +84,6 @@ export default function RoleGuard({ allowedRoles = [], allowStaff = false, child
   if (!isLoggedIn) {
     return <Navigate to="/login" replace />;
   }
-
   if (!authorized) {
     return <Navigate to="/unauthorized" replace />;
   }

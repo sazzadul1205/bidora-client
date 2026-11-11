@@ -25,12 +25,10 @@ export default function AuctionCard({ auction, variant = "home" }) {
     endTime,
   } = auction;
 
-  const [now, setNow] = useState(0);
+  const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
-    const update = () => setNow(Date.now());
-    update();
-    const timer = setInterval(update, 1000);
+    const timer = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(timer);
   }, []);
 
@@ -56,7 +54,6 @@ export default function AuctionCard({ auction, variant = "home" }) {
   return (
     <Link
       to={`/auction/${id}`}
-      key={id}
       className="group bg-surface rounded-2xl border border-border-main overflow-hidden hover:-translate-y-1 hover:shadow-xl transition-all duration-200 flex flex-col"
     >
       <div className="relative aspect-4/3 bg-neutral-100 overflow-hidden">
@@ -75,10 +72,9 @@ export default function AuctionCard({ auction, variant = "home" }) {
           </div>
         )}
 
-        {/* Status badges */}
         {variant === "browse" && isLive && (
           <span className="absolute top-3 left-3 bg-danger-600 text-text-inverse text-xs font-bold px-2.5 py-1 rounded-md shadow-sm flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 bg-surface rounded-full animate-pulse"></span>{" "}
+            <span className="w-1.5 h-1.5 bg-surface rounded-full animate-pulse" />{" "}
             LIVE
           </span>
         )}

@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Truck, X, AlertCircle, UploadCloud, Loader2 } from "lucide-react";
 import { toast } from "../../../../../utils/toast";
 import { dispatchSale } from "../../../../../services/sellerApi";
@@ -11,14 +11,20 @@ export default function DispatchSaleModal({ target, onClose, onSuccess }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const trackingInputRef = useRef(null);
 
+  // Revoke the preview URL whenever it changes or on unmount
+  useEffect(() => {
+    return () => {
+      if (trackingImagePreview) {
+        URL.revokeObjectURL(trackingImagePreview);
+      }
+    };
+  }, [trackingImagePreview]);
+
   if (!target) {
     return null;
   }
 
   const clearImage = () => {
-    if (trackingImagePreview) {
-      URL.revokeObjectURL(trackingImagePreview);
-    }
     setTrackingImage(null);
     setTrackingImagePreview(null);
     if (trackingInputRef.current) {
@@ -30,9 +36,6 @@ export default function DispatchSaleModal({ target, onClose, onSuccess }) {
     if (!file) {
       return;
     }
-    if (trackingImagePreview) {
-      URL.revokeObjectURL(trackingImagePreview);
-    }
     setTrackingImage(file);
     setTrackingImagePreview(URL.createObjectURL(file));
   };
@@ -42,6 +45,7 @@ export default function DispatchSaleModal({ target, onClose, onSuccess }) {
     setDispatchInfoError("");
     clearImage();
   };
+
   const handleClose = () => {
     if (isSubmitting) {
       return;
@@ -82,9 +86,9 @@ export default function DispatchSaleModal({ target, onClose, onSuccess }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-3 sm:p-4 z-50 backdrop-blur-sm">
       <div className="bg-surface rounded-2xl w-full max-w-md shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-        <div className="px-6 py-4 border-b border-border-main flex items-center justify-between bg-neutral-50/50">
+        <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-border-main flex items-center justify-between bg-neutral-50/50">
           <div>
             <h2 className="text-lg font-bold text-text-main">Dispatch Item</h2>
             <p className="text-xs text-text-muted mt-0.5 truncate max-w-68">
@@ -100,7 +104,7 @@ export default function DispatchSaleModal({ target, onClose, onSuccess }) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
           <div className="bg-primary-50 text-primary-800 p-3 rounded-lg border border-primary-100 flex items-start gap-2 text-sm mb-4">
             <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
             <p>
@@ -126,7 +130,9 @@ export default function DispatchSaleModal({ target, onClose, onSuccess }) {
                     setDispatchInfoError("");
                   }
                 }}
-                className={`w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-primary-500 outline-none text-sm transition ${dispatchInfoError ? "border-danger-500" : "border-border-main"}`}
+                className={`w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-primary-500 outline-none text-sm transition ${
+                  dispatchInfoError ? "border-danger-500" : "border-border-main"
+                }`}
                 placeholder="e.g. Pathao Courier, Tracking: 12345678"
               />
             </div>
@@ -184,19 +190,19 @@ export default function DispatchSaleModal({ target, onClose, onSuccess }) {
             )}
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-border-main mt-6">
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 pt-4 border-t border-border-main mt-6">
             <button
               type="button"
               onClick={handleClose}
               disabled={isSubmitting}
-              className="px-5 py-2.5 text-sm font-medium text-text-main hover:bg-neutral-100 rounded-lg transition-colors disabled:opacity-50"
+              className="w-full sm:w-auto px-4 sm:px-5 py-2.5 text-sm font-medium text-text-main hover:bg-neutral-100 rounded-lg transition-colors disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting || !trackingImage}
-              className="inline-flex items-center gap-2 px-5 py-2.5 text-text-inverse text-sm font-semibold rounded-lg transition-colors disabled:opacity-50 bg-primary-600 hover:bg-primary-700 shadow-md shadow-primary-600/20"
+              className="w-full sm:w-auto px-4 sm:px-5 py-2.5 text-text-inverse text-sm font-semibold rounded-lg transition-colors disabled:opacity-50 bg-primary-600 hover:bg-primary-700 shadow-md shadow-primary-600/20"
             >
               {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
               {isSubmitting ? "Confirming..." : "Confirm Dispatch"}

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { ArrowRight, Search as SearchIcon, X } from "lucide-react";
 
 export default function CategorySearchBox({
@@ -16,10 +16,16 @@ export default function CategorySearchBox({
   const dropdownRef = useRef(null);
   const searchInputRef = useRef(null);
 
-  const selectedCategory =
-    categories.find((c) => c.id.toString() === value?.toString()) || null;
+  // Defensive: categories may arrive as undefined on first render
+  const safeCategories = useMemo(
+    () => (Array.isArray(categories) ? categories : []),
+    [categories],
+  );
 
-  const filteredCategories = categories.filter((c) =>
+  const selectedCategory =
+    safeCategories.find((c) => c.id.toString() === value?.toString()) || null;
+
+  const filteredCategories = safeCategories.filter((c) =>
     c.name.toLowerCase().includes(query.toLowerCase()),
   );
 
@@ -30,12 +36,8 @@ export default function CategorySearchBox({
         setHighlightedIndex(-1);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   useEffect(() => {
@@ -49,7 +51,6 @@ export default function CategorySearchBox({
       const item = dropdownRef.current.querySelector(
         `[data-index="${highlightedIndex}"]`,
       );
-
       item?.scrollIntoView({ block: "nearest" });
     }
   }, [highlightedIndex]);
@@ -74,7 +75,6 @@ export default function CategorySearchBox({
       setHighlightedIndex(-1);
       return;
     }
-
     if (!open) {
       return;
     }
@@ -91,7 +91,6 @@ export default function CategorySearchBox({
       );
     } else if (e.key === "Enter") {
       e.preventDefault();
-
       if (highlightedIndex >= 0 && filteredCategories[highlightedIndex]) {
         handleSelect(filteredCategories[highlightedIndex].id.toString());
       }
@@ -104,6 +103,7 @@ export default function CategorySearchBox({
         <SearchIcon className="absolute left-3.5 top-3.5 w-4 h-4 text-neutral-400" />
 
         <input
+          ref={searchInputRef}
           type="text"
           placeholder={placeholder}
           value={open ? query : selectedCategory?.name || query}

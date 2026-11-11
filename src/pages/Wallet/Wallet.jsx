@@ -1,5 +1,5 @@
 import PageTitle from "../../components/PageTitle";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { formatCurrency as formatMoney } from "../../utils/currency";
 import { formatDateTime } from "../../utils/date";
 import { useForm } from "react-hook-form";
@@ -199,6 +199,7 @@ export default function Wallet() {
     formState: { errors, isSubmitting },
   } = useForm();
 
+  // Debounce search inputs
   useEffect(() => {
     const t = setTimeout(() => setTxDebouncedSearch(txSearchTerm.trim()), 300);
     return () => clearTimeout(t);
@@ -220,6 +221,7 @@ export default function Wallet() {
     return () => clearTimeout(t);
   }, [depSearchTerm]);
 
+  // Fetch all data whenever any tab's query state changes
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -329,9 +331,11 @@ export default function Wallet() {
       );
     }
   };
+
   const formatDate = formatDateTime;
 
-  const getTxColor = (type) => {
+  // Memoized: only changes when `type` changes
+  const getTxColor = useCallback((type) => {
     if (type === "Credit" || type === "Release") {
       return "text-success-600 bg-success-50";
     }
@@ -342,7 +346,16 @@ export default function Wallet() {
       return "text-accent-600 bg-accent-50";
     }
     return "text-text-muted bg-neutral-50";
-  };
+  }, []);
+
+  // Memoized: only recomputes when `transactions` changes
+  const disputeTransactions = useMemo(
+    () =>
+      transactions.filter((tx) =>
+        tx.reference?.toLowerCase().includes("dispute"),
+      ),
+    [transactions],
+  );
 
   if (loading) {
     return (
@@ -362,9 +375,6 @@ export default function Wallet() {
   const availableBalance = Math.max(
     0,
     (wallet?.balance || 0) - safeReservedBalance,
-  );
-  const disputeTransactions = transactions.filter((tx) =>
-    tx.reference?.toLowerCase().includes("dispute"),
   );
 
   return (
@@ -466,7 +476,7 @@ export default function Wallet() {
             </nav>
           </div>
 
-          <div className="p-6">
+          <div className="p-6 min-h-80">
             {activeTab === "overview" && (
               <OverviewTab
                 depositRequests={depositRequests}
@@ -633,7 +643,6 @@ export default function Wallet() {
           </div>
         </div>
 
-        {/* Deposit Modal */}
         {showDepositModal && (
           <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
             <div className="bg-surface rounded-2xl w-full max-w-md shadow-2xl">

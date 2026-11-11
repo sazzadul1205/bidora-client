@@ -1,32 +1,53 @@
 import { Navigate } from "react-router-dom";
 
-// Blocks the login/register pages for already-authenticated users.
-// Sends them to the dashboard that matches their role.
+function isTokenExpired(token) {
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    if (!payload?.exp) {
+      return false;
+    }
+    return Date.now() >= payload.exp * 1000;
+  } catch {
+    return true;
+  }
+}
+
 export default function GuestGuard({ children }) {
   const token = localStorage.getItem("token");
 
-  // Not logged in — let them through
+  // No token → let them in
   if (!token) {
     return children;
   }
 
-  // Logged in — figure out where they belong
-  const roles = JSON.parse(localStorage.getItem("roles") || "[]");
+  // Token present but expired / malformed → clear and let them in
+  if (isTokenExpired(token)) {
+    localStorage.removeItem("token");
+    localStorage.removeItem("roles");
+    return children;
+  }
+
+  // No initializer — both try and catch assign before use.
+  let roles;
+  try {
+    roles = JSON.parse(localStorage.getItem("roles") || "[]");
+  } catch {
+    roles = [];
+  }
+
   const primaryRole = roles[0];
 
   if (primaryRole === "Admin") {
     return <Navigate to="/admin/dashboard" replace />;
   }
-
   if (primaryRole === "Seller") {
     return <Navigate to="/seller/dashboard" replace />;
   }
-
   if (primaryRole === "Buyer") {
     return <Navigate to="/buyer/dashboard" replace />;
   }
 
-  // Token exists but no role info — stale auth state, clear it and let them log in fresh
+  // Token exists but no role info → stale, clear and let them log in fresh
   localStorage.removeItem("token");
   localStorage.removeItem("roles");
   return children;
