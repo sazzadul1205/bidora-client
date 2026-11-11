@@ -78,3 +78,7 @@ html::-webkit-scrollbar-thumb:hover {
 .swal2-html-container {
   color: var(--color-text-muted) !important;
 }
+
+button {
+  cursor: pointer;
+}
