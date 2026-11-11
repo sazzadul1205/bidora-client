@@ -68,7 +68,9 @@ export default function AdminDashboard() {
       <div className="max-w-7xl mx-auto space-y-6">
         {/* HEADER */}
         <div>
-          <h1 className="text-2xl font-bold text-text-main">Admin Dashboard</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-text-main">
+            Admin Dashboard
+          </h1>
           <p className="text-sm text-text-muted mt-1">
             Platform overview and moderation queue.
           </p>

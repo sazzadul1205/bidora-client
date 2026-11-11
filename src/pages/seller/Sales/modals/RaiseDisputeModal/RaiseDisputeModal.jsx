@@ -1,23 +1,34 @@
-import { useRef, useState } from "react";
-import { Scale, X, ImagePlus, AlertCircle } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Scale, X, ImagePlus, AlertCircle, Loader2 } from "lucide-react";
 import { toast } from "../../../../../utils/toast";
-import { createDisputeImage } from "../../../../../services/sellerApi";
+import { createDisputeImage } from "../../../../../services/buyerApi";
 
-export default function RaiseDisputeModal({ target, onClose, onSuccess }) {
+export default function RaiseDisputeModal({
+  target,
+  onClose,
+  onSuccess,
+  isSubmitting,
+  setIsSubmitting,
+}) {
   const [complaint, setComplaint] = useState("");
   const [evidenceImage, setEvidenceImage] = useState(null);
   const [evidenceImagePreview, setEvidenceImagePreview] = useState(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef(null);
+
+  // Revoke the preview URL on unmount / change
+  useEffect(() => {
+    return () => {
+      if (evidenceImagePreview) {
+        URL.revokeObjectURL(evidenceImagePreview);
+      }
+    };
+  }, [evidenceImagePreview]);
 
   if (!target) {
     return null;
   }
 
   const clearImage = () => {
-    if (evidenceImagePreview) {
-      URL.revokeObjectURL(evidenceImagePreview);
-    }
     setEvidenceImage(null);
     setEvidenceImagePreview(null);
     if (fileInputRef.current) {
@@ -29,20 +40,8 @@ export default function RaiseDisputeModal({ target, onClose, onSuccess }) {
     if (!file) {
       return;
     }
-    if (evidenceImagePreview) {
-      URL.revokeObjectURL(evidenceImagePreview);
-    }
     setEvidenceImage(file);
     setEvidenceImagePreview(URL.createObjectURL(file));
-  };
-
-  const handleClose = () => {
-    if (isSubmitting) {
-      return;
-    }
-    setComplaint("");
-    clearImage();
-    onClose();
   };
 
   const handleSubmit = async () => {
@@ -58,7 +57,7 @@ export default function RaiseDisputeModal({ target, onClose, onSuccess }) {
     setIsSubmitting(true);
     try {
       const formData = new FormData();
-      formData.append("SaleId", target.id);
+      formData.append("SaleId", target.saleId);
       formData.append("Complaint", complaint.trim());
       if (evidenceImage) {
         formData.append("EvidenceImage", evidenceImage);
@@ -79,38 +78,38 @@ export default function RaiseDisputeModal({ target, onClose, onSuccess }) {
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm"
-      onClick={handleClose}
+      className="fixed inset-0 bg-black/50 flex items-center justify-center p-3 sm:p-4 z-50 backdrop-blur-sm"
+      onClick={onClose}
     >
       <div
-        className="bg-surface rounded-2xl w-full max-w-lg shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+        className="bg-surface rounded-2xl w-full max-w-lg shadow-xl overflow-hidden animate-in fade-in zoom-in-95 max-h-[92vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="px-6 py-4 border-b border-border-main flex items-center justify-between bg-danger-50/50">
-          <div>
-            <h2 className="text-lg font-bold text-text-main flex items-center gap-2">
-              <Scale className="w-5 h-5 text-danger-600" /> Raise Dispute
+        <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-border-main flex items-center justify-between bg-danger-50/50 sticky top-0 z-10">
+          <div className="min-w-0">
+            <h2 className="text-base sm:text-lg font-bold text-text-main flex items-center gap-2">
+              <Scale className="w-4 h-4 sm:w-5 sm:h-5 text-danger-600" /> Raise
+              Dispute
             </h2>
-            <p className="text-xs text-text-muted mt-0.5 truncate max-w-68">
+            <p className="text-[11px] sm:text-xs text-text-muted mt-0.5 truncate">
               {target.productTitle}
             </p>
           </div>
           <button
-            onClick={handleClose}
+            onClick={onClose}
             disabled={isSubmitting}
-            className="p-2 text-neutral-400 hover:text-text-main hover:bg-neutral-200 rounded-lg transition-colors disabled:opacity-50"
+            className="p-1.5 sm:p-2 text-neutral-400 hover:text-text-main hover:bg-neutral-200 rounded-lg shrink-0 disabled:opacity-50"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="p-6 space-y-4">
-          <div className="bg-danger-50 text-danger-800 p-3 rounded-lg border border-danger-100 text-sm flex items-start gap-2">
-            <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+        <div className="p-4 sm:p-6 space-y-3 sm:space-y-4">
+          <div className="bg-danger-50 text-danger-800 p-3 rounded-lg border border-danger-100 text-xs sm:text-sm flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 shrink-0 mt-0.5" />
             <p>
-              Disputes can only be raised for sales that have been paid or have
-              overdue payments. Once submitted, an admin will review your
-              complaint and may apply a penalty to the responsible party.
+              Disputes are reviewed by an admin. Provide clear evidence. False
+              claims may result in penalties.
             </p>
           </div>
 
@@ -122,7 +121,7 @@ export default function RaiseDisputeModal({ target, onClose, onSuccess }) {
               value={complaint}
               onChange={(e) => setComplaint(e.target.value)}
               rows={4}
-              placeholder="e.g. The buyer never paid, the item was returned damaged..."
+              placeholder="e.g. The item arrived damaged, or the seller never dispatched it..."
               className="w-full px-3 py-2 border border-border-main rounded-lg text-sm focus:ring-2 focus:ring-danger-500 outline-none resize-none"
             />
             <p className="text-[11px] text-neutral-400 mt-1">
@@ -140,11 +139,11 @@ export default function RaiseDisputeModal({ target, onClose, onSuccess }) {
                 e.preventDefault();
                 handleFile(e.dataTransfer.files?.[0]);
               }}
-              className="border-2 border-dashed border-border-main rounded-lg p-4 text-center hover:border-danger-400 hover:bg-danger-50/30 transition-colors cursor-pointer"
+              className="border-2 border-dashed border-border-main rounded-lg p-3 sm:p-4 text-center hover:border-danger-400 hover:bg-danger-50/30 transition-colors cursor-pointer"
               onClick={() => fileInputRef.current?.click()}
             >
-              <ImagePlus className="w-8 h-8 text-neutral-400 mx-auto mb-1" />
-              <p className="text-xs text-text-muted">
+              <ImagePlus className="w-6 h-6 sm:w-8 sm:h-8 text-neutral-400 mx-auto mb-1" />
+              <p className="text-[11px] sm:text-xs text-text-muted">
                 Drop a photo here or click to browse
               </p>
               <input
@@ -160,7 +159,7 @@ export default function RaiseDisputeModal({ target, onClose, onSuccess }) {
                 <img
                   src={evidenceImagePreview}
                   alt="preview"
-                  className="w-24 h-24 rounded-lg object-cover border border-border-main shadow-sm"
+                  className="w-20 sm:w-24 h-20 sm:h-24 rounded-lg object-cover border border-border-main shadow-sm"
                 />
                 <button
                   type="button"
@@ -173,20 +172,26 @@ export default function RaiseDisputeModal({ target, onClose, onSuccess }) {
             )}
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-border-main">
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 pt-4 border-t border-border-main">
             <button
-              onClick={handleClose}
+              onClick={onClose}
               disabled={isSubmitting}
-              className="px-5 py-2.5 text-sm font-medium text-text-main hover:bg-neutral-100 rounded-lg transition-colors disabled:opacity-50"
+              className="w-full sm:w-auto px-4 sm:px-5 py-2.5 text-sm font-medium text-text-main hover:bg-neutral-100 rounded-lg disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               onClick={handleSubmit}
               disabled={isSubmitting || complaint.trim().length < 20}
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-danger-600 hover:bg-danger-700 text-text-inverse text-sm font-semibold rounded-lg transition-colors disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-4 sm:px-5 py-2.5 bg-danger-600 hover:bg-danger-700 text-text-inverse text-sm font-semibold rounded-lg disabled:opacity-50"
             >
-              <Scale className="w-4 h-4" /> Submit Dispute
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" /> Submitting...
+                </>
+              ) : (
+                "Submit Dispute"
+              )}
             </button>
           </div>
         </div>

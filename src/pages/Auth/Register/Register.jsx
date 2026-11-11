@@ -43,14 +43,14 @@ function Register() {
   return (
     <>
       <PageTitle title="Register" />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-8 md:py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
-          {/* Left Column - Marketing */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-6 sm:py-8 md:py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-16 items-start lg:items-center">
+          {/* Left Column - Marketing (hidden below lg) */}
           <div className="hidden lg:block max-w-lg">
             <p className="text-primary-600 font-semibold text-xs tracking-wider uppercase mb-4">
               Join the marketplace
             </p>
-            <h1 className="text-4xl md:text-5xl font-bold text-text-main leading-tight mb-4">
+            <h1 className="text-4xl xl:text-5xl font-bold text-text-main leading-tight mb-4">
               Great products.
               <br />
               New possibilities.
@@ -88,26 +88,27 @@ function Register() {
 
           {/* Right Column - Register Card */}
           <div className="w-full max-w-md mx-auto lg:ml-auto">
-            <div className="bg-surface rounded-2xl shadow-sm border border-border-main p-6 sm:p-8">
-              <h2 className="text-2xl font-bold text-text-main">
+            <div className="bg-surface rounded-2xl shadow-sm border border-border-main p-5 sm:p-6 md:p-8">
+              <h2 className="text-xl sm:text-2xl font-bold text-text-main">
                 Create your account
               </h2>
-              <p className="text-sm text-text-muted mt-1 mb-6">
+              <p className="text-sm text-text-muted mt-1 mb-5 sm:mb-6">
                 Start with the role that's right for you.
               </p>
 
               {serverError && (
-                <div className="mb-4 p-3 bg-danger-50 text-danger-700 text-sm rounded-lg border border-danger-100">
+                <div className="mb-4 p-3 bg-danger-50 text-danger-700 text-xs sm:text-sm rounded-lg border border-danger-100 wrap-break-word">
                   {serverError}
                 </div>
               )}
 
               <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+                {/* Role picker — stack on very small, side-by-side from 400px up */}
                 <div>
                   <label className="block text-sm font-medium text-text-main mb-2">
                     I want to join as a
                   </label>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 min-[400px]:grid-cols-2 gap-2 sm:gap-3">
                     <button
                       type="button"
                       onClick={() => setRole("buyer")}
@@ -129,7 +130,7 @@ function Register() {
                           </span>
                         </div>
                         <div
-                          className={`w-4 h-4 rounded-full border flex items-center justify-center ${role === "buyer" ? "border-primary-600" : "border-border-main"}`}
+                          className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${role === "buyer" ? "border-primary-600" : "border-border-main"}`}
                         >
                           {role === "buyer" && (
                             <div className="w-2 h-2 rounded-full bg-primary-600" />
@@ -162,7 +163,7 @@ function Register() {
                           </span>
                         </div>
                         <div
-                          className={`w-4 h-4 rounded-full border flex items-center justify-center ${role === "seller" ? "border-primary-600" : "border-border-main"}`}
+                          className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${role === "seller" ? "border-primary-600" : "border-border-main"}`}
                         >
                           {role === "seller" && (
                             <div className="w-2 h-2 rounded-full bg-primary-600" />
@@ -272,26 +273,26 @@ function Register() {
                   <label className="flex items-start gap-2 cursor-pointer">
                     <input
                       type="checkbox"
-                      className="mt-0.5 rounded border-border-main text-primary-600 focus:ring-primary-500"
+                      className="mt-0.5 rounded border-border-main text-primary-600 focus:ring-primary-500 shrink-0"
                       {...register("terms", {
                         required: "You must agree to the terms",
                       })}
                     />
                     <span className="text-xs text-text-muted leading-tight">
                       I agree to the{" "}
-                      <a
-                        href="/terms"
-                        className="text-sm text-primary-600 hover:text-primary-700"
+                      <Link
+                        to="/terms"
+                        className="text-primary-600 hover:text-primary-700 hover:underline"
                       >
                         Terms of Use
-                      </a>{" "}
+                      </Link>{" "}
                       and{" "}
-                      <a
-                        href="/privacy"
-                        className="text-sm text-primary-600 hover:text-primary-700"
+                      <Link
+                        to="/privacy"
+                        className="text-primary-600 hover:text-primary-700 hover:underline"
                       >
                         Privacy Policy
-                      </a>
+                      </Link>
                       .
                     </span>
                   </label>

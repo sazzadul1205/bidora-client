@@ -61,7 +61,7 @@ export default function Settings() {
       <PageTitle title="Settings" />
       <div className="mx-auto max-w-5xl w-full">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-text-main">
+          <h1 className="text-xl sm:text-2xl font-bold text-text-main">
             Account Settings
           </h1>
           <p className="mt-1 text-text-muted">
@@ -70,12 +70,12 @@ export default function Settings() {
         </div>
 
         <div className="overflow-hidden rounded-xl border border-border-main bg-surface shadow-sm w-full">
-          <div className="overflow-x-auto border-b border-border-main">
+          <div className="overflow-x-auto border-b border-border-main scrollbar-thin [&::-webkit-scrollbar]:h-1 [&::-webkit-scrollbar-thumb]:bg-neutral-300 [&::-webkit-scrollbar-thumb]:rounded-full">
             <nav className="flex min-w-max" aria-label="Account settings tabs">
               <button
                 type="button"
                 onClick={() => setActiveTab("profile")}
-                className={`flex items-center gap-2 border-b-2 px-4 sm:px-5 py-4 text-sm font-medium transition ${
+                className={`flex items-center gap-2 border-b-2 px-3 sm:px-5 py-3 sm:py-4 text-xs sm:text-sm font-medium transition whitespace-nowrap ${
                   activeTab === "profile"
                     ? "border-primary-600 text-primary-600"
                     : "border-transparent text-text-muted hover:text-text-main"
@@ -88,7 +88,7 @@ export default function Settings() {
               <button
                 type="button"
                 onClick={() => setActiveTab("password")}
-                className={`flex items-center gap-2 border-b-2 px-4 sm:px-5 py-4 text-sm font-medium transition ${
+                className={`flex items-center gap-2 border-b-2 px-3 sm:px-5 py-3 sm:py-4 text-xs sm:text-sm font-medium transition whitespace-nowrap ${
                   activeTab === "password"
                     ? "border-primary-600 text-primary-600"
                     : "border-transparent text-text-muted hover:text-text-main"
@@ -102,7 +102,7 @@ export default function Settings() {
                 <button
                   type="button"
                   onClick={() => setActiveTab("verification")}
-                  className={`flex items-center gap-2 border-b-2 px-4 sm:px-5 py-4 text-sm font-medium transition ${
+                  className={`flex items-center gap-2 border-b-2 px-3 sm:px-5 py-3 sm:py-4 text-xs sm:text-sm font-medium transition whitespace-nowrap ${
                     activeTab === "verification"
                       ? "border-primary-600 text-primary-600"
                       : "border-transparent text-text-muted hover:text-text-main"

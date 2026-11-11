@@ -46,14 +46,14 @@ function Login() {
   return (
     <>
       <PageTitle title="Login" />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-8 md:py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
-          {/* Left Column - Marketing (Hidden on Mobile) */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-6 sm:py-8 md:py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-16 items-center">
+          {/* Left Column - Marketing (hidden below lg) */}
           <div className="hidden lg:block max-w-lg">
             <p className="text-primary-600 font-semibold text-sm tracking-wide mb-4">
               Your next great find awaits
             </p>
-            <h1 className="text-4xl md:text-5xl font-bold text-text-main leading-tight mb-4">
+            <h1 className="text-4xl xl:text-5xl font-bold text-text-main leading-tight mb-4">
               Welcome back to your marketplace.
             </h1>
             <p className="text-text-muted mb-10 text-lg">
@@ -106,21 +106,23 @@ function Login() {
 
           {/* Right Column - Login Card */}
           <div className="w-full max-w-md mx-auto lg:ml-auto">
-            <div className="bg-surface rounded-2xl shadow-sm border border-border-main p-6 sm:p-8">
-              <h2 className="text-2xl font-bold text-text-main">Log in</h2>
-              <p className="text-sm text-text-muted mt-1 mb-6">
+            <div className="bg-surface rounded-2xl shadow-sm border border-border-main p-5 sm:p-6 md:p-8">
+              <h2 className="text-xl sm:text-2xl font-bold text-text-main">
+                Log in
+              </h2>
+              <p className="text-sm text-text-muted mt-1 mb-5 sm:mb-6">
                 Good to see you again.
               </p>
 
               {successMessage && (
-                <div className="mb-4 p-3 bg-success-50 text-success-700 text-sm rounded-lg border border-success-200 flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 shrink-0" />
+                <div className="mb-4 p-3 bg-success-50 text-success-700 text-xs sm:text-sm rounded-lg border border-success-200 flex items-start gap-2 wrap-break-word">
+                  <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 shrink-0 mt-0.5" />
                   <span>{successMessage}</span>
                 </div>
               )}
 
               {serverError && (
-                <div className="mb-4 p-3 bg-danger-50 text-danger-700 text-sm rounded-lg border border-danger-100">
+                <div className="mb-4 p-3 bg-danger-50 text-danger-700 text-xs sm:text-sm rounded-lg border border-danger-100 wrap-break-word">
                   {serverError}
                 </div>
               )}

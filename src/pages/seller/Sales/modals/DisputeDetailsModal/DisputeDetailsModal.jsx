@@ -18,7 +18,7 @@ export default function DisputeDetailsModal({ dispute, onClose }) {
     if (!dateString) {
       return "N/A";
     }
-    return new Date(dateString).toLocaleDateString("en-GB", {
+    return new Date(dateString).toLocaleString("en-GB", {
       day: "2-digit",
       month: "short",
       year: "numeric",
@@ -45,7 +45,7 @@ export default function DisputeDetailsModal({ dispute, onClose }) {
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 sm:p-2 text-neutral-400 hover:text-text-main hover:bg-neutral-200 rounded-lg transition-colors shrink-0"
+            className="p-1.5 sm:p-2 text-neutral-400 hover:text-text-main hover:bg-neutral-200 rounded-lg shrink-0"
           >
             <X className="w-5 h-5" />
           </button>
@@ -77,7 +77,8 @@ export default function DisputeDetailsModal({ dispute, onClose }) {
 
           <div>
             <h3 className="text-sm font-bold text-text-main flex items-center gap-2 mb-2 sm:mb-3">
-              <MessageSquare className="w-4 h-4 text-text-muted" /> Complaint
+              <MessageSquare className="w-4 h-4 text-text-muted" /> Your
+              Complaint
             </h3>
             <div className="bg-neutral-50 border border-border-main p-3 sm:p-4 rounded-xl text-sm text-text-main leading-relaxed whitespace-pre-wrap wrap-break-word">
               {dispute.complaint}
@@ -100,9 +101,6 @@ export default function DisputeDetailsModal({ dispute, onClose }) {
                     window.open(imageUrl(dispute.evidenceUrl), "_blank")
                   }
                 />
-                <p className="text-center text-[11px] sm:text-xs text-text-muted mt-2">
-                  Click to open full image
-                </p>
               </div>
             </div>
           )}

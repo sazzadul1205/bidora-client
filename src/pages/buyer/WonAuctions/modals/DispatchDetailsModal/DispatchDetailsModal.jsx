@@ -8,37 +8,38 @@ export default function DispatchDetailsModal({ target, onClose }) {
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm"
+      className="fixed inset-0 bg-black/50 flex items-center justify-center p-3 sm:p-4 z-50 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
-        className="bg-surface rounded-2xl w-full max-w-lg shadow-xl overflow-hidden animate-in fade-in zoom-in-95"
+        className="bg-surface rounded-2xl w-full max-w-lg shadow-xl overflow-hidden animate-in fade-in zoom-in-95 max-h-[92vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="px-6 py-4 border-b border-border-main flex items-center justify-between bg-accent-50/50">
-          <div>
-            <h2 className="text-lg font-bold text-text-main flex items-center gap-2">
-              <Truck className="w-5 h-5 text-accent-600" /> Dispatch Details
+        <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-border-main flex items-center justify-between bg-accent-50/50 sticky top-0 z-10">
+          <div className="min-w-0">
+            <h2 className="text-base sm:text-lg font-bold text-text-main flex items-center gap-2">
+              <Truck className="w-4 h-4 sm:w-5 sm:h-5 text-accent-600" />{" "}
+              Dispatch Details
             </h2>
-            <p className="text-xs text-text-muted mt-0.5 truncate max-w-68">
+            <p className="text-[11px] sm:text-xs text-text-muted mt-0.5 truncate">
               {target.productTitle}
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-neutral-400 hover:text-text-main hover:bg-neutral-200 rounded-lg"
+            className="p-1.5 sm:p-2 text-neutral-400 hover:text-text-main hover:bg-neutral-200 rounded-lg shrink-0"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="p-6 space-y-6">
+        <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
           <div>
             <h3 className="text-sm font-bold text-text-main flex items-center gap-2 mb-2">
               <FileText className="w-4 h-4 text-text-muted" /> Dispatch
               Information
             </h3>
-            <div className="bg-neutral-50 border border-border-main p-4 rounded-xl text-sm text-text-main leading-relaxed whitespace-pre-wrap font-medium">
+            <div className="bg-neutral-50 border border-border-main p-3 sm:p-4 rounded-xl text-sm text-text-main leading-relaxed whitespace-pre-wrap font-medium wrap-break-word">
               {target.dispatchInfo || "No dispatch info provided."}
             </div>
           </div>
@@ -54,7 +55,7 @@ export default function DispatchDetailsModal({ target, onClose }) {
                   src={imageUrl(target.trackingEvidence)}
                   alt="Tracking Evidence"
                   onError={handleImageError}
-                  className="max-h-72 rounded-lg object-contain cursor-zoom-in hover:opacity-90 transition"
+                  className="max-h-56 sm:max-h-72 max-w-full rounded-lg object-contain cursor-zoom-in hover:opacity-90 transition"
                   onClick={() =>
                     window.open(imageUrl(target.trackingEvidence), "_blank")
                   }
@@ -65,16 +66,16 @@ export default function DispatchDetailsModal({ target, onClose }) {
                 No tracking evidence uploaded.
               </div>
             )}
-            <p className="text-xs text-neutral-400 text-center mt-2">
+            <p className="text-[11px] sm:text-xs text-neutral-400 text-center mt-2">
               Click image to open full size
             </p>
           </div>
         </div>
 
-        <div className="px-6 py-4 border-t border-border-main bg-neutral-50/50 flex justify-end rounded-b-2xl">
+        <div className="px-4 sm:px-6 py-3 sm:py-4 border-t border-border-main bg-neutral-50/50 flex justify-end rounded-b-2xl">
           <button
             onClick={onClose}
-            className="px-6 py-2.5 bg-neutral-900 hover:bg-black text-text-inverse text-sm font-semibold rounded-lg transition-colors"
+            className="w-full sm:w-auto px-5 sm:px-6 py-2.5 bg-neutral-900 hover:bg-black text-text-inverse text-sm font-semibold rounded-lg transition-colors"
           >
             Close
           </button>

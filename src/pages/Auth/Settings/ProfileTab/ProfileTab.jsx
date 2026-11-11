@@ -26,12 +26,16 @@ function NidDropzone({ label, file, existingUrl, onFileChange, disabled }) {
 
   useEffect(() => {
     return () => {
-      if (objectUrlRef.current) {URL.revokeObjectURL(objectUrlRef.current);}
+      if (objectUrlRef.current) {
+        URL.revokeObjectURL(objectUrlRef.current);
+      }
     };
   }, []);
 
   const acceptFile = (selectedFile) => {
-    if (disabled || !selectedFile) {return;}
+    if (disabled || !selectedFile) {
+      return;
+    }
 
     if (!ALLOWED_IMAGE_TYPES.includes(selectedFile.type)) {
       toast.error("Choose a JPG, PNG, or WEBP image.");
@@ -43,7 +47,9 @@ function NidDropzone({ label, file, existingUrl, onFileChange, disabled }) {
       return;
     }
 
-    if (objectUrlRef.current) {URL.revokeObjectURL(objectUrlRef.current);}
+    if (objectUrlRef.current) {
+      URL.revokeObjectURL(objectUrlRef.current);
+    }
 
     const objectUrl = URL.createObjectURL(selectedFile);
     objectUrlRef.current = objectUrl;
@@ -54,19 +60,25 @@ function NidDropzone({ label, file, existingUrl, onFileChange, disabled }) {
   const handleDrop = (event) => {
     event.preventDefault();
     setDragActive(false);
-    if (!disabled) {acceptFile(event.dataTransfer.files?.[0]);}
+    if (!disabled) {
+      acceptFile(event.dataTransfer.files?.[0]);
+    }
   };
 
   const clearFile = (event) => {
     event.stopPropagation();
-    if (disabled) {return;}
+    if (disabled) {
+      return;
+    }
     onFileChange(null);
     if (objectUrlRef.current) {
       URL.revokeObjectURL(objectUrlRef.current);
       objectUrlRef.current = null;
     }
     setPreviewUrl("");
-    if (inputRef.current) {inputRef.current.value = "";}
+    if (inputRef.current) {
+      inputRef.current.value = "";
+    }
   };
 
   const displayImage = previewUrl || savedImageUrl;
@@ -94,18 +106,22 @@ function NidDropzone({ label, file, existingUrl, onFileChange, disabled }) {
         }}
         onDragEnter={(event) => {
           event.preventDefault();
-          if (!disabled) {setDragActive(true);}
+          if (!disabled) {
+            setDragActive(true);
+          }
         }}
         onDragOver={(event) => {
           event.preventDefault();
-          if (!disabled) {setDragActive(true);}
+          if (!disabled) {
+            setDragActive(true);
+          }
         }}
         onDragLeave={(event) => {
           event.preventDefault();
           setDragActive(false);
         }}
         onDrop={handleDrop}
-        className={`w-full relative flex min-h-48 flex-col items-center justify-center rounded-xl border-2 border-dashed p-4 sm:p-5 text-center transition ${
+        className={`w-full relative flex min-h-40 sm:min-h-48 flex-col items-center justify-center rounded-xl border-2 border-dashed p-3 sm:p-5 text-center transition ${
           disabled
             ? "cursor-not-allowed bg-gray-100 opacity-80 border-gray-300"
             : dragActive
@@ -213,7 +229,9 @@ export default function ProfileTab({ userData, refreshUser }) {
   });
 
   const onSubmit = async (data) => {
-    if (isLocked) {return;}
+    if (isLocked) {
+      return;
+    }
     try {
       await updateProfile(data, frontNidFile, backNidFile);
       setFrontNidFile(null);
@@ -230,7 +248,10 @@ export default function ProfileTab({ userData, refreshUser }) {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-7 w-full">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="space-y-5 sm:space-y-7 w-full"
+    >
       {isRejected && !isAdmin && (
         <div className="flex flex-col sm:flex-row items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4">
           <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-600" />
@@ -277,7 +298,7 @@ export default function ProfileTab({ userData, refreshUser }) {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:gap-5 sm:grid-cols-2">
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-700">
               Email
@@ -392,7 +413,7 @@ export default function ProfileTab({ userData, refreshUser }) {
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:gap-5 sm:grid-cols-2">
             <NidDropzone
               label="Front of National ID"
               file={frontNidFile}

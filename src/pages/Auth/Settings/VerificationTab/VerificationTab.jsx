@@ -8,10 +8,8 @@ export default function VerificationTab({ userData, role, refreshUser }) {
   const [submitting, setSubmitting] = useState(false);
   const profile = userData?.profile || {};
 
-  const verificationStatus =
-    profile.verificationStatus || profile.status || "Not Submitted";
-  const isVerified =
-    verificationStatus === "Verified" || verificationStatus === "Approved";
+  const verificationStatus = profile.verificationStatus || "NotSubmitted";
+  const isVerified = verificationStatus === "Verified";
   const isPending = verificationStatus === "PendingReview";
   const isRejected = verificationStatus === "Rejected";
 
@@ -58,15 +56,15 @@ export default function VerificationTab({ userData, role, refreshUser }) {
   };
 
   return (
-    <div className="space-y-5 w-full">
+    <div className="space-y-4 sm:space-y-5 w-full">
       {isRejected && (
-        <div className="flex flex-col sm:flex-row items-start gap-3 rounded-xl border border-danger-200 bg-danger-50 p-4 sm:p-5">
+        <div className="flex flex-col sm:flex-row items-start gap-3 rounded-xl border border-danger-200 bg-danger-50 p-3 sm:p-5">
           <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-danger-600" />
           <div>
-            <h2 className="text-lg font-semibold text-danger-950">
+            <h2 className="text-base sm:text-lg font-semibold text-danger-950">
               Verification Rejected
             </h2>
-            <p className="mt-1 text-sm text-danger-900">
+            <p className="mt-1 text-sm text-danger-900 wrap-break-word">
               <strong>Reason:</strong>{" "}
               {profile.rejectionReason || "No specific reason provided."}
             </p>
@@ -79,8 +77,8 @@ export default function VerificationTab({ userData, role, refreshUser }) {
         </div>
       )}
 
-      <div className="rounded-xl border border-primary-200 bg-primary-50 p-4 sm:p-5">
-        <h2 className="text-lg font-semibold text-primary-950">
+      <div className="rounded-xl border border-primary-200 bg-primary-50 p-3 sm:p-5">
+        <h2 className="text-base sm:text-lg font-semibold text-primary-950">
           Profile Verification
         </h2>
         <p className="mt-2 text-sm leading-6 text-primary-800">
@@ -88,7 +86,7 @@ export default function VerificationTab({ userData, role, refreshUser }) {
           your changes, and submit your profile for review.
         </p>
 
-        <div className="mt-5 space-y-3 rounded-lg bg-surface/70 p-4 text-sm">
+        <div className="mt-4 sm:mt-5 space-y-3 rounded-lg bg-surface/70 p-3 sm:p-4 text-sm">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-3">
             <span className="text-text-muted">Profile information</span>
             <span
@@ -171,7 +169,7 @@ export default function VerificationTab({ userData, role, refreshUser }) {
       )}
 
       {isPending && (
-        <div className="flex flex-col sm:flex-row items-start gap-3 rounded-lg border border-warning-200 bg-warning-50 p-4">
+        <div className="flex flex-col sm:flex-row items-start gap-3 rounded-lg border border-warning-200 bg-warning-50 p-3 sm:p-4">
           <Lock className="mt-0.5 h-5 w-5 shrink-0 text-warning-600" />
           <p className="text-sm text-warning-900">
             Your verification request is pending review. Your profile and
@@ -181,7 +179,7 @@ export default function VerificationTab({ userData, role, refreshUser }) {
       )}
 
       {isVerified && (
-        <div className="flex flex-col sm:flex-row items-start gap-3 rounded-lg border border-success-200 bg-success-50 p-4">
+        <div className="flex flex-col sm:flex-row items-start gap-3 rounded-lg border border-success-200 bg-success-50 p-3 sm:p-4">
           <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-success-600" />
           <p className="text-sm text-success-800">
             Your profile has been successfully verified. Your account is fully

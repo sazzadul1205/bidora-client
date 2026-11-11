@@ -33,10 +33,10 @@ export default function PasswordTab() {
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="max-w-md space-y-5 w-full"
+      className="w-full sm:max-w-md space-y-4 sm:space-y-5"
     >
       <div>
-        <h2 className="text-lg font-semibold text-text-main">
+        <h2 className="text-base sm:text-lg font-semibold text-text-main">
           Change Password
         </h2>
         <p className="mt-1 text-sm text-text-muted">
