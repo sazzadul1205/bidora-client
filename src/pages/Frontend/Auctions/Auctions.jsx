@@ -21,7 +21,7 @@ export default function Auctions() {
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
 
-  // Filters 
+  // Filters
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [activeStatus, setActiveStatus] = useState("All");
@@ -41,9 +41,13 @@ export default function Auctions() {
         setLoading(true);
 
         let backendFilter = undefined;
-        if (activeStatus === "Live") {backendFilter = "Active";}
-        else if (activeStatus === "Upcoming") {backendFilter = "Upcoming";}
-        else if (activeStatus === "Ended") {backendFilter = "Ended";}
+        if (activeStatus === "Live") {
+          backendFilter = "Active";
+        } else if (activeStatus === "Upcoming") {
+          backendFilter = "Upcoming";
+        } else if (activeStatus === "Ended") {
+          backendFilter = "Ended";
+        }
 
         const [aucRes, catRes] = await Promise.all([
           getAuctions({
@@ -56,7 +60,9 @@ export default function Auctions() {
           getCategories(),
         ]);
 
-        if (!mounted) {return;}
+        if (!mounted) {
+          return;
+        }
 
         setAuctions(aucRes.data.data?.items || []);
         setTotalCount(aucRes.data.data?.totalCount || 0);
@@ -64,7 +70,9 @@ export default function Auctions() {
       } catch (err) {
         console.error("Failed to fetch auctions:", err);
       } finally {
-        if (mounted) {setLoading(false);}
+        if (mounted) {
+          setLoading(false);
+        }
       }
     })();
     return () => {
@@ -79,7 +87,9 @@ export default function Auctions() {
   };
 
   const handleTabChange = (status) => {
-    if (status === activeStatus) {return;}
+    if (status === activeStatus) {
+      return;
+    }
     setLoading(true);
     setActiveStatus(status);
     setPage(1);
@@ -91,16 +101,17 @@ export default function Auctions() {
   };
 
   return (
-    <div className="bg-gray-50 min-h-screen pb-20 pt-8">
+    <div className="bg-gray-50 min-h-screen pb-20 pt-6 sm:pt-8">
       <PageTitle title="Auctions" />
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Page Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6 sm:mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">
               Browse Auctions
             </h1>
-            <p className="text-gray-500">
+            <p className="text-sm sm:text-base text-gray-500">
               Discover live bids and upcoming items from verified sellers.
             </p>
           </div>
@@ -118,13 +129,14 @@ export default function Auctions() {
         </div>
 
         {/* Filters Bar */}
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-8 bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
+        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 sm:gap-4 mb-6 sm:mb-8 bg-white p-3 sm:p-4 rounded-2xl border border-gray-200 shadow-sm">
+          {/* Status tabs */}
           <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
             {["All", "Live", "Upcoming", "Ended"].map((status) => (
               <button
                 key={status}
                 onClick={() => handleTabChange(status)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition ${
                   activeStatus === status
                     ? "bg-blue-600 text-white shadow-md shadow-blue-600/20"
                     : "bg-gray-50 text-gray-600 hover:bg-gray-100"
@@ -135,7 +147,8 @@ export default function Auctions() {
             ))}
           </div>
 
-          <div className="min-w-80">
+          {/* Category picker */}
+          <div className="w-full lg:w-80">
             <CategorySearchBox
               categories={categories}
               value={activeCategory}
@@ -146,22 +159,20 @@ export default function Auctions() {
 
         {/* Results Grid */}
         {loading && auctions.length === 0 ? (
-          <>
-            <AuctionLoader />
-          </>
+          <AuctionLoader />
         ) : auctions.length === 0 ? (
-          <div className="text-center py-20 bg-white rounded-3xl border border-gray-200 shadow-sm">
-            <Gavel className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-gray-900 mb-2">
+          <div className="text-center py-14 sm:py-20 bg-white rounded-2xl sm:rounded-3xl border border-gray-200 shadow-sm px-4">
+            <Gavel className="w-12 sm:w-16 h-12 sm:h-16 text-gray-300 mx-auto mb-3 sm:mb-4" />
+            <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">
               No auctions found
             </h3>
-            <p className="text-gray-500 ">
+            <p className="text-sm sm:text-base text-gray-500">
               Try adjusting your search or filters to find what you're looking
               for.
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
             {auctions.map((auction) => (
               <AuctionCard
                 key={auction.id}
@@ -185,7 +196,7 @@ export default function Auctions() {
             setPageSize(s);
             setPage(1);
           }}
-          className="mt-8 rounded-xl border border-gray-200 shadow-sm"
+          className="mt-6 sm:mt-8 rounded-xl border border-gray-200 shadow-sm"
         />
       </div>
     </div>

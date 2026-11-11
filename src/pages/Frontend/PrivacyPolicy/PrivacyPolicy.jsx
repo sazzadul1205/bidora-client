@@ -17,7 +17,6 @@ import {
 } from "lucide-react";
 
 export default function PrivacyPolicy() {
-  // Update this date any time the policy changes
   const lastUpdated = "October 27, 2026";
 
   const sections = [
@@ -36,14 +35,18 @@ export default function PrivacyPolicy() {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto py-10">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
+      <PageTitle title="Privacy Policy" />
+
       {/* Page Header */}
-      <div className="mb-8">
+      <div className="mb-6 sm:mb-8">
         <div className="flex items-center gap-3 mb-2">
-          <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-lg">
-            <ShieldCheck className="w-6 h-6" />
+          <div className="p-2 sm:p-2.5 bg-emerald-50 text-emerald-600 rounded-lg shrink-0">
+            <ShieldCheck className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Privacy Policy</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+            Privacy Policy
+          </h1>
         </div>
         <p className="text-sm text-gray-500">
           This policy explains what information Bidora collects, how we use it,
@@ -55,9 +58,9 @@ export default function PrivacyPolicy() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Table of Contents — sticky on desktop */}
-        <aside className="lg:col-span-1">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 lg:gap-6">
+        {/* Table of Contents — sticky on desktop, hidden on small screens */}
+        <aside className="hidden lg:block lg:col-span-1">
           <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 lg:sticky lg:top-6">
             <h2 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-3">
               On this page
@@ -76,9 +79,29 @@ export default function PrivacyPolicy() {
           </div>
         </aside>
 
+        {/* Mobile TOC — collapsible accordion */}
+        <details className="lg:hidden bg-white rounded-xl border border-gray-200 shadow-sm mb-2">
+          <summary className="px-4 py-3 text-sm font-semibold text-gray-900 cursor-pointer flex items-center justify-between">
+            <span>On this page</span>
+            <span className="text-xs text-gray-500">
+              {sections.length} sections
+            </span>
+          </summary>
+          <nav className="px-2 pb-2 space-y-0.5 border-t border-gray-100 pt-2">
+            {sections.map((s) => (
+              <a
+                key={s.id}
+                href={`#${s.id}`}
+                className="block text-xs text-gray-600 hover:text-emerald-600 hover:bg-emerald-50 px-2 py-1.5 rounded transition-colors"
+              >
+                {s.title}
+              </a>
+            ))}
+          </nav>
+        </details>
+
         {/* Main content */}
-        <main className="lg:col-span-3 space-y-6">
-          {/* 1. Overview */}
+        <main className="lg:col-span-3 space-y-4 sm:space-y-6">
           <Section
             id="overview"
             icon={<FileText className="w-5 h-5" />}
@@ -97,7 +120,6 @@ export default function PrivacyPolicy() {
             </p>
           </Section>
 
-          {/* 2. Information We Collect */}
           <Section
             id="collect"
             icon={<Database className="w-5 h-5" />}
@@ -173,7 +195,6 @@ export default function PrivacyPolicy() {
             />
           </Section>
 
-          {/* 3. How We Use Information */}
           <Section
             id="use"
             icon={<Eye className="w-5 h-5" />}
@@ -201,7 +222,6 @@ export default function PrivacyPolicy() {
             </p>
           </Section>
 
-          {/* 4. How We Share Information */}
           <Section
             id="share"
             icon={<Share2 className="w-5 h-5" />}
@@ -257,7 +277,6 @@ export default function PrivacyPolicy() {
             </p>
           </Section>
 
-          {/* 5. Data Retention */}
           <Section
             id="retention"
             icon={<Clock className="w-5 h-5" />}
@@ -283,7 +302,6 @@ export default function PrivacyPolicy() {
             </p>
           </Section>
 
-          {/* 6. Data Security */}
           <Section
             id="security"
             icon={<Lock className="w-5 h-5" />}
@@ -309,7 +327,6 @@ export default function PrivacyPolicy() {
             </p>
           </Section>
 
-          {/* 7. Cookies & Tokens */}
           <Section
             id="cookies"
             icon={<Cookie className="w-5 h-5" />}
@@ -333,7 +350,6 @@ export default function PrivacyPolicy() {
             </p>
           </Section>
 
-          {/* 8. Your Rights */}
           <Section
             id="rights"
             icon={<UserCog className="w-5 h-5" />}
@@ -366,7 +382,6 @@ export default function PrivacyPolicy() {
             </p>
           </Section>
 
-          {/* 9. Children's Privacy */}
           <Section
             id="children"
             icon={<Users className="w-5 h-5" />}
@@ -380,7 +395,6 @@ export default function PrivacyPolicy() {
             </p>
           </Section>
 
-          {/* 10. International Transfers */}
           <Section
             id="transfers"
             icon={<Globe className="w-5 h-5" />}
@@ -399,7 +413,6 @@ export default function PrivacyPolicy() {
             </p>
           </Section>
 
-          {/* 11. Changes */}
           <Section
             id="changes"
             icon={<RefreshCw className="w-5 h-5" />}
@@ -418,7 +431,6 @@ export default function PrivacyPolicy() {
             </p>
           </Section>
 
-          {/* 12. Contact */}
           <Section
             id="contact"
             icon={<Mail className="w-5 h-5" />}
@@ -429,14 +441,14 @@ export default function PrivacyPolicy() {
               your data rights, or need to report a data concern, please contact
               us:
             </p>
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mt-2">
-              <p className="text-sm flex items-center gap-2">
-                <Mail className="w-4 h-4 text-gray-500" />
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 sm:p-4 mt-2">
+              <p className="text-sm flex items-center gap-2 break-all">
+                <Mail className="w-4 h-4 text-gray-500 shrink-0" />
                 <span className="font-semibold text-gray-900">
                   privacy@bidora.com
                 </span>
               </p>
-              <p className="text-xs text-gray-500 mt-1 ml-6">
+              <p className="text-xs text-gray-500 mt-1 sm:ml-6">
                 We aim to respond within two business days. For data access or
                 deletion requests, please include your account email so we can
                 locate your record.
@@ -445,7 +457,7 @@ export default function PrivacyPolicy() {
           </Section>
 
           {/* Footer strip */}
-          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-sm text-emerald-900 flex items-start gap-3">
+          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 sm:p-4 text-sm text-emerald-900 flex items-start gap-3">
             <ShieldCheck className="w-5 h-5 shrink-0 mt-0.5" />
             <p>
               Your trust matters. Bidora only collects the data needed to run
@@ -460,17 +472,21 @@ export default function PrivacyPolicy() {
   );
 }
 
-/* ---------- Helper components ---------- */
+/*  Helper components  */
 
 function Section({ id, icon, title, children }) {
   return (
     <section
       id={id}
-      className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 scroll-mt-6"
+      className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6 scroll-mt-6"
     >
-      <div className="flex items-center gap-2 mb-4">
-        <div className="p-2 bg-gray-50 text-gray-700 rounded-lg">{icon}</div>
-        <h2 className="text-lg font-bold text-gray-900">{title}</h2>
+      <div className="flex items-center gap-2 mb-3 sm:mb-4">
+        <div className="p-2 bg-gray-50 text-gray-700 rounded-lg shrink-0">
+          {icon}
+        </div>
+        <h2 className="text-base sm:text-lg font-bold text-gray-900">
+          {title}
+        </h2>
       </div>
       <div className="space-y-3 text-sm text-gray-700 leading-relaxed">
         {children}
@@ -487,8 +503,6 @@ function SubHeading({ children }) {
 
 function List({ items }) {
   return (
-    <>
-      <PageTitle title="Privacy Policy" />
     <ul className="space-y-1.5 mt-2">
       {items.map((item, idx) => (
         <li key={idx} className="flex items-start gap-2 text-sm text-gray-700">
@@ -497,6 +511,5 @@ function List({ items }) {
         </li>
       ))}
     </ul>
-    </>
   );
 }

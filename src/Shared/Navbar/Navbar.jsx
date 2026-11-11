@@ -1,5 +1,5 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getCurrentUser, logout } from "../../services/authApi";
 import { getMyWallet } from "../../services/buyerApi";
 import { Wallet, LogOut, LayoutDashboard, Menu, X } from "lucide-react";
@@ -9,47 +9,109 @@ function Navbar() {
   const [walletBalance, setWalletBalance] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   const navigate = useNavigate();
+  const menuRef = useRef(null);
 
+  // Fetch current user + wallet once on mount
   useEffect(() => {
-    const fetchUserData = async () => {
+    let mounted = true;
+
+    (async () => {
       const token = localStorage.getItem("token");
-      if (token) {
-        try {
-          const res = await getCurrentUser();
-          const userData = res.data;
-          setUser(userData);
+      if (!token) {
+        if (mounted) {
+          setLoading(false);
+        }
+        return;
+      }
 
-          const role = userData?.account?.roles?.[0];
+      try {
+        const res = await getCurrentUser();
+        if (!mounted) {
+          return;
+        }
+        const userData = res.data;
+        setUser(userData);
 
-          if (role === "Buyer") {
-            try {
-              const walletRes = await getMyWallet();
-              const walletData = walletRes.data?.data || walletRes.data || {};
-              const totalBal = walletData.balance ?? 0;
-              const reservedBal = walletData.reservedBalance ?? 0;
-              const avail = walletData.availableBalance;
-              setWalletBalance(
-                Math.max(
-                  0,
-                  avail !== undefined && avail !== null
-                    ? avail
-                    : totalBal - reservedBal,
-                ),
-              );
-            } catch (err) {
-              console.warn("Could not fetch wallet", err);
+        const role = userData?.account?.roles?.[0];
+        if (role === "Buyer") {
+          try {
+            const walletRes = await getMyWallet();
+            if (!mounted) {
+              return;
             }
+            const w = walletRes.data?.data || walletRes.data || {};
+            const total = w.balance ?? 0;
+            const reserved = w.reservedBalance ?? 0;
+            const avail =
+              w.availableBalance !== undefined && w.availableBalance !== null
+                ? w.availableBalance
+                : total - reserved;
+            setWalletBalance(Math.max(0, avail));
+          } catch (err) {
+            console.warn("Could not fetch wallet", err);
           }
-        } catch {
+        }
+      } catch {
+        if (mounted) {
           setUser(null);
         }
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
       }
-      setLoading(false);
-    };
+    })();
 
-    fetchUserData();
+    return () => {
+      mounted = false;
+    };
   }, []);
+
+  // Close on Escape
+  useEffect(() => {
+    if (!isMobileMenuOpen) {
+      return;
+    }
+    const onKey = (e) => {
+      if (e.key === "Escape") {
+        setIsMobileMenuOpen(false);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isMobileMenuOpen]);
+
+  // Close on outside click
+  useEffect(() => {
+    if (!isMobileMenuOpen) {
+      return;
+    }
+    const onClick = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        if (!e.target.closest("[data-mobile-toggle]")) {
+          setIsMobileMenuOpen(false);
+        }
+      }
+    };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, [isMobileMenuOpen]);
+
+  // Lock body scroll while mobile menu is open
+  useEffect(() => {
+    if (!isMobileMenuOpen) {
+      return;
+    }
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [isMobileMenuOpen]);
+
+  const closeMenu = () => setIsMobileMenuOpen(false);
 
   const handleLogout = () => {
     logout();
@@ -93,7 +155,7 @@ function Navbar() {
     <header className="bg-surface border-b border-border-main relative z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2">
+        <Link to="/" className="flex items-center gap-2 shrink-0">
           <div className="bg-primary-600 p-1.5 rounded-md text-text-inverse">
             <svg
               className="w-5 h-5"
@@ -114,7 +176,7 @@ function Navbar() {
           </span>
         </Link>
 
-        {/* Desktop Center Links */}
+        {/* Desktop center links */}
         <nav className="hidden md:flex items-center gap-8 h-full">
           <NavLink to="/" end className={navLinkClass}>
             Home
@@ -127,13 +189,27 @@ function Navbar() {
           </NavLink>
         </nav>
 
-        {/* Right Side Auth & User Info */}
+        {/* Right side */}
         <div className="flex items-center gap-2 sm:gap-4">
-          {!loading && (
+          {loading ? (
+            <div className="md:hidden">
+              <button
+                onClick={() => setIsMobileMenuOpen((v) => !v)}
+                className="p-2 text-text-muted hover:bg-neutral-100 rounded-lg transition-colors"
+                aria-label="Open menu"
+                data-mobile-toggle
+              >
+                {isMobileMenuOpen ? (
+                  <X className="w-6 h-6" />
+                ) : (
+                  <Menu className="w-6 h-6" />
+                )}
+              </button>
+            </div>
+          ) : (
             <>
               {user ? (
                 <div className="flex items-center gap-2 sm:gap-4">
-                  {/* Buyer Wallet Balance */}
                   {role === "Buyer" && walletBalance !== null && (
                     <Link
                       to="/wallet"
@@ -151,17 +227,16 @@ function Navbar() {
                     </Link>
                   )}
 
-                  {/* Desktop User Info & Dashboard */}
                   <div className="hidden lg:flex flex-col items-end mr-2">
-                    <span className="text-sm font-bold text-text-main leading-tight">
+                    <span className="text-sm font-bold text-text-main leading-tight truncate max-w-35">
                       {user.profile?.fullName || "User"}
                     </span>
-                    <span className="text-xs text-text-muted">
+                    <span className="text-xs text-text-muted truncate max-w-35">
                       {user.account?.email}
                     </span>
                   </div>
 
-                  <div className="h-6 w-px bg-neutral-200 mx-1 hidden sm:block"></div>
+                  <div className="h-6 w-px bg-neutral-200 mx-1 hidden sm:block" />
 
                   <Link
                     to={getDashboardPath()}
@@ -171,7 +246,6 @@ function Navbar() {
                     <span className="hidden lg:inline">Dashboard</span>
                   </Link>
 
-                  {/* Desktop Logout */}
                   <button
                     onClick={handleLogout}
                     className="hidden sm:flex text-sm font-medium text-danger-600 hover:text-text-inverse bg-danger-50 hover:bg-danger-600 px-3 py-2 rounded-lg transition-colors items-center gap-2"
@@ -197,10 +271,12 @@ function Navbar() {
                 </div>
               )}
 
-              {/* Mobile Menu Toggle */}
+              {/* Mobile toggle */}
               <button
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                onClick={() => setIsMobileMenuOpen((v) => !v)}
                 className="md:hidden p-2 text-text-muted hover:bg-neutral-100 rounded-lg transition-colors"
+                aria-label="Toggle menu"
+                data-mobile-toggle
               >
                 {isMobileMenuOpen ? (
                   <X className="w-6 h-6" />
@@ -213,48 +289,51 @@ function Navbar() {
         </div>
       </div>
 
-      {/* MOBILE DROPDOWN MENU */}
+      {/* Mobile dropdown */}
       {isMobileMenuOpen && (
-        <div className="md:hidden absolute top-16 left-0 right-0 bg-surface border-b border-border-main shadow-lg z-50">
+        <div
+          ref={menuRef}
+          className="md:hidden absolute top-16 left-0 right-0 bg-surface border-b border-border-main shadow-lg z-50"
+        >
           <div className="px-4 py-4 space-y-2">
             <NavLink
               to="/"
               end
               className={mobileNavLinkClass}
-              onClick={() => setIsMobileMenuOpen(false)}
+              onClick={closeMenu}
             >
               Home
             </NavLink>
             <NavLink
               to="/auctions"
               className={mobileNavLinkClass}
-              onClick={() => setIsMobileMenuOpen(false)}
+              onClick={closeMenu}
             >
               Browse auctions
             </NavLink>
             <NavLink
               to="/about"
               className={mobileNavLinkClass}
-              onClick={() => setIsMobileMenuOpen(false)}
+              onClick={closeMenu}
             >
               About Us
             </NavLink>
 
-            <div className="h-px bg-border-main my-2"></div>
+            <div className="h-px bg-border-main my-2" />
 
             {user ? (
               <>
                 <Link
                   to={getDashboardPath()}
                   className="block px-4 py-3 rounded-lg text-base font-medium text-text-main hover:bg-neutral-50"
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  onClick={closeMenu}
                 >
                   Dashboard
                 </Link>
                 <Link
                   to="/wallet"
                   className="block px-4 py-3 rounded-lg text-base font-medium text-text-main hover:bg-neutral-50"
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  onClick={closeMenu}
                 >
                   My Wallet
                 </Link>
@@ -270,14 +349,14 @@ function Navbar() {
                 <Link
                   to="/login"
                   className="block px-4 py-2 text-center text-sm font-medium text-text-main border border-border-main rounded-lg hover:bg-neutral-50"
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  onClick={closeMenu}
                 >
                   Log in
                 </Link>
                 <Link
                   to="/register"
                   className="block px-4 py-2 text-center text-sm font-medium bg-primary-600 text-text-inverse rounded-lg hover:bg-primary-700"
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  onClick={closeMenu}
                 >
                   Create account
                 </Link>

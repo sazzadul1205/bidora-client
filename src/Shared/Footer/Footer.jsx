@@ -5,9 +5,13 @@ function Footer() {
     <footer className="bg-surface border-t border-border-main py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row justify-between items-center md:items-start gap-6">
-          {/* Left side */}
+          {/* Left: brand */}
           <div className="flex flex-col items-center md:items-start gap-2">
-            <Link to="/" className="flex items-center gap-2">
+            <Link
+              to="/"
+              className="flex items-center gap-2"
+              aria-label="Bidora home"
+            >
               <div className="bg-primary-600 p-1 rounded-md text-text-inverse">
                 <svg
                   className="w-4 h-4"
@@ -25,25 +29,31 @@ function Footer() {
               </div>
               <span className="text-lg font-bold text-text-main">Bidora</span>
             </Link>
-            <p className="text-xs text-text-muted">
+            <p className="text-xs text-text-muted text-center md:text-left">
               © 2026 Bidora. A simpler way to buy and sell.
             </p>
           </div>
 
-          {/* Right side */}
-          <div className="flex flex-col items-center md:items-end gap-2">
-            <div className="flex gap-4 text-xs font-medium text-text-muted">
-              <a href="#" className="hover:text-text-main">
-                Help center
-              </a>
-              <a href="#" className="hover:text-text-main">
-                Auction rules
-              </a>
-              <a href="#" className="hover:text-text-main">
-                Terms & privacy
-              </a>
+          {/* Right: links */}
+          <nav
+            aria-label="Footer navigation"
+            className="flex flex-col items-center md:items-end gap-2"
+          >
+            <div className="flex flex-wrap justify-center md:justify-end gap-x-4 gap-y-2 text-xs font-medium text-text-muted">
+              <Link to="/about" className="hover:text-text-main">
+                About
+              </Link>
+              <Link to="/terms" className="hover:text-text-main">
+                Terms of Use
+              </Link>
+              <Link to="/privacy" className="hover:text-text-main">
+                Privacy Policy
+              </Link>
+              <Link to="/auctions" className="hover:text-text-main">
+                Auctions
+              </Link>
             </div>
-          </div>
+          </nav>
         </div>
       </div>
     </footer>

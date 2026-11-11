@@ -19,7 +19,6 @@ import {
 } from "lucide-react";
 
 export default function TermsOfUse() {
-  // Update this date any time the terms change
   const lastUpdated = "October 27, 2026";
 
   const sections = [
@@ -40,14 +39,18 @@ export default function TermsOfUse() {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto py-10">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
+      <PageTitle title="Terms of Use" />
+
       {/* Page Header */}
-      <div className="mb-8">
+      <div className="mb-6 sm:mb-8">
         <div className="flex items-center gap-3 mb-2">
-          <div className="p-2.5 bg-blue-50 text-blue-600 rounded-lg">
-            <ScrollText className="w-6 h-6" />
+          <div className="p-2 sm:p-2.5 bg-blue-50 text-blue-600 rounded-lg shrink-0">
+            <ScrollText className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Terms of Use</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+            Terms of Use
+          </h1>
         </div>
         <p className="text-sm text-gray-500">
           Please read these terms carefully before using Bidora. By accessing or
@@ -59,9 +62,9 @@ export default function TermsOfUse() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Table of Contents — sticky on desktop */}
-        <aside className="lg:col-span-1">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 lg:gap-6">
+        {/* Desktop TOC */}
+        <aside className="hidden lg:block lg:col-span-1">
           <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 lg:sticky lg:top-6">
             <h2 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-3">
               On this page
@@ -80,9 +83,29 @@ export default function TermsOfUse() {
           </div>
         </aside>
 
+        {/* Mobile TOC accordion */}
+        <details className="lg:hidden bg-white rounded-xl border border-gray-200 shadow-sm mb-2">
+          <summary className="px-4 py-3 text-sm font-semibold text-gray-900 cursor-pointer flex items-center justify-between">
+            <span>On this page</span>
+            <span className="text-xs text-gray-500">
+              {sections.length} sections
+            </span>
+          </summary>
+          <nav className="px-2 pb-2 space-y-0.5 border-t border-gray-100 pt-2">
+            {sections.map((s) => (
+              <a
+                key={s.id}
+                href={`#${s.id}`}
+                className="block text-xs text-gray-600 hover:text-blue-600 hover:bg-blue-50 px-2 py-1.5 rounded transition-colors"
+              >
+                {s.title}
+              </a>
+            ))}
+          </nav>
+        </details>
+
         {/* Main content */}
-        <main className="lg:col-span-3 space-y-6">
-          {/* 1. Acceptance */}
+        <main className="lg:col-span-3 space-y-4 sm:space-y-6">
           <Section
             id="acceptance"
             icon={<CheckCircle2 className="w-5 h-5" />}
@@ -101,7 +124,6 @@ export default function TermsOfUse() {
             </p>
           </Section>
 
-          {/* 2. Eligibility */}
           <Section
             id="eligibility"
             icon={<Users className="w-5 h-5" />}
@@ -125,7 +147,6 @@ export default function TermsOfUse() {
             </p>
           </Section>
 
-          {/* 3. Roles */}
           <Section
             id="roles"
             icon={<Shield className="w-5 h-5" />}
@@ -156,7 +177,6 @@ export default function TermsOfUse() {
             </p>
           </Section>
 
-          {/* 4. Auctions */}
           <Section
             id="auctions"
             icon={<Gavel className="w-5 h-5" />}
@@ -188,7 +208,6 @@ export default function TermsOfUse() {
             </p>
           </Section>
 
-          {/* 5. Deposits */}
           <Section
             id="deposits"
             icon={<Wallet className="w-5 h-5" />}
@@ -229,7 +248,6 @@ export default function TermsOfUse() {
             />
           </Section>
 
-          {/* 6. Payment */}
           <Section
             id="payment"
             icon={<CreditCard className="w-5 h-5" />}
@@ -256,7 +274,6 @@ export default function TermsOfUse() {
             </p>
           </Section>
 
-          {/* 7. Delivery */}
           <Section
             id="delivery"
             icon={<Truck className="w-5 h-5" />}
@@ -286,7 +303,6 @@ export default function TermsOfUse() {
             </p>
           </Section>
 
-          {/* 8. Disputes */}
           <Section
             id="disputes"
             icon={<AlertTriangle className="w-5 h-5" />}
@@ -325,7 +341,6 @@ export default function TermsOfUse() {
             </p>
           </Section>
 
-          {/* 9. Fees */}
           <Section
             id="fees"
             icon={<Percent className="w-5 h-5" />}
@@ -346,7 +361,6 @@ export default function TermsOfUse() {
             </p>
           </Section>
 
-          {/* 10. Prohibited */}
           <Section
             id="prohibited"
             icon={<Ban className="w-5 h-5" />}
@@ -372,7 +386,6 @@ export default function TermsOfUse() {
             </p>
           </Section>
 
-          {/* 11. Suspension */}
           <Section
             id="suspension"
             icon={<Lock className="w-5 h-5" />}
@@ -397,7 +410,6 @@ export default function TermsOfUse() {
             </p>
           </Section>
 
-          {/* 12. Liability */}
           <Section
             id="liability"
             icon={<Scale className="w-5 h-5" />}
@@ -423,7 +435,6 @@ export default function TermsOfUse() {
             </p>
           </Section>
 
-          {/* 13. Changes */}
           <Section
             id="changes"
             icon={<RefreshCw className="w-5 h-5" />}
@@ -442,7 +453,6 @@ export default function TermsOfUse() {
             </p>
           </Section>
 
-          {/* 14. Contact */}
           <Section
             id="contact"
             icon={<Mail className="w-5 h-5" />}
@@ -452,21 +462,20 @@ export default function TermsOfUse() {
               If you have questions about these Terms, need help with a dispute,
               or wish to report a violation, please contact us:
             </p>
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mt-2">
-              <p className="text-sm flex items-center gap-2">
-                <Mail className="w-4 h-4 text-gray-500" />
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 sm:p-4 mt-2">
+              <p className="text-sm flex items-center gap-2 break-all">
+                <Mail className="w-4 h-4 text-gray-500 shrink-0" />
                 <span className="font-semibold text-gray-900">
                   support@bidora.com
                 </span>
               </p>
-              <p className="text-xs text-gray-500 mt-1 ml-6">
+              <p className="text-xs text-gray-500 mt-1 sm:ml-6">
                 We aim to respond within two business days.
               </p>
             </div>
           </Section>
 
-          {/* Footer strip */}
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-900 flex items-start gap-3">
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 sm:p-4 text-sm text-blue-900 flex items-start gap-3">
             <Shield className="w-5 h-5 shrink-0 mt-0.5" />
             <p>
               By using Bidora, you acknowledge that you have read and understood
@@ -486,11 +495,15 @@ function Section({ id, icon, title, children }) {
   return (
     <section
       id={id}
-      className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 scroll-mt-6"
+      className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6 scroll-mt-6"
     >
-      <div className="flex items-center gap-2 mb-4">
-        <div className="p-2 bg-gray-50 text-gray-700 rounded-lg">{icon}</div>
-        <h2 className="text-lg font-bold text-gray-900">{title}</h2>
+      <div className="flex items-center gap-2 mb-3 sm:mb-4">
+        <div className="p-2 bg-gray-50 text-gray-700 rounded-lg shrink-0">
+          {icon}
+        </div>
+        <h2 className="text-base sm:text-lg font-bold text-gray-900">
+          {title}
+        </h2>
       </div>
       <div className="space-y-3 text-sm text-gray-700 leading-relaxed">
         {children}
@@ -526,12 +539,9 @@ function RoleCard({ title, description, color }) {
   };
 
   return (
-    <>
-      <PageTitle title="Terms of Use" />
     <div className={`border rounded-lg p-3 ${colorMap[color]}`}>
       <p className="font-bold text-sm mb-1">{title}</p>
       <p className="text-xs leading-relaxed opacity-90">{description}</p>
     </div>
-    </>
   );
 }

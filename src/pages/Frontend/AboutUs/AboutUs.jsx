@@ -21,33 +21,35 @@ import { Link } from "react-router-dom";
 
 export default function AboutUs() {
   return (
-    <div className="max-w-7xl mx-auto">
-      {/* ================= HERO ================= */}
-      <section className="relative bg-linear-to-br from-blue-600 via-blue-700 to-indigo-800 rounded-2xl overflow-hidden mb-8">
-        <div className="absolute inset-0 opacity-10">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <PageTitle title="About Us" />
+
+      {/* HERO */}
+      <section className="relative bg-linear-to-br from-blue-600 via-blue-700 to-indigo-800 rounded-2xl overflow-hidden mb-6 sm:mb-8">
+        <div className="absolute inset-0 opacity-10 pointer-events-none">
           <div className="absolute top-10 left-10 w-40 h-40 rounded-full bg-white blur-3xl" />
           <div className="absolute bottom-10 right-20 w-64 h-64 rounded-full bg-white blur-3xl" />
         </div>
 
-        <div className="relative px-6 sm:px-12 py-14 sm:py-20 text-center">
-          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 text-white text-xs font-semibold px-3 py-1.5 rounded-full mb-5">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>
+        <div className="relative px-4 sm:px-12 py-10 sm:py-20 text-center">
+          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 text-white text-[10px] sm:text-xs font-semibold px-3 py-1.5 rounded-full mb-4 sm:mb-5 max-w-full">
+            <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
+            <span className="truncate">
               Built for buyers and sellers who want to trust the process
             </span>
           </div>
 
-          <h1 className="text-3xl sm:text-5xl font-bold text-white mb-4 leading-tight max-w-3xl mx-auto">
+          <h1 className="text-2xl sm:text-5xl font-bold text-white mb-3 sm:mb-4 leading-tight max-w-3xl mx-auto">
             Fair auctions. Trusted transactions.
           </h1>
 
-          <p className="text-blue-100 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed mb-8">
+          <p className="text-blue-100 text-sm sm:text-lg max-w-2xl mx-auto leading-relaxed mb-6 sm:mb-8">
             Bidora is a modern auction platform where every bid is protected,
             every seller is verified, and every sale happens through escrow — so
             both sides can focus on the deal, not on worrying.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3">
             <Link
               to="/auctions"
               className="inline-flex items-center gap-2 bg-white text-blue-700 hover:bg-blue-50 font-semibold px-6 py-3 rounded-lg transition-colors shadow-lg w-full sm:w-auto justify-center"
@@ -64,8 +66,8 @@ export default function AboutUs() {
         </div>
       </section>
 
-      {/* ================= STATS BAR ================= */}
-      <section className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+      {/* STATS BAR */}
+      <section className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-8 sm:mb-10">
         <StatCard
           icon={<Users className="w-5 h-5" />}
           value="10K+"
@@ -92,15 +94,15 @@ export default function AboutUs() {
         />
       </section>
 
-      {/* ================= HOW IT WORKS ================= */}
-      <section className="mb-10">
+      {/* HOW IT WORKS */}
+      <section className="mb-8 sm:mb-10">
         <SectionHeading
           eyebrow="How it works"
           title="Three steps to a fair deal"
           subtitle="Whether you're bidding or listing, the process is the same: protected, verified, and transparent from start to finish."
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
           <StepCard
             number="01"
             icon={<Gavel className="w-5 h-5" />}
@@ -125,15 +127,15 @@ export default function AboutUs() {
         </div>
       </section>
 
-      {/* ================= VALUES ================= */}
-      <section className="mb-10">
+      {/* VALUES */}
+      <section className="mb-8 sm:mb-10">
         <SectionHeading
           eyebrow="What we believe"
           title="Four principles we don't compromise on"
           subtitle="These aren't marketing lines — they're the rules the entire platform is built around."
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
           <ValueCard
             icon={<ShieldCheck className="w-5 h-5" />}
             title="Trust through transparency"
@@ -161,15 +163,15 @@ export default function AboutUs() {
         </div>
       </section>
 
-      {/* ================= WHY BIDORA ================= */}
-      <section className="mb-10 bg-gray-50 border border-gray-200 rounded-2xl p-6 sm:p-10">
+      {/* WHY BIDORA */}
+      <section className="mb-8 sm:mb-10 bg-gray-50 border border-gray-200 rounded-2xl p-4 sm:p-10">
         <SectionHeading
           eyebrow="Why Bidora"
           title="What makes us different"
           subtitle="Plenty of platforms let you buy and sell. Very few actually protect you while you do it."
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 md:gap-x-8 gap-y-4 sm:gap-y-5">
           <FeatureItem
             icon={<BadgeCheck className="w-5 h-5" />}
             title="National ID verification"
@@ -203,17 +205,17 @@ export default function AboutUs() {
         </div>
       </section>
 
-      {/* ================= STORY ================= */}
-      <section className="mb-10">
+      {/* STORY */}
+      <section className="mb-8 sm:mb-10">
         <SectionHeading
           eyebrow="Our story"
           title="Why we built Bidora"
           subtitle="Because auctions shouldn't feel like a gamble."
         />
 
-        <div className="bg-white border border-gray-200 rounded-2xl p-6 sm:p-10">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-            <div className="space-y-4 text-sm text-gray-700 leading-relaxed">
+        <div className="bg-white border border-gray-200 rounded-2xl p-4 sm:p-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 items-center">
+            <div className="space-y-3 sm:space-y-4 text-sm text-gray-700 leading-relaxed">
               <p>
                 Online auctions have a trust problem. Buyers worry the item
                 won't be as described — or won't arrive at all. Sellers worry
@@ -259,23 +261,23 @@ export default function AboutUs() {
         </div>
       </section>
 
-      {/* ================= CTA ================= */}
-      <section className="relative bg-linear-to-br from-gray-900 via-gray-800 to-black rounded-2xl overflow-hidden mb-8">
-        <div className="absolute inset-0 opacity-10">
+      {/* CTA */}
+      <section className="relative bg-linear-to-br from-gray-900 via-gray-800 to-black rounded-2xl overflow-hidden mb-4 sm:mb-8">
+        <div className="absolute inset-0 opacity-10 pointer-events-none">
           <div className="absolute top-0 right-0 w-72 h-72 rounded-full bg-blue-500 blur-3xl" />
           <div className="absolute bottom-0 left-0 w-72 h-72 rounded-full bg-purple-500 blur-3xl" />
         </div>
 
-        <div className="relative px-6 sm:px-12 py-14 text-center">
+        <div className="relative px-4 sm:px-12 py-10 sm:py-14 text-center">
           <h2 className="text-2xl sm:text-4xl font-bold text-white mb-3">
             Ready to bid — or to sell?
           </h2>
-          <p className="text-gray-300 text-sm sm:text-base max-w-xl mx-auto mb-8 leading-relaxed">
+          <p className="text-gray-300 text-sm sm:text-base max-w-xl mx-auto mb-6 sm:mb-8 leading-relaxed">
             Join a marketplace where every transaction is protected, every user
             is verified, and every dispute gets a real answer.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3">
             <Link
               to="/register"
               className="inline-flex items-center gap-2 bg-white text-gray-900 hover:bg-gray-100 font-semibold px-6 py-3 rounded-lg transition-colors shadow-lg w-full sm:w-auto justify-center"
@@ -290,9 +292,11 @@ export default function AboutUs() {
             </Link>
           </div>
 
-          <div className="flex items-center justify-center gap-2 mt-8 text-xs text-gray-400">
+          <div className="flex items-center justify-center gap-2 mt-6 sm:mt-8 text-xs text-gray-400">
             <Mail className="w-3.5 h-3.5" />
-            <span>Questions? Reach us at support@bidora.com</span>
+            <span className="truncate">
+              Questions? Reach us at support@bidora.com
+            </span>
           </div>
         </div>
       </section>
@@ -300,19 +304,19 @@ export default function AboutUs() {
   );
 }
 
-/* ================= HELPER COMPONENTS ================= */
+/* HELPER COMPONENTS */
 
 function SectionHeading({ eyebrow, title, subtitle }) {
   return (
-    <div className="text-center mb-6">
+    <div className="text-center mb-5 sm:mb-6">
       <p className="text-xs font-bold uppercase tracking-wider text-blue-600 mb-2">
         {eyebrow}
       </p>
-      <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
+      <h2 className="text-xl sm:text-3xl font-bold text-gray-900 mb-2 px-2">
         {title}
       </h2>
       {subtitle && (
-        <p className="text-sm text-gray-500 max-w-2xl mx-auto leading-relaxed">
+        <p className="text-sm text-gray-500 max-w-2xl mx-auto leading-relaxed px-2">
           {subtitle}
         </p>
       )}
@@ -330,11 +334,15 @@ function StatCard({ icon, value, label, color }) {
   const c = colorMap[color];
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-5 flex items-center gap-4">
-      <div className={`p-3 ${c.bg} ${c.text} rounded-lg shrink-0`}>{icon}</div>
-      <div>
-        <p className="text-2xl font-bold text-gray-900">{value}</p>
-        <p className="text-xs font-medium text-gray-500 mt-0.5">{label}</p>
+    <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-4 sm:p-5 flex items-center gap-3 sm:gap-4">
+      <div className={`p-2.5 sm:p-3 ${c.bg} ${c.text} rounded-lg shrink-0`}>
+        {icon}
+      </div>
+      <div className="min-w-0">
+        <p className="text-xl sm:text-2xl font-bold text-gray-900">{value}</p>
+        <p className="text-[11px] sm:text-xs font-medium text-gray-500 mt-0.5 truncate">
+          {label}
+        </p>
       </div>
     </div>
   );
@@ -361,10 +369,14 @@ function StepCard({ number, icon, title, description, color }) {
   const c = colorMap[color];
 
   return (
-    <div className="relative bg-white border border-gray-200 rounded-xl shadow-sm p-6">
-      <div className="flex items-center justify-between mb-4">
-        <div className={`p-3 ${c.bg} ${c.text} rounded-lg`}>{icon}</div>
-        <span className="text-3xl font-black text-gray-400">{number}</span>
+    <div className="relative bg-white border border-gray-200 rounded-xl shadow-sm p-5 sm:p-6">
+      <div className="flex items-center justify-between mb-3 sm:mb-4">
+        <div className={`p-2.5 sm:p-3 ${c.bg} ${c.text} rounded-lg`}>
+          {icon}
+        </div>
+        <span className="text-2xl sm:text-3xl font-black text-gray-400">
+          {number}
+        </span>
       </div>
       <h3 className="text-base font-bold text-gray-900 mb-2">{title}</h3>
       <p className="text-sm text-gray-600 leading-relaxed">{description}</p>
@@ -382,8 +394,10 @@ function ValueCard({ icon, title, description, color }) {
   const c = colorMap[color];
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-5">
-      <div className={`inline-flex p-2.5 ${c.bg} ${c.text} rounded-lg mb-3`}>
+    <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-4 sm:p-5">
+      <div
+        className={`inline-flex p-2 sm:p-2.5 ${c.bg} ${c.text} rounded-lg mb-2 sm:mb-3`}
+      >
         {icon}
       </div>
       <h3 className="text-base font-bold text-gray-900 mb-2">{title}</h3>
@@ -394,11 +408,11 @@ function ValueCard({ icon, title, description, color }) {
 
 function FeatureItem({ icon, title, description }) {
   return (
-    <div className="flex items-start gap-3">
+    <div className="flex items-start gap-2.5 sm:gap-3">
       <div className="p-2 bg-white border border-gray-200 text-blue-600 rounded-lg shrink-0 shadow-sm">
         {icon}
       </div>
-      <div>
+      <div className="min-w-0">
         <h4 className="text-sm font-bold text-gray-900 mb-1">{title}</h4>
         <p className="text-xs text-gray-600 leading-relaxed">{description}</p>
       </div>
@@ -408,20 +422,17 @@ function FeatureItem({ icon, title, description }) {
 
 function TimelineItem({ year, text, isLast }) {
   return (
-    <>
-      <PageTitle title="About Us" />
     <div className="flex gap-3">
       <div className="flex flex-col items-center shrink-0">
         <div className="w-2.5 h-2.5 rounded-full bg-blue-600 mt-1.5" />
         {!isLast && <div className="w-0.5 flex-1 bg-gray-200 mt-1" />}
       </div>
-      <div className="pb-4">
+      <div className="pb-4 min-w-0">
         <p className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">
           {year}
         </p>
         <p className="text-sm text-gray-700 leading-relaxed">{text}</p>
       </div>
     </div>
-    </>
   );
 }
