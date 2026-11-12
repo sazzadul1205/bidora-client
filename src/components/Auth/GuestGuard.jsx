@@ -24,6 +24,7 @@ export default function GuestGuard({ children }) {
   if (isTokenExpired(token)) {
     localStorage.removeItem("token");
     localStorage.removeItem("roles");
+    localStorage.removeItem("tokenExpiresInMinutes");
     return children;
   }
 
@@ -50,5 +51,6 @@ export default function GuestGuard({ children }) {
   // Token exists but no role info → stale, clear and let them log in fresh
   localStorage.removeItem("token");
   localStorage.removeItem("roles");
+  localStorage.removeItem("tokenExpiresInMinutes");
   return children;
 }

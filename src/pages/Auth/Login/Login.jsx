@@ -48,7 +48,7 @@ function Login() {
       <PageTitle title="Login" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-6 sm:py-8 md:py-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-16 items-center">
-          {/* Left Column - Marketing (hidden below lg) */}
+          {/* Left Column - Marketing */}
           <div className="hidden lg:block max-w-lg">
             <p className="text-primary-600 font-semibold text-sm tracking-wide mb-4">
               Your next great find awaits

@@ -66,12 +66,15 @@ export const register = (userData) => {
   return authApi.post("/auth/register", userData);
 };
 
-// Logs in, saves the JWT token AND roles to localStorage.
+// Logs in, saves the JWT token, roles, AND expiration (in minutes) to localStorage.
 export const login = async (credentials) => {
   const response = await authApi.post("/auth/login", credentials);
   localStorage.setItem("token", response.data.token);
   if (response.data.roles) {
     localStorage.setItem("roles", JSON.stringify(response.data.roles));
+  }
+  if (response.data.expiresInMinutes) {
+    localStorage.setItem("tokenExpiresInMinutes", response.data.expiresInMinutes);
   }
   return response;
 };
@@ -107,10 +110,11 @@ export const changePassword = (passwordData) => {
   return authApi.post("/auth/change-password", passwordData, getAuthConfig());
 };
 
-// Clears the token and roles from the browser
+// Clears the token, roles, and expiration from the browser
 export const logout = () => {
   localStorage.removeItem("token");
-  localStorage.removeItem("roles"); 
+  localStorage.removeItem("roles");
+  localStorage.removeItem("tokenExpiresInMinutes");
 };
 
 export default authApi;

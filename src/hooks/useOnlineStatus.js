@@ -30,7 +30,7 @@ export default function useOnlineStatus() {
     pingInFlight.current = true;
 
     try {
-      await publicApi.get("/category", { timeout: 4000 });
+      await publicApi.get("/health", { timeout: 4000 });
 
       failureCount.current = 0;
       setStatus("online");
@@ -75,7 +75,7 @@ export default function useOnlineStatus() {
 
     const intervalId = setInterval(() => {
       if (navigator.onLine && !document.hidden) {pingBackend();}
-    }, 20000);
+    }, 5000);
 
     const handleVisibilityChange = () => {
       if (!document.hidden && navigator.onLine) {pingBackend();}
