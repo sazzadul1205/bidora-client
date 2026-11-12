@@ -62,8 +62,8 @@ export default function MyProducts() {
         auctionStatus: au,
       });
       setProducts(res.data.data || []);
-      if (typeof res.data.totalCount === "number") {
-        setTotalCount(res.data.totalCount);
+      if (typeof res.data.pagination?.totalCount === "number") {
+        setTotalCount(res.data.pagination.totalCount);
       }
     } catch {
       toast.error("Failed to load products.");
@@ -87,8 +87,8 @@ export default function MyProducts() {
           return;
         }
         setProducts(res.data.data || []);
-        if (typeof res.data.totalCount === "number") {
-          setTotalCount(res.data.totalCount);
+        if (typeof res.data.pagination?.totalCount === "number") {
+          setTotalCount(res.data.pagination.totalCount);
         }
       } catch {
         if (!cancelled) {

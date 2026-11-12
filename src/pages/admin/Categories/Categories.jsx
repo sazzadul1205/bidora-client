@@ -32,8 +32,8 @@ export default function Categories() {
           return;
         }
         setCategories(res.data.data || []);
-        if (typeof res.data.totalCount === "number") {
-          setTotalCount(res.data.totalCount);
+        if (typeof res.data.pagination?.totalCount === "number") {
+          setTotalCount(res.data.pagination.totalCount);
         }
       } catch (err) {
         console.error(err);
@@ -55,8 +55,8 @@ export default function Categories() {
     try {
       const res = await getCategories({ page, pageSize, search: searchTerm });
       setCategories(res.data.data || []);
-      if (typeof res.data.totalCount === "number") {
-        setTotalCount(res.data.totalCount);
+      if (typeof res.data.pagination?.totalCount === "number") {
+        setTotalCount(res.data.pagination.totalCount);
       }
     } catch (err) {
       console.error(err);

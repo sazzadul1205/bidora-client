@@ -46,9 +46,9 @@ function AuthenticatedLayout() {
         if (!mounted) {
           return;
         }
-        setUserData(userRes.data);
+        setUserData(userRes.data?.data);
 
-        const roles = userRes.data?.account?.roles || [];
+        const roles = userRes.data?.data?.account?.roles || [];
         const isStaff =
           roles.includes("Admin") ||
           roles.some((r) => r !== "Buyer" && r !== "Seller");

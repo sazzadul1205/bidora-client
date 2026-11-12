@@ -251,12 +251,12 @@ export default function Wallet() {
           return;
         }
         setWallet(w.data.data);
-        setTransactions(t.data.data?.items || []);
-        setTxTotal(t.data.data?.totalCount || 0);
-        setReservations(r.data.data?.items || []);
-        setResTotal(r.data.data?.totalCount || 0);
-        setDepositRequests(d.data.data?.items || []);
-        setDepTotal(d.data.data?.totalCount || 0);
+        setTransactions(t.data.data || []);
+        setTxTotal(t.data.pagination?.totalCount || 0);
+        setReservations(r.data.data || []);
+        setResTotal(r.data.pagination?.totalCount || 0);
+        setDepositRequests(d.data.data || []);
+        setDepTotal(d.data.pagination?.totalCount || 0);
       } catch (err) {
         console.error(err);
         if (!cancelled) {
@@ -294,8 +294,8 @@ export default function Wallet() {
         search: depDebouncedSearch || undefined,
         filter: depStatusFilter !== "All" ? depStatusFilter : undefined,
       });
-      setDepositRequests(d.data.data?.items || []);
-      setDepTotal(d.data.data?.totalCount || 0);
+      setDepositRequests(d.data.data || []);
+      setDepTotal(d.data.pagination?.totalCount || 0);
     } catch (err) {
       console.error(err);
       toast.error("Failed to refresh deposit requests.");

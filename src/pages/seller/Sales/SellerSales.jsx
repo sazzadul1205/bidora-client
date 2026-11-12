@@ -67,7 +67,7 @@ export default function SellerSales() {
           return;
         }
         setSales(res.data.data?.items || []);
-        setTotalCount(res.data.data?.totalCount || 0);
+        setTotalCount(res.data.pagination?.totalCount || 0);
         setTotalSalesCount(res.data.data?.totalSalesCount || 0);
         setServerAwaitingDispatch(res.data.data?.awaitingDispatchCount || 0);
         setServerTotalRevenue(res.data.data?.totalRevenue || 0);
@@ -98,7 +98,7 @@ export default function SellerSales() {
         filter: filterStatus !== "All" ? filterStatus : undefined,
       });
       setSales(res.data.data?.items || []);
-      setTotalCount(res.data.data?.totalCount || 0);
+      setTotalCount(res.data.pagination?.totalCount || 0);
       setTotalSalesCount(res.data.data?.totalSalesCount || 0);
       setServerAwaitingDispatch(res.data.data?.awaitingDispatchCount || 0);
       setServerTotalRevenue(res.data.data?.totalRevenue || 0);

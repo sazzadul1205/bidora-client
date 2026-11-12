@@ -49,7 +49,7 @@ export default function PlatformWallet() {
           sellerBalances: d.sellerBalances || null,
           buyerBalances: d.buyerBalances || null,
         });
-        setTotalTx(d.transactions?.totalCount || 0);
+        setTotalTx(d.transactions?.pagination?.totalCount || 0);
       } catch (e) {
         console.error(e);
       } finally {

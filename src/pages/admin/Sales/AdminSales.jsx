@@ -61,7 +61,7 @@ export default function AdminSales() {
         }
         const data = res.data.data || {};
         setSales(data.items || []);
-        setTotalCount(data.totalCount || 0);
+        setTotalCount(res.data.pagination?.totalCount || 0);
         setStats({
           totalSalesCount: data.totalSalesCount ?? 0,
           awaitingPaymentCount: data.awaitingPaymentCount ?? 0,

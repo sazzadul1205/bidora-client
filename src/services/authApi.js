@@ -69,12 +69,13 @@ export const register = (userData) => {
 // Logs in, saves the JWT token, roles, AND expiration (in minutes) to localStorage.
 export const login = async (credentials) => {
   const response = await authApi.post("/auth/login", credentials);
-  localStorage.setItem("token", response.data.token);
-  if (response.data.roles) {
-    localStorage.setItem("roles", JSON.stringify(response.data.roles));
+  const data = response.data?.data || {};
+  localStorage.setItem("token", data.token);
+  if (data.roles) {
+    localStorage.setItem("roles", JSON.stringify(data.roles));
   }
-  if (response.data.expiresInMinutes) {
-    localStorage.setItem("tokenExpiresInMinutes", response.data.expiresInMinutes);
+  if (data.expiresInMinutes) {
+    localStorage.setItem("tokenExpiresInMinutes", data.expiresInMinutes);
   }
   return response;
 };

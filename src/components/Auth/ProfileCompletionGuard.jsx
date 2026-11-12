@@ -17,7 +17,7 @@ export default function ProfileCompletionGuard({ children }) {
           return;
         }
 
-        const user = res.data;
+        const user = res.data?.data;
         const role = user?.account?.roles?.[0];
         const profile = user?.profile || {};
         const account = user?.account || {};

@@ -31,7 +31,7 @@ function Navbar() {
         if (!mounted) {
           return;
         }
-        const userData = res.data;
+        const userData = res.data?.data;
         setUser(userData);
 
         const role = userData?.account?.roles?.[0];

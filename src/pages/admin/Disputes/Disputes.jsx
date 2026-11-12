@@ -56,8 +56,8 @@ export default function Disputes() {
         const payload = res.data.data || res.data || [];
         const items = Array.isArray(payload) ? payload : payload.items || [];
         setDisputes(items);
-        if (typeof res.data.totalCount === "number") {
-          setTotalCount(res.data.totalCount);
+        if (typeof res.data.pagination?.totalCount === "number") {
+          setTotalCount(res.data.pagination.totalCount);
         } else if (typeof payload.totalCount === "number") {
           setTotalCount(payload.totalCount);
         }
@@ -95,8 +95,8 @@ export default function Disputes() {
       const payload = res.data.data || res.data || [];
       const items = Array.isArray(payload) ? payload : payload.items || [];
       setDisputes(items);
-      if (typeof res.data.totalCount === "number") {
-        setTotalCount(res.data.totalCount);
+      if (typeof res.data.pagination?.totalCount === "number") {
+        setTotalCount(res.data.pagination.totalCount);
       } else if (typeof payload.totalCount === "number") {
         setTotalCount(payload.totalCount);
       }

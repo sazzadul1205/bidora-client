@@ -57,8 +57,8 @@ export default function Auctions() {
         if (cancelled) {
           return;
         }
-        setAuctions(res.data.data?.items || []);
-        setTotalCount(res.data.data?.totalCount || 0);
+        setAuctions(res.data.data || []);
+        setTotalCount(res.data.pagination?.totalCount || 0);
       } catch (err) {
         console.error(err);
         if (!cancelled) {
@@ -83,8 +83,8 @@ export default function Auctions() {
         search: debouncedSearch || undefined,
         filter: activeTab !== "All" ? activeTab : undefined,
       });
-      setAuctions(res.data.data?.items || []);
-      setTotalCount(res.data.data?.totalCount || 0);
+      setAuctions(res.data.data || []);
+      setTotalCount(res.data.pagination?.totalCount || 0);
     } catch (err) {
       console.error(err);
       toast.error("Failed to load auctions.");

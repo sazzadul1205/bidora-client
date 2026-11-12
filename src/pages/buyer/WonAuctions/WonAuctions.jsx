@@ -61,11 +61,11 @@ export default function WonAuctions() {
         if (cancelled) {
           return;
         }
-        const payload = res.data.data || {};
+        const payload = res.data.data || [];
         const items = Array.isArray(payload) ? payload : payload.items || [];
         setAuctions(items);
-        if (typeof payload.totalCount === "number") {
-          setTotalCount(payload.totalCount);
+        if (typeof res.data.pagination?.totalCount === "number") {
+          setTotalCount(res.data.pagination.totalCount);
         } else {
           setTotalCount(items.length);
         }
@@ -102,11 +102,11 @@ export default function WonAuctions() {
         search: searchTerm,
         filter: filterStatus !== "All" ? filterStatus : undefined,
       });
-      const payload = res.data.data || {};
+      const payload = res.data.data || [];
       const items = Array.isArray(payload) ? payload : payload.items || [];
       setAuctions(items);
-      if (typeof payload.totalCount === "number") {
-        setTotalCount(payload.totalCount);
+      if (typeof res.data.pagination?.totalCount === "number") {
+        setTotalCount(res.data.pagination.totalCount);
       }
     } catch {
       toast.error("Failed to load won auctions.");

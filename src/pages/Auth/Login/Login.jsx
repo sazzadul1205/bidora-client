@@ -23,7 +23,7 @@ function Login() {
     try {
       await login(data);
       const userRes = await getCurrentUser();
-      const role = userRes.data?.account?.roles?.[0];
+      const role = userRes.data?.data?.account?.roles?.[0];
 
       if (role === "Admin") {
         navigate("/admin/dashboard");

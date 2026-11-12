@@ -64,8 +64,8 @@ export default function Auctions() {
           return;
         }
 
-        setAuctions(aucRes.data.data?.items || []);
-        setTotalCount(aucRes.data.data?.totalCount || 0);
+        setAuctions(aucRes.data.data || []);
+        setTotalCount(aucRes.data.pagination?.totalCount || 0);
         setCategories(catRes.data.data || []);
       } catch (err) {
         console.error("Failed to fetch auctions:", err);

@@ -90,8 +90,8 @@ export default function Users() {
           return;
         }
         const payload = res.data.data;
-        setUsers(payload?.items || []);
-        setTotalCount(payload?.totalCount || 0);
+        setUsers(payload || []);
+        setTotalCount(res.data.pagination?.totalCount || 0);
       } catch {
         if (!cancelled) {
           toast.error("Failed to load users.");
@@ -184,8 +184,8 @@ export default function Users() {
         filter: roleFilter !== "All" ? roleFilter : undefined,
       });
       const payload = res.data.data;
-      setUsers(payload?.items || []);
-      setTotalCount(payload?.totalCount || 0);
+      setUsers(payload || []);
+      setTotalCount(res.data.pagination?.totalCount || 0);
     } catch {
       toast.error("Failed to load users.");
     } finally {

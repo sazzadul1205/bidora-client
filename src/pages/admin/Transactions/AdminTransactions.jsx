@@ -69,7 +69,7 @@ export default function AdminTransactions() {
 
         const txData = txRes.data.data || {};
         setTransactions(txData.items || []);
-        setTxTotal(txData.totalCount || 0);
+        setTxTotal(txRes.data.pagination?.totalCount || 0);
         setStats({
           totalVolume: txData.totalVolume ?? 0,
           totalEscrow: txData.totalEscrow ?? 0,
@@ -80,8 +80,8 @@ export default function AdminTransactions() {
 
         const resData = resRes.data.data || [];
         setReservations(Array.isArray(resData) ? resData : resData.items || []);
-        if (typeof resRes.data.totalCount === "number") {
-          setResTotal(resRes.data.totalCount);
+        if (typeof resRes.data.pagination?.totalCount === "number") {
+          setResTotal(resRes.data.pagination.totalCount);
         } else if (Array.isArray(resData)) {
           setResTotal(resData.length);
         }

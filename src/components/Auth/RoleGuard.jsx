@@ -38,7 +38,7 @@ export default function RoleGuard({
           return;
         }
 
-        const user = res.data;
+        const user = res.data?.data;
         const roles = user?.account?.roles || user?.roles || [];
         const roleList = Array.isArray(roles) ? roles : [];
 
