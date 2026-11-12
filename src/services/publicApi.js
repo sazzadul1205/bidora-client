@@ -15,16 +15,7 @@ export const getAuctionById = (id) => publicApi.get(`/auction/${id}`);
 export const getAuctions = (params = {}) =>
   publicApi.get("/auction", { params });
 
-// View only auctions currently live 
-export const getActiveAuctions = () => publicApi.get("/auction/active");
-
-// View auctions scheduled for the future
-export const getUpcomingAuctions = () => publicApi.get("/auction/upcoming");
-
 // Home page: banner + max 8 active + max 8 upcoming (optional search/categoryId)
 export const getHomeAuctions = (params = {}) => publicApi.get("/auction/home", { params });
-
-// Lightweight API health check (no auth required).
-export const checkHealth = () => publicApi.get("/health");
 
 export default publicApi;

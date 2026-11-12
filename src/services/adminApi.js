@@ -52,8 +52,6 @@ export const verifyProfile = (id, data) =>
   authApi.put(`/profile/${id}/verify`, data, getAuthConfig());
 
 // Deposits
-export const getPendingDepositRequests = () =>
-  authApi.get("/admin/deposit-requests/pending", getAuthConfig());
 export const getDepositRequests = (params) =>
   authApi.get("/admin/deposit-requests", { ...getAuthConfig(), params });
 export const reviewDepositRequest = (id, data) =>
@@ -108,7 +106,6 @@ export default {
   getAuctionBidsForAdmin,
   getPendingVerifications,
   verifyProfile,
-  getPendingDepositRequests,
   getDepositRequests,
   reviewDepositRequest,
   getAllSales,

@@ -1,12 +1,4 @@
 import authApi, { getAuthConfig } from "./authApi";
-import {
-  getCategories,
-  getActiveAuctions,
-  getUpcomingAuctions,
-} from "./publicApi";
-
-// Re-export public routes so buyers can browse without logging in
-export { getCategories, getActiveAuctions, getUpcomingAuctions };
 
 // Dashboard
 export const getBuyerDashboard = () =>
@@ -74,9 +66,6 @@ export { changePassword } from "./authApi";
 
 export default {
   getBuyerDashboard,
-  getCategories,
-  getActiveAuctions,
-  getUpcomingAuctions,
   placeBid,
   getAuctionBids,
   buyoutAuction,

@@ -1,12 +1,4 @@
 import authApi, { getAuthConfig } from "./authApi";
-import {
-  getCategories,
-  getActiveAuctions,
-  getUpcomingAuctions,
-} from "./publicApi";
-
-// Re-export public routes
-export { getCategories, getActiveAuctions, getUpcomingAuctions };
 
 // Dashboard
 export const getSellerDashboard = () =>
@@ -48,9 +40,6 @@ export const resetForReAuction = (id) =>
 export const getAuctionByIdForSeller = (id) =>
   authApi.get(`/auction/${id}/seller`, getAuthConfig());
 
-export const getAuctionsByProduct = (id) =>
-  authApi.get(`/auction/product/${id}`, getAuthConfig());
-
 // Sales & Delivery
 export const getMySales = (params = {}) =>
   authApi.get("/sale/my-sales", { ...getAuthConfig(), params });
@@ -84,9 +73,6 @@ export { changePassword } from "./authApi";
 
 export default {
   getSellerDashboard,
-  getCategories,
-  getActiveAuctions,
-  getUpcomingAuctions,
   getMyProducts,
   getMyProductById,
   createProduct,
@@ -96,7 +82,6 @@ export default {
   deleteProduct,
   resetForReAuction,
   getAuctionByIdForSeller,
-  getAuctionsByProduct,
   getMySales,
   dispatchSale,
   reportNonDelivery,
