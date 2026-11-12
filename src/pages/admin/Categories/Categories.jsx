@@ -78,7 +78,7 @@ export default function Categories() {
       await fetchCategories();
       toast.success("Category added successfully!");
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to add category.");
+      toast.errorFrom(err, "Failed to add category.");
     }
   };
 
@@ -95,10 +95,7 @@ export default function Categories() {
         await fetchCategories();
         toast.success("Category deleted successfully!");
       } catch (err) {
-        toast.error(
-          err.response?.data?.message ||
-            "Cannot delete category. It may be in use by existing products.",
-        );
+        toast.errorFrom(err, "Cannot delete category. It may be in use by existing products.");
       }
     }
   };

@@ -75,10 +75,11 @@ export default function AuctionDetails() {
   };
 
   useEffect(() => {
+    const controller = new AbortController();
     let mounted = true;
     (async () => {
       try {
-        const aucRes = await getAuctionById(id);
+        const aucRes = await getAuctionById(id, { signal: controller.signal });
         const auctionData = aucRes.data.data;
         if (!mounted) {
           return;
@@ -92,14 +93,20 @@ export default function AuctionDetails() {
         }
 
         try {
-          const bidsRes = await getAuctionBids(id);
+          const bidsRes = await getAuctionBids(id, { signal: controller.signal });
           if (mounted) {
             setBids(bidsRes.data.data || []);
           }
-        } catch {
+        } catch (err) {
+          if (err?.name === "CanceledError" || err?.code === "ERR_CANCELED") {
+            return;
+          }
           console.error("Could not load bids");
         }
-      } catch {
+      } catch (err) {
+        if (err?.name === "CanceledError" || err?.code === "ERR_CANCELED") {
+          return;
+        }
         toast.error("Failed to load auction details.");
         navigate("/auctions");
       } finally {
@@ -110,6 +117,7 @@ export default function AuctionDetails() {
     })();
     return () => {
       mounted = false;
+      controller.abort();
     };
   }, [id, navigate]);
 
@@ -143,12 +151,13 @@ export default function AuctionDetails() {
     }
 
     let isMounted = true;
+    const controller = new AbortController();
 
     const pollBids = async () => {
       try {
         const [bidsRes, aucRes] = await Promise.all([
-          getAuctionBids(id),
-          getAuctionById(id),
+          getAuctionBids(id, { signal: controller.signal }),
+          getAuctionById(id, { signal: controller.signal }),
         ]);
 
         if (!isMounted) {
@@ -161,6 +170,9 @@ export default function AuctionDetails() {
           setAuction(aucRes.data.data);
         }
       } catch (err) {
+        if (err?.name === "CanceledError" || err?.code === "ERR_CANCELED") {
+          return;
+        }
         console.warn("Bid polling failed:", err?.message);
       }
     };
@@ -170,6 +182,7 @@ export default function AuctionDetails() {
     return () => {
       isMounted = false;
       clearInterval(intervalId);
+      controller.abort();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, auction?.status, auction?.startTime, auction?.endTime]);
@@ -216,7 +229,7 @@ export default function AuctionDetails() {
       setBidAmount("");
       fetchData();
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to place bid.");
+      toast.errorFrom(err, "Failed to place bid.");
     } finally {
       setIsBidding(false);
     }
@@ -243,7 +256,7 @@ export default function AuctionDetails() {
       );
       navigate("/buyer/won");
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to buyout auction.");
+      toast.errorFrom(err, "Failed to buyout auction.");
     }
   };
 

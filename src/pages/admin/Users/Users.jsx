@@ -212,9 +212,7 @@ export default function Users() {
         `User account ${isUnlock ? "unlocked" : "locked"} successfully!`,
       );
     } catch (err) {
-      toast.error(
-        err.response?.data?.message || "Failed to update lock status.",
-      );
+      toast.errorFrom(err, "Failed to update lock status.");
     } finally {
       setSubmitting(false);
     }
@@ -233,7 +231,7 @@ export default function Users() {
         setPage(1);
       }
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to create admin.");
+      toast.errorFrom(err, "Failed to create admin.");
     }
   };
 
@@ -249,7 +247,7 @@ export default function Users() {
       await fetchRoleCounts();
       await refreshUsers();
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to update user.");
+      toast.errorFrom(err, "Failed to update user.");
     } finally {
       setSubmitting(false);
     }
@@ -265,7 +263,7 @@ export default function Users() {
       toast.success("Password reset successfully.");
       setResetTarget(null);
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to reset password.");
+      toast.errorFrom(err, "Failed to reset password.");
     } finally {
       setSubmitting(false);
     }

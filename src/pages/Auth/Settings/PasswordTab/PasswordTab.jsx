@@ -24,9 +24,7 @@ export default function PasswordTab() {
       toast.success("Password changed successfully.");
       reset();
     } catch (error) {
-      toast.error(
-        error.response?.data?.message || "Failed to change password.",
-      );
+      toast.errorFrom(error, "Failed to change password.");
     }
   };
 

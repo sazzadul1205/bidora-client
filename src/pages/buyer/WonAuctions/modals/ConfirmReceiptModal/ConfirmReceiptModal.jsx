@@ -68,7 +68,7 @@ export default function ConfirmReceiptModal({
       onClose();
       await onSuccess();
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to confirm receipt.");
+      toast.errorFrom(err, "Failed to confirm receipt.");
     } finally {
       setIsSubmitting(false);
     }

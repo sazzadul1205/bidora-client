@@ -7,8 +7,8 @@ const authApi = axios.create({
   },
 });
 
-// DEBUG LOGGING
-const DEBUG = true;
+// DEBUG LOGGING — enabled only in dev, silenced in production builds
+const DEBUG = import.meta.env.DEV;
 const reqLog = (cfg) => {
   if (!DEBUG) {return;} console.warn("%c[API REQUEST]", "color: #2563eb; font-weight: bold", {
     method: cfg.method?.toUpperCase(),

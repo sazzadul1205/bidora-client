@@ -77,9 +77,7 @@ export default function DispatchSaleModal({ target, onClose, onSuccess }) {
       onClose();
       await onSuccess();
     } catch (err) {
-      toast.error(
-        "Failed to dispatch: " + (err.response?.data?.message || err.message),
-      );
+      toast.errorFrom(err, "Failed to dispatch.");
     } finally {
       setIsSubmitting(false);
     }

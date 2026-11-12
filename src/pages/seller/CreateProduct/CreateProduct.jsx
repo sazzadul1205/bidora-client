@@ -255,14 +255,7 @@ export default function CreateProduct() {
       toast.success("Draft product created successfully!");
       navigate("/seller/products");
     } catch (err) {
-      const serverMsg = err.response?.data?.message;
-      const validationErrors = err.response?.data?.errors;
-      let detail =
-        serverMsg || "Failed to create product. Please check your inputs.";
-      if (validationErrors) {
-        detail = Object.values(validationErrors).flat().join(" ");
-      }
-      toast.error(detail);
+      toast.errorFrom(err, "Failed to create product. Please check your inputs.");
     }
   };
 

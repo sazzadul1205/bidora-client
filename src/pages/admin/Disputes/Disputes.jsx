@@ -111,7 +111,7 @@ export default function Disputes() {
       }
     } catch (err) {
       console.error(err);
-      toast.error(err.response?.data?.message || "Failed to load disputes.");
+      toast.errorFrom(err, "Failed to load disputes.");
     } finally {
       setLoading(false);
     }
@@ -136,7 +136,7 @@ export default function Disputes() {
       await fetchDisputes();
       toast.success("Dispute moved to Under Review");
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to start review.");
+      toast.errorFrom(err, "Failed to start review.");
     }
   };
 
@@ -152,12 +152,7 @@ export default function Disputes() {
       await fetchDisputes();
       toast.success("Dispute resolved successfully!");
     } catch (err) {
-      const validationErrors = err.response?.data?.errors;
-      let detail = err.response?.data?.message || "Failed to resolve dispute.";
-      if (validationErrors) {
-        detail = Object.values(validationErrors).flat().join(" ");
-      }
-      toast.error(detail);
+      toast.errorFrom(err, "Failed to resolve dispute.");
     } finally {
       setSubmitting(false);
     }

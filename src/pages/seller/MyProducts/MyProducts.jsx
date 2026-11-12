@@ -137,9 +137,7 @@ export default function MyProducts() {
       toast.success("Product submitted for approval");
       await fetchProducts();
     } catch (err) {
-      toast.error(
-        "Submission failed: " + (err.response?.data?.message || err.message),
-      );
+      toast.errorFrom(err, "Submission failed.");
     }
   };
 
@@ -156,7 +154,7 @@ export default function MyProducts() {
       toast.success("Product withdrawn");
       await fetchProducts();
     } catch (err) {
-      toast.error(err.response?.data?.message || "Withdrawal failed.");
+      toast.errorFrom(err, "Withdrawal failed.");
     }
   };
 
@@ -177,7 +175,7 @@ export default function MyProducts() {
         await fetchProducts();
       }
     } catch (err) {
-      toast.error(err.response?.data?.message || "Deletion failed.");
+      toast.errorFrom(err, "Deletion failed.");
     }
   };
 
@@ -194,7 +192,7 @@ export default function MyProducts() {
       toast.success("Product reset for re-auction");
       await fetchProducts();
     } catch (err) {
-      toast.error(err.response?.data?.message || "Reset failed.");
+      toast.errorFrom(err, "Reset failed.");
     }
   };
 

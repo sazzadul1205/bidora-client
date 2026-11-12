@@ -68,13 +68,7 @@ export default function Verifications() {
         `Profile ${status === "Verified" ? "verified" : "rejected"} successfully!`,
       );
     } catch (err) {
-      const serverMsg = err.response?.data?.message;
-      const validationErrors = err.response?.data?.errors;
-      let detail = serverMsg || "Error verifying profile.";
-      if (validationErrors) {
-        detail = Object.values(validationErrors).flat().join(" ");
-      }
-      toast.error(detail);
+      toast.errorFrom(err, "Error verifying profile.");
     } finally {
       setSubmitting(false);
     }

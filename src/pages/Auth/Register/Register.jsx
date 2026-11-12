@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { ShoppingBag, Store } from "lucide-react";
 import { register as registerUser } from "../../../services/authApi";
+import { getErrorMessage } from "../../../utils/apiError";
 
 function Register() {
   const navigate = useNavigate();
@@ -33,9 +34,7 @@ function Register() {
       });
     } catch (err) {
       setServerError(
-        err.response?.data?.message ||
-          err.response?.data ||
-          "Registration failed. Please check your details and try again.",
+        getErrorMessage(err, "Registration failed. Please check your details and try again."),
       );
     }
   };

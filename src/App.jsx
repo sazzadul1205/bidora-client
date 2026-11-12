@@ -46,11 +46,13 @@ import TermsOfUse from "./pages/Frontend/TermsOfUse/TermsOfUse";
 import PrivacyPolicy from "./pages/Frontend/PrivacyPolicy/PrivacyPolicy";
 import AboutUs from "./pages/Frontend/AboutUs/AboutUs";
 import Unauthorized from "./pages/Unauthorized/Unauthorized";
+import ErrorBoundary from "./components/ErrorBoundary/ErrorBoundary";
 
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
+      <ErrorBoundary>
+        <Routes>
         {/* Public Routes */}
         <Route element={<PublicLayout />}>
           <Route path="/" element={<Products />} />
@@ -204,7 +206,8 @@ function App() {
           </Route>
           <Route path="/settings" element={<Settings />} />
         </Route>
-      </Routes>
+        </Routes>
+      </ErrorBoundary>
     </BrowserRouter>
   );
 }

@@ -46,10 +46,7 @@ export default function VerificationTab({ userData, role, refreshUser }) {
       toast.success("Verification request submitted.");
       await refreshUser();
     } catch (error) {
-      toast.error(
-        error.response?.data?.message ||
-          "Failed to submit verification request.",
-      );
+      toast.errorFrom(error, "Failed to submit verification request.");
     } finally {
       setSubmitting(false);
     }

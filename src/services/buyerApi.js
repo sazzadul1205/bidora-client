@@ -6,8 +6,8 @@ export const getBuyerDashboard = () =>
 
 // Bidding
 export const placeBid = (data) => authApi.post("/bid", data, getAuthConfig());
-export const getAuctionBids = (auctionId) =>
-  authApi.get(`/bid/auction/${auctionId}/bids`, getAuthConfig());
+export const getAuctionBids = (auctionId, options = {}) =>
+  authApi.get(`/bid/auction/${auctionId}/bids`, { ...getAuthConfig(), ...options });
 export const buyoutAuction = (auctionId) =>
   authApi.post(`/bid/${auctionId}/buyout`, {}, getAuthConfig());
 

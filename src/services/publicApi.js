@@ -8,8 +8,8 @@ const publicApi = axios.create({
 // View all available categories 
 export const getCategories = (params = {}) => publicApi.get("/category", { params });
 
-// View details of one auction by ID 
-export const getAuctionById = (id) => publicApi.get(`/auction/${id}`);
+// View details of one auction by ID (optional Axios config, e.g. { signal })
+export const getAuctionById = (id, options = {}) => publicApi.get(`/auction/${id}`, options);
 
 // View all auctions 
 export const getAuctions = (params = {}) =>

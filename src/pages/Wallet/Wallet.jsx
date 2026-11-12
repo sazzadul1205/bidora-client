@@ -326,9 +326,7 @@ export default function Wallet() {
         setDepPage(1);
       }
     } catch (err) {
-      toast.error(
-        err.response?.data?.message || "Failed to submit deposit request.",
-      );
+      toast.errorFrom(err, "Failed to submit deposit request.");
     }
   };
 

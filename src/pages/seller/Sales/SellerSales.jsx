@@ -175,9 +175,7 @@ export default function SellerSales() {
       toast.success("Non-delivery reported. Awaiting admin review.");
       await fetchSales();
     } catch (err) {
-      toast.error(
-        err.response?.data?.message || "Failed to report non-delivery.",
-      );
+      toast.errorFrom(err, "Failed to report non-delivery.");
     }
   };
 

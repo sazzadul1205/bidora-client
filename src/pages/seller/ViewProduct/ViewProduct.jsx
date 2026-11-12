@@ -38,7 +38,7 @@ export default function ViewProduct() {
           setActiveImage(mainImg?.imageUrl || null);
         }
       } catch (err) {
-        toast.error(err.response?.data?.message || "Failed to load product.");
+        toast.errorFrom(err, "Failed to load product.");
         navigate("/seller/products");
       } finally {
         if (mounted) {

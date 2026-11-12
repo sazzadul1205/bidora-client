@@ -1,5 +1,6 @@
 import Swal from 'sweetalert2'
 import { theme } from './theme.js'
+import { getErrorMessage } from './apiError.js'
 
 // Reusable toast notifications (top-right, non-blocking)
 export const toast = {
@@ -32,6 +33,10 @@ export const toast = {
         toast.addEventListener('mouseleave', Swal.resumeTimer)
       },
     })
+  },
+  // Show the standardized API error message (err.response.data.message) as a toast.
+  errorFrom: (error, fallback) => {
+    toast.error(getErrorMessage(error, fallback))
   },
   warning: (message) => {
     Swal.fire({

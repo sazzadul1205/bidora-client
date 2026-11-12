@@ -70,7 +70,7 @@ export default function RaiseDisputeModal({
       onClose();
       await onSuccess();
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to submit dispute.");
+      toast.errorFrom(err, "Failed to submit dispute.");
     } finally {
       setIsSubmitting(false);
     }

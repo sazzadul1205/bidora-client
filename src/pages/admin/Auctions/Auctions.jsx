@@ -159,9 +159,7 @@ export default function Auctions() {
       setSelected(null);
       await fetchAuctions();
     } catch (err) {
-      toast.error(
-        err.response?.data?.message || `Failed to ${action} auction.`,
-      );
+      toast.errorFrom(err, `Failed to ${action} auction.`);
     }
   };
 

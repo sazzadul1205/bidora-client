@@ -392,13 +392,7 @@ export default function EditProduct() {
       toast.success("Product updated successfully!");
       navigate("/seller/products");
     } catch (err) {
-      const serverMsg = err.response?.data?.message;
-      const validationErrors = err.response?.data?.errors;
-      let detail = serverMsg || "Failed to update product.";
-      if (validationErrors) {
-        detail = Object.values(validationErrors).flat().join(" ");
-      }
-      toast.error(detail);
+      toast.errorFrom(err, "Failed to update product.");
     }
   };
 

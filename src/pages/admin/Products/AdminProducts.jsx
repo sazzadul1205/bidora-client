@@ -102,14 +102,7 @@ export default function AdminProducts() {
         `Product ${status === "Approved" ? "approved" : "rejected"} successfully!`,
       );
     } catch (err) {
-      const serverMsg = err.response?.data?.message;
-      const validationErrors = err.response?.data?.errors;
-      let detail =
-        serverMsg || "Error reviewing product: " + (err.message || "");
-      if (validationErrors) {
-        detail = Object.values(validationErrors).flat().join(" ");
-      }
-      toast.error(detail);
+      toast.errorFrom(err, "Error reviewing product.");
     } finally {
       setSubmitting(false);
     }

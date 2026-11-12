@@ -77,7 +77,7 @@ export default function Roles() {
       setName("");
       await load();
     } catch (err) {
-      toast.error(err?.response?.data?.message || "Failed to create role.");
+      toast.errorFrom(err, "Failed to create role.");
     } finally {
       setSaving(false);
     }
@@ -96,7 +96,7 @@ export default function Roles() {
       setEditing(null);
       await load();
     } catch (err) {
-      toast.error(err?.response?.data?.message || "Failed to update role.");
+      toast.errorFrom(err, "Failed to update role.");
     } finally {
       setSaving(false);
     }
@@ -117,7 +117,7 @@ export default function Roles() {
       toast.success("Role deleted.");
       await load();
     } catch (err) {
-      toast.error(err?.response?.data?.message || "Failed to delete role.");
+      toast.errorFrom(err, "Failed to delete role.");
     }
   };
 

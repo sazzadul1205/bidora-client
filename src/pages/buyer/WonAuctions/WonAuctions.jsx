@@ -143,9 +143,7 @@ export default function WonAuctions() {
       toast.success("Payment successful! Funds are now in escrow.");
       await fetchWonAuctions();
     } catch (err) {
-      toast.error(
-        "Payment failed: " + (err.response?.data?.message || err.message),
-      );
+      toast.errorFrom(err, "Payment failed.");
     }
   };
 

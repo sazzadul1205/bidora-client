@@ -95,13 +95,7 @@ export default function Deposits() {
         `Deposit ${status === "Approved" ? "approved" : "rejected"} successfully!`,
       );
     } catch (err) {
-      const serverMsg = err.response?.data?.message;
-      const validationErrors = err.response?.data?.errors;
-      let detail = serverMsg || "Error reviewing deposit.";
-      if (validationErrors) {
-        detail = Object.values(validationErrors).flat().join(" ");
-      }
-      toast.error(detail);
+      toast.errorFrom(err, "Error reviewing deposit.");
     } finally {
       setSubmitting(false);
     }

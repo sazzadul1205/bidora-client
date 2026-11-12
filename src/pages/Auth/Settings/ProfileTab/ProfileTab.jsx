@@ -239,11 +239,7 @@ export default function ProfileTab({ userData, refreshUser }) {
       await refreshUser();
       toast.success("Profile information saved successfully.");
     } catch (error) {
-      toast.error(
-        error.response?.data?.message ||
-          error.message ||
-          "Failed to update profile.",
-      );
+      toast.errorFrom(error, "Failed to update profile.");
     }
   };
 

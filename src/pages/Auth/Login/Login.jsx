@@ -4,6 +4,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { TrendingUp, Package, ShieldCheck, CheckCircle2 } from "lucide-react";
 import { login, getCurrentUser } from "../../../services/authApi";
+import { getErrorMessage } from "../../../utils/apiError";
 
 function Login() {
   const navigate = useNavigate();
@@ -36,9 +37,7 @@ function Login() {
       }
     } catch (err) {
       setServerError(
-        err.response?.data?.message ||
-          err.response?.data ||
-          "Invalid email or password. Please try again.",
+        getErrorMessage(err, "Invalid email or password. Please try again."),
       );
     }
   };
