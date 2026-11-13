@@ -61,14 +61,14 @@ export default function Disputes() {
         } else if (typeof payload.totalCount === "number") {
           setTotalCount(payload.totalCount);
         }
-        if (res.data.openCount !== undefined) {
-          setOpenCount(res.data.openCount);
+        if (res.data.summary?.openCount !== undefined) {
+          setOpenCount(res.data.summary.openCount);
         }
-        if (res.data.underReviewCount !== undefined) {
-          setReviewingCount(res.data.underReviewCount);
+        if (res.data.summary?.underReviewCount !== undefined) {
+          setReviewingCount(res.data.summary.underReviewCount);
         }
-        if (res.data.resolvedCount !== undefined) {
-          setResolvedCount(res.data.resolvedCount);
+        if (res.data.summary?.resolvedCount !== undefined) {
+          setResolvedCount(res.data.summary.resolvedCount);
         }
       } catch (err) {
         console.error(err);
@@ -100,17 +100,16 @@ export default function Disputes() {
       } else if (typeof payload.totalCount === "number") {
         setTotalCount(payload.totalCount);
       }
-      if (res.data.openCount !== undefined) {
-        setOpenCount(res.data.openCount);
+      if (res.data.summary?.openCount !== undefined) {
+        setOpenCount(res.data.summary.openCount);
       }
-      if (res.data.underReviewCount !== undefined) {
-        setReviewingCount(res.data.underReviewCount);
+      if (res.data.summary?.underReviewCount !== undefined) {
+        setReviewingCount(res.data.summary.underReviewCount);
       }
-      if (res.data.resolvedCount !== undefined) {
-        setResolvedCount(res.data.resolvedCount);
+      if (res.data.summary?.resolvedCount !== undefined) {
+        setResolvedCount(res.data.summary.resolvedCount);
       }
     } catch (err) {
-      console.error(err);
       toast.errorFrom(err, "Failed to load disputes.");
     } finally {
       setLoading(false);

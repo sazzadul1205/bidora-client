@@ -1,6 +1,6 @@
 import { useOutletContext } from "react-router-dom";
 import PageTitle from "../../../components/PageTitle";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { formatCurrency as formatMoney } from "../../../utils/currency";
 import {
   getUsers,
@@ -40,6 +40,16 @@ export default function Users() {
   const { userData } = useOutletContext() || {};
   const callerIsSuperAdmin = (userData?.account?.roles || []).includes(
     "Super Admin",
+  );
+
+  const filterVisibleUsers = useCallback(
+    (list) => {
+      if (!Array.isArray(list) || callerIsSuperAdmin) {
+        return list || [];
+      }
+      return list.filter((u) => !(u.roles || []).includes("Super Admin"));
+    },
+    [callerIsSuperAdmin],
   );
 
   const [users, setUsers] = useState([]);
@@ -90,7 +100,7 @@ export default function Users() {
           return;
         }
         const payload = res.data.data;
-        setUsers(payload || []);
+        setUsers(filterVisibleUsers(payload));
         setTotalCount(res.data.pagination?.totalCount || 0);
       } catch {
         if (!cancelled) {
@@ -106,7 +116,7 @@ export default function Users() {
     return () => {
       cancelled = true;
     };
-  }, [page, pageSize, debouncedSearch, roleFilter]);
+  }, [page, pageSize, debouncedSearch, roleFilter, filterVisibleUsers]);
 
   useEffect(() => {
     let cancelled = false;
@@ -184,7 +194,7 @@ export default function Users() {
         filter: roleFilter !== "All" ? roleFilter : undefined,
       });
       const payload = res.data.data;
-      setUsers(payload || []);
+      setUsers(filterVisibleUsers(payload));
       setTotalCount(res.data.pagination?.totalCount || 0);
     } catch {
       toast.error("Failed to load users.");

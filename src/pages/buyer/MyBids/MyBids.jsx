@@ -46,7 +46,7 @@ export default function MyBids() {
         if (cancelled) {
           return;
         }
-        setBids(res.data.data || []);
+        setBids(res.data.data?.items || []);
         setTotalCount(res.data.pagination?.totalCount || 0);
         setTotalBidsCount(res.data.data?.totalBidsCount || 0);
         setServerActiveBids(res.data.data?.activeBidsCount || 0);

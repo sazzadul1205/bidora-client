@@ -61,7 +61,7 @@ export default function WonAuctions() {
         if (cancelled) {
           return;
         }
-        const payload = res.data.data || [];
+        const payload = res.data.data || {};
         const items = Array.isArray(payload) ? payload : payload.items || [];
         setAuctions(items);
         if (typeof res.data.pagination?.totalCount === "number") {

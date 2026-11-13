@@ -29,7 +29,7 @@ export default function Settings() {
     const fetchUser = async () => {
       try {
         const response = await getCurrentUser();
-        setUserData(response.data);
+        setUserData(response.data?.data);
       } catch (error) {
         console.error(error);
         toast.error("Failed to load user data.");
