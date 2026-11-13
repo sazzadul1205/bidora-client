@@ -1,5 +1,5 @@
 import PageTitle from "../../../components/PageTitle";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   getAllDisputes,
   startDisputeReview,
@@ -15,10 +15,12 @@ import {
   Search,
   Package,
   Eye,
+  MessageSquare,
 } from "lucide-react";
 import { toast } from "../../../utils/toast";
 import { SkeletonRow, Skeleton } from "../../../components/Skeleton";
 import Pagination from "../../../components/Pagination/Pagination";
+import RefreshButton from "../../../components/RefreshButton";
 
 import DetailsModal from "./DetailsModal/DetailsModal";
 import ResolveModal from "./ResolveModal/ResolveModal";
@@ -26,6 +28,7 @@ import ResolveModal from "./ResolveModal/ResolveModal";
 export default function Disputes() {
   const [disputes, setDisputes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [selected, setSelected] = useState(null);
   const [viewDetailsTarget, setViewDetailsTarget] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -39,52 +42,8 @@ export default function Disputes() {
   const [pageSize, setPageSize] = useState(20);
   const [totalCount, setTotalCount] = useState(0);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    (async () => {
-      try {
-        const res = await getAllDisputes({
-          page,
-          pageSize,
-          search: searchTerm,
-          filter: activeTab !== "All" ? activeTab : undefined,
-        });
-        if (cancelled) {
-          return;
-        }
-        const payload = res.data.data || res.data || [];
-        const items = Array.isArray(payload) ? payload : payload.items || [];
-        setDisputes(items);
-        if (typeof res.data.pagination?.totalCount === "number") {
-          setTotalCount(res.data.pagination.totalCount);
-        } else if (typeof payload.totalCount === "number") {
-          setTotalCount(payload.totalCount);
-        }
-        if (res.data.summary?.openCount !== undefined) {
-          setOpenCount(res.data.summary.openCount);
-        }
-        if (res.data.summary?.underReviewCount !== undefined) {
-          setReviewingCount(res.data.summary.underReviewCount);
-        }
-        if (res.data.summary?.resolvedCount !== undefined) {
-          setResolvedCount(res.data.summary.resolvedCount);
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [page, pageSize, searchTerm, activeTab]);
-
-  const fetchDisputes = async () => {
+  const fetchDisputes = useCallback(async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true); else setLoading(true);
     try {
       const res = await getAllDisputes({
         page,
@@ -100,21 +59,23 @@ export default function Disputes() {
       } else if (typeof payload.totalCount === "number") {
         setTotalCount(payload.totalCount);
       }
-      if (res.data.summary?.openCount !== undefined) {
-        setOpenCount(res.data.summary.openCount);
-      }
-      if (res.data.summary?.underReviewCount !== undefined) {
-        setReviewingCount(res.data.summary.underReviewCount);
-      }
-      if (res.data.summary?.resolvedCount !== undefined) {
-        setResolvedCount(res.data.summary.resolvedCount);
+      if (res.data.summary) {
+        setOpenCount(res.data.summary.openCount ?? 0);
+        setReviewingCount(res.data.summary.underReviewCount ?? 0);
+        setResolvedCount(res.data.summary.resolvedCount ?? 0);
       }
     } catch (err) {
-      toast.errorFrom(err, "Failed to load disputes.");
+      console.error(err);
+      if (isRefresh) toast.errorFrom(err, "Failed to load disputes.");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
-  };
+  }, [page, pageSize, searchTerm, activeTab]);
+
+  useEffect(() => {
+    fetchDisputes();
+  }, [fetchDisputes]);
 
   const handleTabChange = (tab) => {
     if (tab === activeTab) {
@@ -223,6 +184,7 @@ export default function Disputes() {
               Review complaints, assign fault, and apply penalties.
             </p>
           </div>
+          <RefreshButton onClick={() => fetchDisputes(true)} loading={refreshing} className="self-start sm:self-auto" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -274,11 +236,10 @@ export default function Disputes() {
                 <button
                   key={tab}
                   onClick={() => handleTabChange(tab)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition whitespace-nowrap ${
-                    activeTab === tab
-                      ? "bg-primary-600 text-text-inverse shadow-sm"
-                      : "bg-surface border border-border-main text-text-muted hover:bg-neutral-100"
-                  }`}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition whitespace-nowrap ${activeTab === tab
+                    ? "bg-primary-600 text-text-inverse shadow-sm"
+                    : "bg-surface border border-border-main text-text-muted hover:bg-neutral-100"
+                    }`}
                 >
                   {tab === "UnderReview" ? "Under Review" : tab}
                 </button>
@@ -343,26 +304,25 @@ export default function Disputes() {
                       <td className="px-6 py-4">
                         <div className="flex flex-col gap-2">
                           <div className="flex items-center gap-2 text-xs">
-                            <span className="font-semibold text-neutral-800">
-                              {d.raisedByName}
-                            </span>
+                              <span className="font-semibold text-neutral-800">
+                                {d.raisedByRole || d.raisedByName}
+                              </span>
                             <span
-                              className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
-                                d.raisedByRole === "Buyer"
-                                  ? "bg-primary-100 text-primary-700"
-                                  : d.raisedByRole === "Seller"
-                                    ? "bg-warning-100 text-warning-700"
-                                    : "bg-neutral-100 text-neutral-700"
-                              }`}
+                              className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${d.raisedByRole === "Buyer"
+                                ? "bg-primary-100 text-primary-700"
+                                : d.raisedByRole === "Seller"
+                                  ? "bg-warning-100 text-warning-700"
+                                  : "bg-neutral-100 text-neutral-700"
+                                }`}
                             >
                               {d.raisedByRole}
                             </span>
                             <span className="text-neutral-400 font-medium">
                               raised against
                             </span>
-                            <span className="font-semibold text-neutral-800">
-                              {d.againstName}
-                            </span>
+                              <span className="font-semibold text-neutral-800">
+                                {d.againstRole || d.againstName}
+                              </span>
                           </div>
                           <p className="text-xs text-text-muted line-clamp-1 italic">
                             "{d.complaint}"
@@ -395,18 +355,28 @@ export default function Disputes() {
                               onClick={() => handleStartReview(d.id)}
                               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-warning-700 bg-warning-50 hover:bg-warning-100 border border-warning-200 rounded-lg transition-colors"
                             >
-                              <PlayCircle className="w-3.5 h-3.5" /> Start
-                              Review
+                              <PlayCircle className="w-3.5 h-3.5" /> Start Review
                             </button>
                           )}
+
+                          {/* UPDATED BUTTONS FOR UNDERREVIEW */}
                           {d.status === "UnderReview" && (
-                            <button
-                              onClick={() => setSelected(d)}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-text-inverse bg-primary-600 hover:bg-primary-700 rounded-lg shadow-sm transition-colors"
-                            >
-                              <Scale className="w-3.5 h-3.5" /> Resolve
-                            </button>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => setViewDetailsTarget(d)}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-text-main bg-surface border border-border-main hover:bg-neutral-50 rounded-lg transition-colors"
+                              >
+                                <MessageSquare className="w-3.5 h-3.5" /> Messages
+                              </button>
+                              <button
+                                onClick={() => setSelected(d)}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-text-inverse bg-primary-600 hover:bg-primary-700 rounded-lg shadow-sm transition-colors"
+                              >
+                                <Scale className="w-3.5 h-3.5" /> Resolve
+                              </button>
+                            </div>
                           )}
+
                           {d.status === "Resolved" && (
                             <button
                               onClick={() => setViewDetailsTarget(d)}

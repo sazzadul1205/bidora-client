@@ -1,5 +1,5 @@
 import PageTitle from "../../../components/PageTitle";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { getAdminDashboard } from "../../../services/adminApi";
 import {
@@ -15,31 +15,29 @@ import {
 } from "lucide-react";
 import { Skeleton } from "../../../components/Skeleton";
 import { formatCurrency as formatMoney } from "../../../utils/currency";
+import RefreshButton from "../../../components/RefreshButton";
 
 export default function AdminDashboard() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchDashboard = useCallback(async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true); else setLoading(true);
+    try {
+      const res = await getAdminDashboard();
+      setData(res.data.data);
+    } catch (err) {
+      console.error("Failed to load dashboard", err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
 
   useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const res = await getAdminDashboard();
-        if (mounted) {
-          setData(res.data.data);
-        }
-      } catch (err) {
-        console.error("Failed to load dashboard", err);
-      } finally {
-        if (mounted) {
-          setLoading(false);
-        }
-      }
-    })();
-    return () => {
-      mounted = false;
-    };
-  }, []);
+    fetchDashboard();
+  }, [fetchDashboard]);
 
   if (loading) {
     return (
@@ -67,13 +65,16 @@ export default function AdminDashboard() {
       <PageTitle title="Admin Dashboard" />
       <div className="max-w-7xl mx-auto space-y-6">
         {/* HEADER */}
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-text-main">
-            Admin Dashboard
-          </h1>
-          <p className="text-sm text-text-muted mt-1">
-            Platform overview and moderation queue.
-          </p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold text-text-main">
+              Admin Dashboard
+            </h1>
+            <p className="text-sm text-text-muted mt-1">
+              Platform overview and moderation queue.
+            </p>
+          </div>
+          <RefreshButton onClick={() => fetchDashboard(true)} loading={refreshing} className="self-start sm:self-auto" />
         </div>
 
         {/* STATS GRID */}

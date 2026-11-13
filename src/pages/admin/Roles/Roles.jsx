@@ -1,5 +1,5 @@
 import PageTitle from "../../../components/PageTitle";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   Shield,
   Plus,
@@ -17,16 +17,18 @@ import {
 } from "../../../services/adminApi";
 import { toast, confirmDialog } from "../../../utils/toast";
 import { SkeletonRow } from "../../../components/Skeleton";
+import RefreshButton from "../../../components/RefreshButton";
 
 export default function Roles() {
   const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [name, setName] = useState("");
   const [editing, setEditing] = useState(null);
   const [saving, setSaving] = useState(false);
 
-  const load = async () => {
-    setLoading(true);
+  const load = useCallback(async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true); else setLoading(true);
     try {
       const res = await getRoles();
       setRoles(res.data.data || []);
@@ -34,32 +36,13 @@ export default function Roles() {
       toast.error("Failed to load roles.");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await getRoles();
-        if (cancelled) {
-          return;
-        }
-        setRoles(res.data.data || []);
-      } catch {
-        if (!cancelled) {
-          toast.error("Failed to load roles.");
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    load();
+  }, [load]);
 
   const visibleRoles = roles;
   const isProtected = (r) => r.isSystem === true;
@@ -125,10 +108,11 @@ export default function Roles() {
     <>
       <PageTitle title="Roles" />
       <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-6 gap-3">
           <h1 className="text-2xl font-bold text-text-main flex items-center gap-2">
             <Shield className="w-6 h-6 text-primary-600" /> Role Management
           </h1>
+          <RefreshButton onClick={() => load(true)} loading={refreshing} />
         </div>
 
         <form

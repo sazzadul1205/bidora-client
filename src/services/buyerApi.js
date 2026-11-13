@@ -7,7 +7,10 @@ export const getBuyerDashboard = () =>
 // Bidding
 export const placeBid = (data) => authApi.post("/bid", data, getAuthConfig());
 export const getAuctionBids = (auctionId, options = {}) =>
-  authApi.get(`/bid/auction/${auctionId}/bids`, { ...getAuthConfig(), ...options });
+  authApi.get(`/bid/auction/${auctionId}/bids`, {
+    ...getAuthConfig(),
+    ...options,
+  });
 export const buyoutAuction = (auctionId) =>
   authApi.post(`/bid/${auctionId}/buyout`, {}, getAuthConfig());
 
@@ -64,6 +67,21 @@ export const submitProfileVerification = () =>
 // Re-export from authApi for convenience
 export { changePassword } from "./authApi";
 
+// Dispute Messaging
+export const getDisputeById = (id) =>
+  authApi.get(`/dispute/${id}`, getAuthConfig());
+
+export const getDisputeMessages = (id) =>
+  authApi.get(`/dispute/${id}/messages`, getAuthConfig());
+
+export const sendDisputeMessage = (id, formData) =>
+  authApi.post(`/dispute/${id}/messages`, formData, {
+    headers: {
+      ...getAuthConfig().headers,
+      "Content-Type": "multipart/form-data",
+    },
+  });
+
 export default {
   getBuyerDashboard,
   placeBid,
@@ -80,4 +98,7 @@ export default {
   confirmReceipt,
   createDisputeImage,
   submitProfileVerification,
+  getDisputeById,
+  getDisputeMessages,
+  sendDisputeMessage,
 };

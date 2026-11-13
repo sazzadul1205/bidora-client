@@ -1,5 +1,5 @@
 import PageTitle from "../../../components/PageTitle";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { getCategories } from "../../../services/publicApi";
 import { createCategory, deleteCategory } from "../../../services/adminApi";
@@ -7,10 +7,12 @@ import { Trash2, Plus, Search, Tag, Layers, Loader2 } from "lucide-react";
 import { toast, confirmDialog } from "../../../utils/toast";
 import { Skeleton } from "../../../components/Skeleton";
 import Pagination from "../../../components/Pagination/Pagination";
+import RefreshButton from "../../../components/RefreshButton";
 
 export default function Categories() {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(9);
@@ -23,35 +25,8 @@ export default function Categories() {
     formState: { isSubmitting, errors },
   } = useForm();
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await getCategories({ page, pageSize, search: searchTerm });
-        if (cancelled) {
-          return;
-        }
-        setCategories(res.data.data || []);
-        if (typeof res.data.pagination?.totalCount === "number") {
-          setTotalCount(res.data.pagination.totalCount);
-        }
-      } catch (err) {
-        console.error(err);
-        if (!cancelled) {
-          toast.error("Failed to load categories.");
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [page, pageSize, searchTerm]);
-
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true); else setLoading(true);
     try {
       const res = await getCategories({ page, pageSize, search: searchTerm });
       setCategories(res.data.data || []);
@@ -63,8 +38,13 @@ export default function Categories() {
       toast.error("Failed to load categories.");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
-  };
+  }, [page, pageSize, searchTerm]);
+
+  useEffect(() => {
+    fetchCategories();
+  }, [fetchCategories]);
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
@@ -142,6 +122,7 @@ export default function Categories() {
           </div>
 
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full sm:w-auto">
+            <RefreshButton onClick={() => fetchCategories(true)} loading={refreshing} />
             <div className="relative w-full sm:w-64">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
               <input

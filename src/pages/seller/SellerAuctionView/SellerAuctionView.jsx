@@ -1,10 +1,12 @@
 import PageTitle from "../../../components/PageTitle";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import { getAuctionByIdForSeller } from "../../../services/sellerApi";
 import { getAuctionBids } from "../../../services/buyerApi";
 import { imageUrl, handleImageError } from "../../../utils/image";
 import Countdown from "../../../components/Countdown";
+import AuctionLoader from "../../../components/AuctionLoader";
+import RefreshButton from "../../../components/RefreshButton";
 import {
   ArrowLeft,
   Gavel,
@@ -25,52 +27,45 @@ export default function SellerAuctionView() {
   const [auction, setAuction] = useState(null);
   const [bids, setBids] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
+  const fetchData = useCallback(async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true); else setLoading(true);
+    try {
+      const aucRes = await getAuctionByIdForSeller(id);
+      const auctionData = aucRes.data.data;
+
+      let bidsData = [];
       try {
-        const aucRes = await getAuctionByIdForSeller(id);
-        const auctionData = aucRes.data.data;
-
-        let bidsData = [];
-        try {
-          const bidsRes = await getAuctionBids(id);
-          bidsData = bidsRes.data.data || [];
-        } catch {
-          console.error("Could not load bids");
-        }
-
-        if (mounted) {
-          setAuction(auctionData);
-          setBids(bidsData);
-        }
-      } catch (err) {
-        const status = err.response?.status;
-        if (status === 404) {
-          toast.error("Auction not found or you are not the seller.");
-        } else if (status === 401) {
-          toast.error("Please log in.");
-        } else {
-          toast.error("Failed to load auction details.");
-        }
-      } finally {
-        if (mounted) {
-          setLoading(false);
-        }
+        const bidsRes = await getAuctionBids(id);
+        bidsData = bidsRes.data.data || [];
+      } catch {
+        console.error("Could not load bids");
       }
-    })();
-    return () => {
-      mounted = false;
-    };
+
+      setAuction(auctionData);
+      setBids(bidsData);
+    } catch (err) {
+      const status = err.response?.status;
+      if (status === 404) {
+        toast.error("Auction not found or you are not the seller.");
+      } else if (status === 401) {
+        toast.error("Please log in.");
+      } else {
+        toast.error("Failed to load auction details.");
+      }
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
   }, [id]);
 
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
   if (loading || !auction) {
-    return (
-      <div className="p-12 text-center text-gray-500">
-        Loading seller view...
-      </div>
-    );
+    return <AuctionLoader />;
   }
 
   const isLive = auction.status === "Active";
@@ -85,12 +80,15 @@ export default function SellerAuctionView() {
       <PageTitle title="Auction View" />
       <div className="bg-gray-50 min-h-screen pb-12 sm:pb-20">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-          <Link
-            to="/seller/products"
-            className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 mb-4 sm:mb-6"
-          >
-            <ArrowLeft className="w-4 h-4" /> Back to Dashboard
-          </Link>
+          <div className="flex items-center justify-between gap-3 mb-4 sm:mb-6">
+            <Link
+              to="/seller/products"
+              className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900"
+            >
+              <ArrowLeft className="w-4 h-4" /> Back to Dashboard
+            </Link>
+            <RefreshButton onClick={() => fetchData(true)} loading={refreshing} />
+          </div>
 
           {/* Header Banner */}
           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-3 sm:p-6 mb-4 sm:mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sm:gap-4">

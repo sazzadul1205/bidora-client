@@ -70,8 +70,7 @@ export const resolveDispute = (id, data) =>
   authApi.put(`/dispute/${id}/resolve`, data, getAuthConfig());
 
 // Roles — list / create / rename / delete
-export const getRoles = () =>
-  authApi.get("/admin/roles", getAuthConfig());
+export const getRoles = () => authApi.get("/admin/roles", getAuthConfig());
 export const createRole = (data) =>
   authApi.post("/admin/roles", data, getAuthConfig());
 export const updateRole = (id, data) =>
@@ -86,6 +85,21 @@ export const getAllTransactions = (params = {}) =>
   authApi.get("/admin/transactions", { ...getAuthConfig(), params });
 export const getAllReservations = (params = {}) =>
   authApi.get("/admin/reservations", { ...getAuthConfig(), params });
+
+// Dispute Messaging
+export const getDisputeById = (id) =>
+  authApi.get(`/dispute/${id}`, getAuthConfig());
+
+export const getDisputeMessages = (id) =>
+  authApi.get(`/dispute/${id}/messages`, getAuthConfig());
+
+export const sendDisputeMessage = (id, formData) =>
+  authApi.post(`/dispute/${id}/messages`, formData, {
+    headers: {
+      ...getAuthConfig().headers,
+      "Content-Type": "multipart/form-data",
+    },
+  });
 
 export default {
   getAdminDashboard,
@@ -119,4 +133,7 @@ export default {
   getPlatformWallet,
   getAllTransactions,
   getAllReservations,
+  getDisputeById,
+  getDisputeMessages,
+  sendDisputeMessage,
 };

@@ -1,5 +1,5 @@
 import PageTitle from "../../../components/PageTitle";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { formatCurrency as formatMoney } from "../../../utils/currency";
 import {
   Wallet as WalletIcon,
@@ -15,10 +15,12 @@ import adminApi from "../../../services/adminApi";
 import { Skeleton } from "../../../components/Skeleton";
 import Pagination from "../../../components/Pagination/Pagination";
 import { formatDateTime } from "../../../utils/date";
+import RefreshButton from "../../../components/RefreshButton";
 
 export default function PlatformWallet() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [filterType, setFilterType] = useState("All");
@@ -31,57 +33,52 @@ export default function PlatformWallet() {
     return () => clearTimeout(t);
   }, [searchTerm]);
 
+  const fetchWallet = useCallback(async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true); else if (!data) setLoading(true); else setLoading(true);
+    try {
+      const res = await adminApi.getPlatformWallet({
+        page,
+        pageSize,
+        search: debouncedSearch || undefined,
+        filter: filterType !== "All" ? filterType : undefined,
+      });
+      const d = res.data.data;
+      setData({
+        wallet: d.wallet,
+        transactions: d.transactions?.items || [],
+        sellerBalances: d.sellerBalances || null,
+        buyerBalances: d.buyerBalances || null,
+      });
+      setTotalTx(d.transactions?.pagination?.totalCount || 0);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, [page, pageSize, debouncedSearch, filterType, data]);
+
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await adminApi.getPlatformWallet({
-          page,
-          pageSize,
-          search: debouncedSearch || undefined,
-          filter: filterType !== "All" ? filterType : undefined,
-        });
-        if (cancelled) {return;}
-        const d = res.data.data;
-        setData({
-          wallet: d.wallet,
-          transactions: d.transactions?.items || [],
-          sellerBalances: d.sellerBalances || null,
-          buyerBalances: d.buyerBalances || null,
-        });
-        setTotalTx(d.transactions?.pagination?.totalCount || 0);
-      } catch (e) {
-        console.error(e);
-      } finally {
-        if (!cancelled) {setLoading(false);}
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [page, pageSize, debouncedSearch, filterType]);
+    fetchWallet();
+  }, [fetchWallet]);
 
   const goToPage = (p) => {
     if (p === page) {return;}
-    setLoading(true);
     setPage(p);
   };
   const changePageSize = (s) => {
     if (s === pageSize) {return;}
-    setLoading(true);
     setPageSize(s);
     setPage(1);
   };
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
     setPage(1);
-    setLoading(true);
   };
   const handleTypeChange = (type) => {
     if (type === filterType) {return;}
     setFilterType(type);
     setPage(1);
-    setLoading(true);
   };
 
   if (loading && !data) {
@@ -160,6 +157,7 @@ export default function PlatformWallet() {
               Track all platform revenue, penalties, and commissions.
             </p>
           </div>
+          <RefreshButton onClick={() => fetchWallet(true)} loading={refreshing} className="self-start sm:self-auto" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">

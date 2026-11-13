@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getCurrentUser } from "../../services/authApi";
+import AuctionLoader from "../AuctionLoader";
 
 export default function ProfileCompletionGuard({ children }) {
   const [loading, setLoading] = useState(true);
@@ -63,11 +64,7 @@ export default function ProfileCompletionGuard({ children }) {
   }, [navigate]);
 
   if (loading) {
-    return (
-      <div className="h-screen flex items-center justify-center bg-gray-50 text-gray-500">
-        Checking profile status...
-      </div>
-    );
+    return <AuctionLoader />;
   }
 
   if (!allowed) {

@@ -18,6 +18,7 @@ import { toast } from "../../../utils/toast";
 import { formatCurrency as formatMoney } from "../../../utils/currency";
 import { SkeletonRow } from "../../../components/Skeleton";
 import Pagination from "../../../components/Pagination/Pagination";
+import RefreshButton from "../../../components/RefreshButton";
 import ReviewModal from "./ReviewModal/ReviewModal";
 
 const STATUS_TABS = [
@@ -46,6 +47,7 @@ function StatusBadge({ status }) {
 export default function Deposits() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [selected, setSelected] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [statusFilter, setStatusFilter] = useState("PendingVerification");
@@ -53,8 +55,8 @@ export default function Deposits() {
   const [pageSize, setPageSize] = useState(20);
   const [totalCount, setTotalCount] = useState(0);
 
-  const fetchRequests = useCallback(async () => {
-    setLoading(true);
+  const fetchRequests = useCallback(async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true); else setLoading(true);
     try {
       const res = await getDepositRequests({
         status: statusFilter,
@@ -71,14 +73,12 @@ export default function Deposits() {
       toast.error("Failed to load deposit requests.");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }, [page, pageSize, statusFilter]);
 
   useEffect(() => {
-    const t = setTimeout(() => {
-      fetchRequests();
-    }, 0);
-    return () => clearTimeout(t);
+    fetchRequests();
   }, [fetchRequests]);
 
   const onSubmit = async (data) => {
@@ -114,13 +114,16 @@ export default function Deposits() {
               Review pending deposits and view approved/rejected history.
             </p>
           </div>
-          <div className="bg-primary-50 text-primary-700 px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 self-start sm:self-auto">
-            <Wallet className="w-4 h-4" /> {totalCount}{" "}
-            {statusFilter === "All"
-              ? "Total"
-              : statusFilter === "PendingVerification"
-                ? "Pending"
-                : statusFilter}
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <RefreshButton onClick={() => fetchRequests(true)} loading={refreshing} />
+            <div className="bg-primary-50 text-primary-700 px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2">
+              <Wallet className="w-4 h-4" /> {totalCount}{" "}
+              {statusFilter === "All"
+                ? "Total"
+                : statusFilter === "PendingVerification"
+                  ? "Pending"
+                  : statusFilter}
+            </div>
           </div>
         </div>
 

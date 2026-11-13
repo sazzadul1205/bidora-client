@@ -1,5 +1,5 @@
 import PageTitle from "../../../components/PageTitle";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { getMyProductById } from "../../../services/sellerApi";
 import { imageUrl, handleImageError } from "../../../utils/image";
@@ -17,47 +17,40 @@ import {
   Star,
   Loader2,
 } from "lucide-react";
+import AuctionLoader from "../../../components/AuctionLoader";
+import RefreshButton from "../../../components/RefreshButton";
 
 export default function ViewProduct() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [activeImage, setActiveImage] = useState(null);
 
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const res = await getMyProductById(id);
-        if (mounted) {
-          const data = res.data.data;
-          setProduct(data);
-          const mainImg =
-            data.images?.find((i) => i.isMain) || data.images?.[0];
-          setActiveImage(mainImg?.imageUrl || null);
-        }
-      } catch (err) {
-        toast.errorFrom(err, "Failed to load product.");
-        navigate("/seller/products");
-      } finally {
-        if (mounted) {
-          setLoading(false);
-        }
-      }
-    })();
-    return () => {
-      mounted = false;
-    };
+  const fetchProduct = useCallback(async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true); else setLoading(true);
+    try {
+      const res = await getMyProductById(id);
+      const data = res.data.data;
+      setProduct(data);
+      const mainImg = data.images?.find((i) => i.isMain) || data.images?.[0];
+      setActiveImage(mainImg?.imageUrl || null);
+    } catch (err) {
+      toast.errorFrom(err, "Failed to load product.");
+      if (!isRefresh) navigate("/seller/products");
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
   }, [id, navigate]);
 
+  useEffect(() => {
+    fetchProduct();
+  }, [fetchProduct]);
+
   if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center py-16 sm:py-24 text-gray-500 px-4">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600 mb-4" />
-        <p className="text-sm sm:text-base">Loading product details...</p>
-      </div>
-    );
+    return <AuctionLoader />;
   }
 
   if (!product) {
@@ -138,12 +131,13 @@ export default function ViewProduct() {
             </p>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0 w-full md:w-auto">
+          <div className="flex items-center gap-2 shrink-0 w-full md:w-auto">
+            <RefreshButton onClick={() => fetchProduct(true)} loading={refreshing} />
             {(product.approvalStatus === "Draft" ||
               product.approvalStatus === "Rejected") && (
               <Link
                 to={`/seller/products/edit/${product.id}`}
-                className="inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors w-full md:w-auto"
+                className="inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors flex-1 md:flex-none"
               >
                 <Pencil className="w-4 h-4" /> Edit Product
               </Link>
@@ -151,7 +145,7 @@ export default function ViewProduct() {
             {product.approvalStatus === "PendingApproval" && (
               <button
                 onClick={() => navigate("/seller/products")}
-                className="inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 bg-orange-50 text-orange-700 hover:bg-orange-100 border border-orange-200 text-sm font-semibold rounded-lg transition-colors w-full md:w-auto"
+                className="inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 bg-orange-50 text-orange-700 hover:bg-orange-100 border border-orange-200 text-sm font-semibold rounded-lg transition-colors flex-1 md:flex-none"
               >
                 <ArrowLeft className="w-4 h-4" /> Go to List to Withdraw
               </button>

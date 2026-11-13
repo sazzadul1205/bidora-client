@@ -1,5 +1,5 @@
 import PageTitle from "../../../components/PageTitle";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { getMySales, reportNonDelivery } from "../../../services/sellerApi";
 import {
   Truck,
@@ -19,6 +19,7 @@ import { imageUrl, handleImageError } from "../../../utils/image";
 import { SkeletonRow } from "../../../components/Skeleton";
 import Countdown from "../../../components/Countdown";
 import Pagination from "../../../components/Pagination/Pagination";
+import RefreshButton from "../../../components/RefreshButton";
 
 import DispatchSaleModal from "./modals/DispatchSaleModal/DispatchSaleModal";
 import RaiseDisputeModal from "./modals/RaiseDisputeModal/RaiseDisputeModal";
@@ -35,6 +36,7 @@ const parseUtc = (str) => {
 export default function SellerSales() {
   const [sales, setSales] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
@@ -53,47 +55,12 @@ export default function SellerSales() {
     return () => clearTimeout(t);
   }, [searchTerm]);
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await getMySales({
-          page,
-          pageSize,
-          search: debouncedSearch || undefined,
-          filter: filterStatus !== "All" ? filterStatus : undefined,
-        });
-        if (cancelled) {
-          return;
-        }
-        setSales(res.data.data?.items || []);
-        setTotalCount(res.data.pagination?.totalCount || 0);
-        setTotalSalesCount(res.data.data?.totalSalesCount || 0);
-        setServerAwaitingDispatch(res.data.data?.awaitingDispatchCount || 0);
-        setServerTotalRevenue(res.data.data?.totalRevenue || 0);
-      } catch (err) {
-        console.error(err);
-        if (!cancelled) {
-          toast.error("Failed to load sales.");
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [page, pageSize, debouncedSearch, filterStatus]);
-
-  const fetchSales = async (opts = {}) => {
-    const p = opts.page ?? page;
-    const s = opts.pageSize ?? pageSize;
+  const fetchSales = useCallback(async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true); else setLoading(true);
     try {
       const res = await getMySales({
-        page: p,
-        pageSize: s,
+        page,
+        pageSize,
         search: debouncedSearch || undefined,
         filter: filterStatus !== "All" ? filterStatus : undefined,
       });
@@ -107,8 +74,13 @@ export default function SellerSales() {
       toast.error("Failed to load sales.");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
-  };
+  }, [page, pageSize, debouncedSearch, filterStatus]);
+
+  useEffect(() => {
+    fetchSales();
+  }, [fetchSales]);
 
   const goToPage = (p) => {
     if (p === page) {
@@ -193,6 +165,7 @@ export default function SellerSales() {
               Track your paid items, dispatch them, and manage your revenue.
             </p>
           </div>
+          <RefreshButton onClick={() => fetchSales(true)} loading={refreshing} className="self-start sm:self-auto" />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6">

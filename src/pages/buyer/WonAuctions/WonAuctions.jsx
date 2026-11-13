@@ -1,5 +1,5 @@
 import PageTitle from "../../../components/PageTitle";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { getWonAuctions, payForSale } from "../../../services/buyerApi";
 import {
@@ -21,6 +21,7 @@ import { toast, confirmDialog } from "../../../utils/toast";
 import { SkeletonRow, Skeleton } from "../../../components/Skeleton";
 import { imageUrl, handleImageError } from "../../../utils/image";
 import Pagination from "../../../components/Pagination/Pagination";
+import RefreshButton from "../../../components/RefreshButton";
 
 import ConfirmReceiptModal from "./modals/ConfirmReceiptModal/ConfirmReceiptModal";
 import RaiseDisputeModal from "./modals/RaiseDisputeModal/RaiseDisputeModal";
@@ -45,56 +46,11 @@ export default function WonAuctions() {
   const [disputeTarget, setDisputeTarget] = useState(null);
   const [selectedDispute, setSelectedDispute] = useState(null);
   const [dispatchViewTarget, setDispatchViewTarget] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    (async () => {
-      try {
-        const res = await getWonAuctions({
-          page,
-          pageSize,
-          search: searchTerm,
-          filter: filterStatus !== "All" ? filterStatus : undefined,
-        });
-        if (cancelled) {
-          return;
-        }
-        const payload = res.data.data || {};
-        const items = Array.isArray(payload) ? payload : payload.items || [];
-        setAuctions(items);
-        if (typeof res.data.pagination?.totalCount === "number") {
-          setTotalCount(res.data.pagination.totalCount);
-        } else {
-          setTotalCount(items.length);
-        }
-        if (payload.totalWon !== undefined) {
-          setTotalWonCountState(payload.totalWon);
-        }
-        if (payload.pendingPaymentCount !== undefined) {
-          setPendingPaymentCountState(payload.pendingPaymentCount);
-        }
-        if (payload.totalSpent !== undefined) {
-          setTotalSpentState(payload.totalSpent);
-        }
-      } catch {
-        if (!cancelled) {
-          toast.error("Failed to load won auctions.");
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [page, pageSize, searchTerm, filterStatus]);
-
-  const fetchWonAuctions = async () => {
+  const fetchWonAuctions = useCallback(async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true); else setLoading(true);
     try {
       const res = await getWonAuctions({
         page,
@@ -102,18 +58,34 @@ export default function WonAuctions() {
         search: searchTerm,
         filter: filterStatus !== "All" ? filterStatus : undefined,
       });
-      const payload = res.data.data || [];
+      const payload = res.data.data || {};
       const items = Array.isArray(payload) ? payload : payload.items || [];
       setAuctions(items);
       if (typeof res.data.pagination?.totalCount === "number") {
         setTotalCount(res.data.pagination.totalCount);
+      } else {
+        setTotalCount(items.length);
+      }
+      if (payload.totalWon !== undefined) {
+        setTotalWonCountState(payload.totalWon);
+      }
+      if (payload.pendingPaymentCount !== undefined) {
+        setPendingPaymentCountState(payload.pendingPaymentCount);
+      }
+      if (payload.totalSpent !== undefined) {
+        setTotalSpentState(payload.totalSpent);
       }
     } catch {
       toast.error("Failed to load won auctions.");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
-  };
+  }, [page, pageSize, searchTerm, filterStatus]);
+
+  useEffect(() => {
+    fetchWonAuctions();
+  }, [fetchWonAuctions]);
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
@@ -226,12 +198,15 @@ export default function WonAuctions() {
               Complete payments, confirm receipt, and manage disputes.
             </p>
           </div>
-          <Link
-            to="/auctions"
-            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm w-full sm:w-auto"
-          >
-            Browse Auctions <ArrowRight className="w-4 h-4" />
-          </Link>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <RefreshButton onClick={() => fetchWonAuctions(true)} loading={refreshing} />
+            <Link
+              to="/auctions"
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm flex-1 sm:flex-none"
+            >
+              Browse Auctions <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6">

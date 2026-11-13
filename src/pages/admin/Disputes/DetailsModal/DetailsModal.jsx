@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   CheckCircle2,
   X,
@@ -8,9 +9,22 @@ import {
   DollarSign,
 } from "lucide-react";
 import { imageUrl } from "../../../../utils/image";
+import { getDisputeById } from "../../../../services/adminApi";
+import MessageThread from "../../../../components/DisputeMessageThread/MessageThread";
 
 export default function DetailsModal({ target, onClose }) {
-  if (!target) {return null;}
+  const [details, setDetails] = useState(null);
+
+  useEffect(() => {
+    if (!target) { return; }
+    getDisputeById(target.id)
+      .then((res) => setDetails(res.data.data))
+      .catch(console.error);
+  }, [target]);
+
+  if (!target) {
+    return null;
+  }
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
@@ -18,8 +32,8 @@ export default function DetailsModal({ target, onClose }) {
         <div className="px-6 py-4 border-b border-border-main flex items-center justify-between bg-neutral-50/50 sticky top-0 z-10">
           <div>
             <h2 className="text-lg font-bold text-text-main flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-success-600" /> Resolved
-              Dispute #{target.id}
+              <CheckCircle2 className="w-5 h-5 text-success-600" /> Dispute
+              Details #{target.id}
             </h2>
             <p className="text-xs text-text-muted mt-0.5">
               Sale #{target.saleId} · Product #{target.productId}
@@ -50,20 +64,19 @@ export default function DetailsModal({ target, onClose }) {
                   <div
                     className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-text-inverse shadow-sm ${target.raisedByRole === "Seller" ? "bg-warning-500" : "bg-primary-500"}`}
                   >
-                    {target.raisedByName?.charAt(0) || "?"}
+                    {(target.raisedByRole || "?").charAt(0)}
                   </div>
                   <div>
                     <p className="font-bold text-text-main">
-                      {target.raisedByName}
+                      {target.raisedByRole || target.raisedByName}
                     </p>
                     <span
-                      className={`inline-block mt-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
-                        target.raisedByRole === "Buyer"
-                          ? "bg-primary-100 text-primary-700"
-                          : target.raisedByRole === "Seller"
-                            ? "bg-warning-100 text-warning-700"
-                            : "bg-neutral-100 text-neutral-700"
-                      }`}
+                      className={`inline-block mt-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${target.raisedByRole === "Buyer"
+                        ? "bg-primary-100 text-primary-700"
+                        : target.raisedByRole === "Seller"
+                          ? "bg-warning-100 text-warning-700"
+                          : "bg-neutral-100 text-neutral-700"
+                        }`}
                     >
                       {target.raisedByRole}
                     </span>
@@ -78,20 +91,19 @@ export default function DetailsModal({ target, onClose }) {
                   <div
                     className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-text-inverse shadow-sm ${target.againstRole === "Seller" ? "bg-warning-500" : "bg-primary-500"}`}
                   >
-                    {target.againstName?.charAt(0) || "?"}
+                    {(target.againstRole || "?").charAt(0)}
                   </div>
                   <div>
                     <p className="font-bold text-text-main">
-                      {target.againstName}
+                      {target.againstRole || target.againstName}
                     </p>
                     <span
-                      className={`inline-block mt-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
-                        target.againstRole === "Buyer"
-                          ? "bg-primary-100 text-primary-700"
-                          : target.againstRole === "Seller"
-                            ? "bg-warning-100 text-warning-700"
-                            : "bg-neutral-100 text-neutral-700"
-                      }`}
+                      className={`inline-block mt-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${target.againstRole === "Buyer"
+                        ? "bg-primary-100 text-primary-700"
+                        : target.againstRole === "Seller"
+                          ? "bg-warning-100 text-warning-700"
+                          : "bg-neutral-100 text-neutral-700"
+                        }`}
                     >
                       {target.againstRole}
                     </span>
@@ -130,23 +142,25 @@ export default function DetailsModal({ target, onClose }) {
             </div>
           )}
 
-          <div>
-            <h3 className="text-sm font-bold text-text-main flex items-center gap-2 mb-3">
-              <ShieldAlert className="w-4 h-4 text-success-600" /> Admin
-              Decision
-            </h3>
-            <div className="bg-success-50 border-2 border-success-200 p-4 rounded-xl shadow-sm">
-              <p className="text-sm text-text-main leading-relaxed font-medium">
-                "{target.adminDecision || "No decision recorded."}"
-              </p>
-              <p className="text-xs text-text-muted mt-3 pt-3 border-t border-success-200">
-                Decided By Admin ID:{" "}
-                <span className="font-mono">
-                  {target.decidedBy || "Unknown"}
-                </span>
-              </p>
+          {target.status === "Resolved" && (
+            <div>
+              <h3 className="text-sm font-bold text-text-main flex items-center gap-2 mb-3">
+                <ShieldAlert className="w-4 h-4 text-success-600" /> Admin
+                Decision
+              </h3>
+              <div className="bg-success-50 border-2 border-success-200 p-4 rounded-xl shadow-sm">
+                <p className="text-sm text-text-main leading-relaxed font-medium">
+                  "{target.adminDecision || "No decision recorded."}"
+                </p>
+                <p className="text-xs text-text-muted mt-3 pt-3 border-t border-success-200">
+                  Decided By Admin ID:{" "}
+                  <span className="font-mono">
+                    {target.decidedBy || "Unknown"}
+                  </span>
+                </p>
+              </div>
             </div>
-          </div>
+          )}
 
           {target.penalty && (
             <div className="bg-neutral-50 rounded-xl border border-border-main p-5 mt-2">
@@ -160,7 +174,7 @@ export default function DetailsModal({ target, onClose }) {
                     Total Forfeited
                   </p>
                   <p className="font-bold text-text-main">
-                    ${target.penalty.totalAmount?.toFixed(2)}
+                    ৳{target.penalty.totalAmount?.toFixed(2)}
                   </p>
                 </div>
                 <div className="bg-surface p-3 rounded-lg border border-border-main">
@@ -168,13 +182,13 @@ export default function DetailsModal({ target, onClose }) {
                     To Opposite Party
                   </p>
                   <p className="font-bold text-success-600">
-                    ${target.penalty.oppositePartyAmount?.toFixed(2)}
+                    ৳{target.penalty.oppositePartyAmount?.toFixed(2)}
                   </p>
                 </div>
                 <div className="bg-surface p-3 rounded-lg border border-border-main">
                   <p className="text-xs text-text-muted mb-1">To Platform</p>
                   <p className="font-bold text-accent-600">
-                    ${target.penalty.platformAmount?.toFixed(2)}
+                    ৳{target.penalty.platformAmount?.toFixed(2)}
                   </p>
                 </div>
               </div>
@@ -185,6 +199,15 @@ export default function DetailsModal({ target, onClose }) {
                 </span>
               </p>
             </div>
+          )}
+
+          {/* NEW MESSAGE THREAD */}
+          {details && (
+            <MessageThread
+              disputeId={target.id}
+              canSend={details.canSendMessages}
+              status={details.status}
+            />
           )}
         </div>
 

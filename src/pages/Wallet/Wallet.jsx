@@ -17,6 +17,7 @@ import {
 import { toast } from "../../utils/toast";
 import { Skeleton } from "../../components/Skeleton";
 import Pagination from "../../components/Pagination/Pagination";
+import RefreshButton from "../../components/RefreshButton";
 
 import {
   getMyWallet,
@@ -164,6 +165,7 @@ function ReceiptDropzone({ file, onFileChange }) {
 export default function Wallet() {
   const [wallet, setWallet] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
   const [showDepositModal, setShowDepositModal] = useState(false);
   const [receiptFile, setReceiptFile] = useState(null);
@@ -222,69 +224,53 @@ export default function Wallet() {
   }, [depSearchTerm]);
 
   // Fetch all data whenever any tab's query state changes
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const [w, t, r, d] = await Promise.all([
-          getMyWallet(),
-          getWalletTransactions({
-            page: txPage,
-            pageSize: txPageSize,
-            search: txDebouncedSearch || undefined,
-            filter: txTypeFilter !== "All" ? txTypeFilter : undefined,
-          }),
-          getWalletReservations({
-            page: resPage,
-            pageSize: resPageSize,
-            search: resDebouncedSearch || undefined,
-            filter: resStatusFilter !== "All" ? resStatusFilter : undefined,
-          }),
-          getMyDepositRequests({
-            page: depPage,
-            pageSize: depPageSize,
-            search: depDebouncedSearch || undefined,
-            filter: depStatusFilter !== "All" ? depStatusFilter : undefined,
-          }),
-        ]);
-        if (cancelled) {
-          return;
-        }
-        setWallet(w.data.data);
-        setTransactions(t.data.data || []);
-        setTxTotal(t.data.pagination?.totalCount || 0);
-        setReservations(r.data.data || []);
-        setResTotal(r.data.pagination?.totalCount || 0);
-        setDepositRequests(d.data.data || []);
-        setDepTotal(d.data.pagination?.totalCount || 0);
-      } catch (err) {
-        console.error(err);
-        if (!cancelled) {
-          toast.error("Failed to load wallet data.");
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
+  const fetchWalletData = useCallback(async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true); else setLoading(true);
+    try {
+      const [w, t, r, d] = await Promise.all([
+        getMyWallet(),
+        getWalletTransactions({
+          page: txPage,
+          pageSize: txPageSize,
+          search: txDebouncedSearch || undefined,
+          filter: txTypeFilter !== "All" ? txTypeFilter : undefined,
+        }),
+        getWalletReservations({
+          page: resPage,
+          pageSize: resPageSize,
+          search: resDebouncedSearch || undefined,
+          filter: resStatusFilter !== "All" ? resStatusFilter : undefined,
+        }),
+        getMyDepositRequests({
+          page: depPage,
+          pageSize: depPageSize,
+          search: depDebouncedSearch || undefined,
+          filter: depStatusFilter !== "All" ? depStatusFilter : undefined,
+        }),
+      ]);
+      setWallet(w.data.data);
+      setTransactions(t.data.data || []);
+      setTxTotal(t.data.pagination?.totalCount || 0);
+      setReservations(r.data.data || []);
+      setResTotal(r.data.pagination?.totalCount || 0);
+      setDepositRequests(d.data.data || []);
+      setDepTotal(d.data.pagination?.totalCount || 0);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to load wallet data.");
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
   }, [
-    txPage,
-    txPageSize,
-    txDebouncedSearch,
-    txTypeFilter,
-    resPage,
-    resPageSize,
-    resDebouncedSearch,
-    resStatusFilter,
-    depPage,
-    depPageSize,
-    depDebouncedSearch,
-    depStatusFilter,
+    txPage, txPageSize, txDebouncedSearch, txTypeFilter,
+    resPage, resPageSize, resDebouncedSearch, resStatusFilter,
+    depPage, depPageSize, depDebouncedSearch, depStatusFilter,
   ]);
+
+  useEffect(() => {
+    fetchWalletData();
+  }, [fetchWalletData]);
 
   const refreshDepositRequests = async () => {
     try {
@@ -388,12 +374,15 @@ export default function Wallet() {
               Manage your funds, deposits, and history.
             </p>
           </div>
-          <button
-            onClick={() => setShowDepositModal(true)}
-            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-text-inverse text-sm font-semibold rounded-lg transition-colors"
-          >
-            <ArrowDownToLine className="w-4 h-4" /> Deposit Funds
-          </button>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <RefreshButton onClick={() => fetchWalletData(true)} loading={refreshing} />
+            <button
+              onClick={() => setShowDepositModal(true)}
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-text-inverse text-sm font-semibold rounded-lg transition-colors flex-1 sm:flex-none"
+            >
+              <ArrowDownToLine className="w-4 h-4" /> Deposit Funds
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

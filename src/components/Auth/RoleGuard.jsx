@@ -1,6 +1,7 @@
 ﻿import { Navigate, Outlet } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { getCurrentUser } from "../../services/authApi";
+import AuctionLoader from "../AuctionLoader";
 
 export default function RoleGuard({
   allowedRoles = [],
@@ -74,11 +75,7 @@ export default function RoleGuard({
   }, [rolesKey, allowStaff]);
 
   if (loading) {
-    return (
-      <div className="h-screen flex items-center justify-center bg-gray-50 text-gray-500">
-        Checking permissions...
-      </div>
-    );
+    return <AuctionLoader />;
   }
 
   if (!isLoggedIn) {

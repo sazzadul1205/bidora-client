@@ -1,5 +1,5 @@
 import PageTitle from "../../../components/PageTitle";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import {
   getMyProducts,
@@ -28,10 +28,12 @@ import { imageUrl, handleImageError } from "../../../utils/image";
 import { SkeletonRow, Skeleton } from "../../../components/Skeleton";
 import Pagination from "../../../components/Pagination/Pagination";
 import { formatCurrency } from "../../../utils/currency";
+import RefreshButton from "../../../components/RefreshButton";
 
 export default function MyProducts() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
@@ -45,21 +47,15 @@ export default function MyProducts() {
     return () => clearTimeout(t);
   }, [searchTerm]);
 
-  const fetchProducts = async (opts = {}) => {
-    const p = opts.page ?? page;
-    const ps = opts.pageSize ?? pageSize;
-    const s = opts.search ?? debouncedSearch;
-    const st = opts.filterStatus ?? filterStatus;
-    const au = opts.filterAuction ?? filterAuction;
-
+  const fetchProducts = useCallback(async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true); else setLoading(true);
     try {
-      setLoading(true);
       const res = await getMyProducts({
-        page: p,
-        pageSize: ps,
-        search: s || undefined,
-        approvalStatus: st,
-        auctionStatus: au,
+        page,
+        pageSize,
+        search: debouncedSearch || undefined,
+        approvalStatus: filterStatus,
+        auctionStatus: filterAuction,
       });
       setProducts(res.data.data || []);
       if (typeof res.data.pagination?.totalCount === "number") {
@@ -69,41 +65,13 @@ export default function MyProducts() {
       toast.error("Failed to load products.");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
-  };
+  }, [page, pageSize, debouncedSearch, filterStatus, filterAuction]);
 
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await getMyProducts({
-          page,
-          pageSize,
-          search: debouncedSearch || undefined,
-          approvalStatus: filterStatus,
-          auctionStatus: filterAuction,
-        });
-        if (cancelled) {
-          return;
-        }
-        setProducts(res.data.data || []);
-        if (typeof res.data.pagination?.totalCount === "number") {
-          setTotalCount(res.data.pagination.totalCount);
-        }
-      } catch {
-        if (!cancelled) {
-          toast.error("Failed to load products.");
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [page, pageSize, debouncedSearch, filterStatus, filterAuction]);
+    fetchProducts();
+  }, [fetchProducts]);
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
@@ -254,12 +222,15 @@ export default function MyProducts() {
               Manage your listings, monitor approvals, and track status.
             </p>
           </div>
-          <Link
-            to="/seller/products/create"
-            className="inline-flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 text-text-inverse px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors shadow-sm shrink-0 w-full sm:w-auto"
-          >
-            <Plus className="w-4 h-4" /> Create Product
-          </Link>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <RefreshButton onClick={() => fetchProducts(true)} loading={refreshing} />
+            <Link
+              to="/seller/products/create"
+              className="inline-flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 text-text-inverse px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors shadow-sm shrink-0 flex-1 sm:flex-none"
+            >
+              <Plus className="w-4 h-4" /> Create Product
+            </Link>
+          </div>
         </div>
 
         <div className="bg-surface rounded-xl border border-border-main shadow-sm overflow-hidden mb-4 sm:mb-6">

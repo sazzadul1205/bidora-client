@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { Pencil, X, Loader2 } from "lucide-react";
 import { useOutletContext } from "react-router-dom";
 import { getRoles } from "../../../../services/adminApi";
+import { Skeleton } from "../../../../components/Skeleton";
 
 const EXCLUDED = new Set(["seller", "buyer"]);
 const ADMIN_ROLES = new Set(["admin", "super admin"]);
@@ -106,9 +107,7 @@ export default function EditUserModal({ target, onClose, onSubmit }) {
               Role
             </label>
             {loadingRoles ? (
-              <div className="flex items-center gap-2 text-xs text-text-muted px-2.5 py-2.5 border border-border-main rounded-lg bg-neutral-50">
-                <Loader2 className="w-3.5 h-3.5 animate-spin" /> Loading roles…
-              </div>
+              <Skeleton className="h-10 w-full rounded-lg" />
             ) : (
               <select
                 {...register("role")}

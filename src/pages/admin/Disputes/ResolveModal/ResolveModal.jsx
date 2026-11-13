@@ -1,16 +1,17 @@
+import { useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import {
   Scale,
   User,
   FileText,
-  Link as LinkIcon,
   AlertTriangle,
   DollarSign,
   Package,
   Loader2,
   X,
+  ShieldAlert,
 } from "lucide-react";
-import { imageUrl } from "../../../../utils/image";
+import { imageUrl, handleImageError } from "../../../../utils/image";
 
 export default function ResolveModal({
   selected,
@@ -18,11 +19,17 @@ export default function ResolveModal({
   onSubmit,
   submitting,
 }) {
-  const { register, handleSubmit, control } = useForm({
+  const { register, handleSubmit, control, setValue } = useForm({
     defaultValues: { faultType: "Buyer", applyPenalty: "false" },
   });
   const applyPenalty = useWatch({ control, name: "applyPenalty" });
   const faultType = useWatch({ control, name: "faultType" });
+
+  useEffect(() => {
+    if (faultType === "System") {
+      setValue("applyPenalty", "false");
+    }
+  }, [faultType, setValue]);
 
   if (!selected) {return null;}
 
@@ -60,14 +67,18 @@ export default function ResolveModal({
             </p>
             {selected.evidenceUrl && (
               <div className="mt-4">
-                <a
-                  href={imageUrl(selected.evidenceUrl)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-3 py-2 bg-primary-50 hover:bg-primary-100 text-primary-700 text-sm font-medium rounded-lg border border-primary-200 transition-colors"
-                >
-                  <LinkIcon className="w-4 h-4" /> Open Evidence
-                </a>
+                <p className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-2">
+                  Submitted Evidence
+                </p>
+                <div className="border border-border-main rounded-xl p-2 bg-surface inline-block">
+                  <img
+                    src={imageUrl(selected.evidenceUrl)}
+                    alt="Dispute Evidence"
+                    onError={handleImageError}
+                    className="max-h-48 rounded-lg object-contain cursor-zoom-in hover:opacity-90 transition"
+                    onClick={() => window.open(imageUrl(selected.evidenceUrl), "_blank")}
+                  />
+                </div>
               </div>
             )}
           </div>
@@ -77,7 +88,7 @@ export default function ResolveModal({
               <label className="block text-sm font-bold text-text-main mb-2">
                 Who is at fault?
               </label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 <label
                   className={`cursor-pointer border-2 rounded-xl p-3 text-center transition ${faultType === "Buyer" ? "border-danger-500 bg-danger-50" : "border-border-main hover:border-neutral-300"}`}
                 >
@@ -112,6 +123,24 @@ export default function ResolveModal({
                     className={`text-xs font-bold ${faultType === "Seller" ? "text-danger-800" : "text-text-main"}`}
                   >
                     Seller
+                  </p>
+                </label>
+                <label
+                  className={`cursor-pointer border-2 rounded-xl p-3 text-center transition ${faultType === "System" ? "border-primary-500 bg-primary-50" : "border-border-main hover:border-neutral-300"}`}
+                >
+                  <input
+                    type="radio"
+                    value="System"
+                    {...register("faultType")}
+                    className="hidden"
+                  />
+                  <ShieldAlert
+                    className={`w-5 h-5 mx-auto mb-1 ${faultType === "System" ? "text-primary-600" : "text-neutral-400"}`}
+                  />
+                  <p
+                    className={`text-xs font-bold ${faultType === "System" ? "text-primary-800" : "text-text-main"}`}
+                  >
+                    System
                   </p>
                 </label>
               </div>
@@ -149,13 +178,18 @@ export default function ResolveModal({
                 </div>
                 <select
                   {...register("applyPenalty")}
-                  className="border border-border-main rounded-lg px-3 py-1.5 text-sm font-semibold bg-surface focus:ring-2 focus:ring-danger-500 outline-none"
+                  disabled={faultType === "System"}
+                  className="border border-border-main rounded-lg px-3 py-1.5 text-sm font-semibold bg-surface focus:ring-2 focus:ring-danger-500 outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <option value="false">No Penalty</option>
                   <option value="true">Apply Penalty</option>
                 </select>
               </div>
-              {applyPenalty === "true" ? (
+              {faultType === "System" ? (
+                <p className="text-xs text-text-muted mt-1">
+                  System fault: no penalty can be applied. Escrow funds will be refunded and deposits released.
+                </p>
+              ) : applyPenalty === "true" ? (
                 <div className="flex items-start gap-2 mt-2 text-xs text-danger-700">
                   <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
                   <p>

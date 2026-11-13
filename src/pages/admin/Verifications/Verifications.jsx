@@ -1,5 +1,5 @@
 import PageTitle from "../../../components/PageTitle";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import {
   getPendingVerifications,
   verifyProfile,
@@ -8,12 +8,14 @@ import { ShieldCheck, Phone, MapPin } from "lucide-react";
 import { toast } from "../../../utils/toast";
 import { SkeletonRow, Skeleton } from "../../../components/Skeleton";
 import Pagination from "../../../components/Pagination/Pagination";
+import RefreshButton from "../../../components/RefreshButton";
 
 import ReviewModal from "./ReviewModal/ReviewModal";
 
 export default function Verifications() {
   const [profiles, setProfiles] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [selected, setSelected] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [zoomImage, setZoomImage] = useState(null);
@@ -21,37 +23,23 @@ export default function Verifications() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
 
-  const fetchProfiles = async () => {
+  const fetchProfiles = useCallback(async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true); else setLoading(true);
     try {
       const res = await getPendingVerifications();
-      setProfiles(res.data.data);
+      setProfiles(res.data.data || []);
     } catch (err) {
       console.error(err);
+      if (isRefresh) toast.error("Failed to load verifications.");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const res = await getPendingVerifications();
-        if (mounted) {
-          setProfiles(res.data.data);
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        if (mounted) {
-          setLoading(false);
-        }
-      }
-    })();
-    return () => {
-      mounted = false;
-    };
-  }, []);
+    fetchProfiles();
+  }, [fetchProfiles]);
 
   const onSubmit = async (data) => {
     setSubmitting(true);
@@ -136,8 +124,11 @@ export default function Verifications() {
               Review and verify the National ID documents submitted by users.
             </p>
           </div>
-          <div className="bg-primary-50 text-primary-700 px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 self-start sm:self-auto">
-            <ShieldCheck className="w-4 h-4" /> {profiles.length} Pending
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <RefreshButton onClick={() => fetchProfiles(true)} loading={refreshing} />
+            <div className="bg-primary-50 text-primary-700 px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4" /> {profiles.length} Pending
+            </div>
           </div>
         </div>
 

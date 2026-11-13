@@ -29,6 +29,7 @@ import "react-tooltip/dist/react-tooltip.css";
 import { toast } from "../../../utils/toast";
 import { SkeletonRow, Skeleton } from "../../../components/Skeleton";
 import Pagination from "../../../components/Pagination/Pagination";
+import RefreshButton from "../../../components/RefreshButton";
 
 import UserDetailsModal from "./UserDetailsModal/UserDetailsModal";
 import ManageLockModal from "./ManageLockModal/ManageLockModal";
@@ -54,6 +55,7 @@ export default function Users() {
 
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -154,6 +156,15 @@ export default function Users() {
       });
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([refreshUsers(), fetchRoleCounts()]);
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -364,7 +375,8 @@ export default function Users() {
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+            <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+            <RefreshButton onClick={handleRefresh} loading={refreshing} />
             <select
               value={roleFilter}
               onChange={handleRoleChange}
@@ -387,12 +399,14 @@ export default function Users() {
               />
             </div>
 
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="inline-flex items-center justify-center gap-2 bg-neutral-900 hover:bg-black text-text-inverse px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors shadow-sm shrink-0 w-full sm:w-auto"
-            >
-              <UserPlus className="w-4 h-4" /> Add Admin
-            </button>
+            {callerIsSuperAdmin && (
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="inline-flex items-center justify-center gap-2 bg-neutral-900 hover:bg-black text-text-inverse px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors shadow-sm shrink-0 w-full sm:w-auto"
+              >
+                <UserPlus className="w-4 h-4" /> Add Admin
+              </button>
+            )}
           </div>
         </div>
 

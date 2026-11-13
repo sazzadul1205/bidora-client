@@ -1,5 +1,5 @@
 import PageTitle from "../../../components/PageTitle";
-import { useEffect, useState, useRef, useMemo } from "react";
+import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 import { getMyProductById, updateProduct } from "../../../services/sellerApi";
@@ -20,6 +20,8 @@ import {
   Trash2,
   ArrowLeft,
 } from "lucide-react";
+import AuctionLoader from "../../../components/AuctionLoader";
+import RefreshButton from "../../../components/RefreshButton";
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -270,6 +272,7 @@ export default function EditProduct() {
   const navigate = useNavigate();
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   const [existingImages, setExistingImages] = useState([]);
   const [newImages, setNewImages] = useState([]);
@@ -283,60 +286,49 @@ export default function EditProduct() {
     formState: { errors, isSubmitting },
   } = useForm();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [catRes, prodRes] = await Promise.all([
-          getCategories(),
-          getMyProductById(id),
-        ]);
-        setCategories(catRes.data.data);
-        const product = prodRes.data.data;
+  const fetchData = useCallback(async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true); else setLoading(true);
+    try {
+      const [catRes, prodRes] = await Promise.all([
+        getCategories(),
+        getMyProductById(id),
+      ]);
+      setCategories(catRes.data.data);
+      const product = prodRes.data.data;
 
-        setValue("title", product.title, { shouldValidate: true });
-        setValue("shortSummary", product.shortSummary || "", {
-          shouldValidate: true,
-        });
-        setValue("description", product.description, { shouldValidate: true });
-        setValue("categoryId", product.categoryId, { shouldValidate: true });
-        setValue("condition", product.condition, { shouldValidate: true });
-        setValue("brand", product.brand || "", { shouldValidate: true });
-        setValue("modelNumber", product.modelNumber || "", {
-          shouldValidate: true,
-        });
-        setValue(
-          "purchaseDate",
-          product.purchaseDate ? product.purchaseDate.split("T")[0] : "",
-          { shouldValidate: true },
-        );
-        setValue("usageHistory", product.usageHistory || "", {
-          shouldValidate: true,
-        });
-        setValue("reasonForSelling", product.reasonForSelling || "", {
-          shouldValidate: true,
-        });
-        setValue("knownIssues", product.knownIssues || "", {
-          shouldValidate: true,
-        });
-        setValue("startingPrice", product.startingPrice, {
-          shouldValidate: true,
-        });
-        setValue("buyoutPrice", product.buyoutPrice, { shouldValidate: true });
+      setValue("title", product.title, { shouldValidate: true });
+      setValue("shortSummary", product.shortSummary || "", { shouldValidate: true });
+      setValue("description", product.description, { shouldValidate: true });
+      setValue("categoryId", product.categoryId, { shouldValidate: true });
+      setValue("condition", product.condition, { shouldValidate: true });
+      setValue("brand", product.brand || "", { shouldValidate: true });
+      setValue("modelNumber", product.modelNumber || "", { shouldValidate: true });
+      setValue("purchaseDate", product.purchaseDate ? product.purchaseDate.split("T")[0] : "", { shouldValidate: true });
+      setValue("usageHistory", product.usageHistory || "", { shouldValidate: true });
+      setValue("reasonForSelling", product.reasonForSelling || "", { shouldValidate: true });
+      setValue("knownIssues", product.knownIssues || "", { shouldValidate: true });
+      setValue("startingPrice", product.startingPrice, { shouldValidate: true });
+      setValue("buyoutPrice", product.buyoutPrice, { shouldValidate: true });
 
-        setExistingImages(product.images || []);
-        const currentMain = product.images?.find((img) => img.isMain);
-        if (currentMain) {
-          setMainImage({ type: "existing", id: currentMain.id });
-        }
-      } catch {
-        toast.error("Failed to load product details.");
-        navigate("/seller/products");
-      } finally {
-        setLoading(false);
+      setExistingImages(product.images || []);
+      const currentMain = product.images?.find((img) => img.isMain);
+      setMainImage(currentMain ? { type: "existing", id: currentMain.id } : null);
+      if (isRefresh) {
+        setNewImages([]);
+        setImagesToDelete([]);
       }
-    };
-    fetchData();
+    } catch {
+      toast.error("Failed to load product details.");
+      if (!isRefresh) navigate("/seller/products");
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
   }, [id, navigate, setValue]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const onSubmit = async (data) => {
     const activeExistingCount = existingImages.length - imagesToDelete.length;
@@ -397,12 +389,7 @@ export default function EditProduct() {
   };
 
   if (loading) {
-    return (
-      <div className="max-w-4xl mx-auto p-12 text-center text-gray-500">
-        <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
-        Loading product details...
-      </div>
-    );
+    return <AuctionLoader />;
   }
 
   return (
@@ -410,12 +397,15 @@ export default function EditProduct() {
       <PageTitle title="Edit Product" />
       <div className="max-w-4xl mx-auto pb-12">
         <div className="mb-6">
-          <button
-            onClick={() => navigate("/seller/products")}
-            className="inline-flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900 mb-3"
-          >
-            <ArrowLeft className="w-4 h-4" /> Back to My Products
-          </button>
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <button
+              onClick={() => navigate("/seller/products")}
+              className="inline-flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900"
+            >
+              <ArrowLeft className="w-4 h-4" /> Back to My Products
+            </button>
+            <RefreshButton onClick={() => fetchData(true)} loading={refreshing} />
+          </div>
           <h1 className="text-2xl font-bold text-gray-900">Edit Product</h1>
           <p className="text-sm text-gray-500 mt-1">
             Update your draft details. Changes won't affect any active auctions.

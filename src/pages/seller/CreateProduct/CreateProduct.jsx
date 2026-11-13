@@ -1,5 +1,5 @@
 import PageTitle from "../../../components/PageTitle";
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { createProduct } from "../../../services/sellerApi";
@@ -17,6 +17,7 @@ import {
   Star,
   ArrowLeft,
 } from "lucide-react";
+import RefreshButton from "../../../components/RefreshButton";
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -191,6 +192,7 @@ function ProductImageDropzone({ images, setImages, mainIndex, setMainIndex }) {
 export default function CreateProduct() {
   const navigate = useNavigate();
   const [categories, setCategories] = useState([]);
+  const [catLoading, setCatLoading] = useState(false);
   const [images, setImages] = useState([]);
   const [mainImageIndex, setMainImageIndex] = useState(0);
 
@@ -200,22 +202,21 @@ export default function CreateProduct() {
     formState: { errors, isSubmitting },
   } = useForm();
 
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const res = await getCategories();
-        if (mounted) {
-          setCategories(res.data.data);
-        }
-      } catch {
-        toast.error("Failed to load categories.");
-      }
-    })();
-    return () => {
-      mounted = false;
-    };
+  const fetchCategories = useCallback(async (isRefresh = false) => {
+    if (isRefresh) setCatLoading(true);
+    try {
+      const res = await getCategories();
+      setCategories(res.data.data);
+    } catch {
+      toast.error("Failed to load categories.");
+    } finally {
+      if (isRefresh) setCatLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchCategories();
+  }, [fetchCategories]);
 
   const numericFields = ["categoryId", "startingPrice", "buyoutPrice"];
 
@@ -264,12 +265,15 @@ export default function CreateProduct() {
       <PageTitle title="Create Product" />
       <div className="max-w-4xl mx-auto pb-12">
         <div className="mb-6">
-          <button
-            onClick={() => navigate("/seller/products")}
-            className="inline-flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900 mb-3"
-          >
-            <ArrowLeft className="w-4 h-4" /> Back to My Products
-          </button>
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <button
+              onClick={() => navigate("/seller/products")}
+              className="inline-flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900"
+            >
+              <ArrowLeft className="w-4 h-4" /> Back to My Products
+            </button>
+            <RefreshButton onClick={() => fetchCategories(true)} loading={catLoading} label="Refresh categories" />
+          </div>
           <h1 className="text-2xl font-bold text-gray-900">
             Create New Product
           </h1>

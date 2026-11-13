@@ -1,5 +1,5 @@
 import PageTitle from "../../../components/PageTitle";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getBuyerDashboard } from "../../../services/buyerApi";
 import {
@@ -13,32 +13,30 @@ import {
 } from "lucide-react";
 import { Skeleton } from "../../../components/Skeleton";
 import { formatCurrency as formatMoney } from "../../../utils/currency";
+import RefreshButton from "../../../components/RefreshButton";
 
 export default function BuyerDashboard() {
   const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchDashboard = useCallback(async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true); else setLoading(true);
+    try {
+      const res = await getBuyerDashboard();
+      setData(res.data.data);
+    } catch (err) {
+      console.error("Failed to load dashboard", err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
 
   useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const res = await getBuyerDashboard();
-        if (mounted) {
-          setData(res.data.data);
-        }
-      } catch (err) {
-        console.error("Failed to load dashboard", err);
-      } finally {
-        if (mounted) {
-          setLoading(false);
-        }
-      }
-    })();
-    return () => {
-      mounted = false;
-    };
-  }, []);
+    fetchDashboard();
+  }, [fetchDashboard]);
 
   if (loading) {
     return (
@@ -74,12 +72,15 @@ export default function BuyerDashboard() {
               Track your bids, wins, and wallet balance at a glance.
             </p>
           </div>
-          <button
-            onClick={() => navigate("/auctions")}
-            className="inline-flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 text-text-inverse px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors shadow-sm w-full sm:w-auto"
-          >
-            <Search className="w-4 h-4" /> Browse Auctions
-          </button>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <RefreshButton onClick={() => fetchDashboard(true)} loading={refreshing} />
+            <button
+              onClick={() => navigate("/auctions")}
+              className="inline-flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 text-text-inverse px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors shadow-sm flex-1 sm:flex-none"
+            >
+              <Search className="w-4 h-4" /> Browse Auctions
+            </button>
+          </div>
         </div>
 
         {/* STATS GRID */}

@@ -1,5 +1,5 @@
 import PageTitle from "../../../components/PageTitle";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   getPendingProducts,
   getPendingProductById,
@@ -10,12 +10,14 @@ import { toast } from "../../../utils/toast";
 import { imageUrl, handleImageError } from "../../../utils/image";
 import { SkeletonRow, Skeleton } from "../../../components/Skeleton";
 import Pagination from "../../../components/Pagination/Pagination";
+import RefreshButton from "../../../components/RefreshButton";
 
 import ReviewModal from "./ReviewModal/ReviewModal";
 
 export default function AdminProducts() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [zoomImage, setZoomImage] = useState(null);
@@ -25,38 +27,8 @@ export default function AdminProducts() {
   const [pageSize, setPageSize] = useState(20);
   const [totalCount, setTotalCount] = useState(0);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    (async () => {
-      try {
-        const res = await getPendingProducts({
-          page,
-          pageSize,
-          search: searchTerm,
-        });
-        if (cancelled) {
-          return;
-        }
-        setProducts(res.data.data || []);
-        if (typeof res.data.pagination?.totalCount === "number") {
-          setTotalCount(res.data.pagination.totalCount);
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [page, pageSize, searchTerm]);
-
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true); else setLoading(true);
     try {
       const res = await getPendingProducts({
         page,
@@ -69,10 +41,16 @@ export default function AdminProducts() {
       }
     } catch (err) {
       console.error(err);
+      if (isRefresh) toast.error("Failed to load products.");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
-  };
+  }, [page, pageSize, searchTerm]);
+
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
@@ -168,6 +146,7 @@ export default function AdminProducts() {
           </div>
 
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full sm:w-auto">
+            <RefreshButton onClick={() => fetchProducts(true)} loading={refreshing} />
             <div className="relative w-full sm:w-64">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
               <input

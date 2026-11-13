@@ -1,5 +1,5 @@
 import PageTitle from "../../../components/PageTitle";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   getAllAuctions,
   configureAuction,
@@ -21,6 +21,7 @@ import { toast } from "../../../utils/toast";
 import { formatDateTime } from "../../../utils/date";
 import { SkeletonRow } from "../../../components/Skeleton";
 import Pagination from "../../../components/Pagination/Pagination";
+import RefreshButton from "../../../components/RefreshButton";
 
 import ActionModal from "./ActionModal/ActionModal";
 import BidsModal from "./BidsModal/BidsModal";
@@ -28,6 +29,7 @@ import BidsModal from "./BidsModal/BidsModal";
 export default function Auctions() {
   const [auctions, setAuctions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState("NeedsSchedule");
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -44,38 +46,8 @@ export default function Auctions() {
     return () => clearTimeout(t);
   }, [searchTerm]);
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await getAllAuctions({
-          page,
-          pageSize,
-          search: debouncedSearch || undefined,
-          filter: activeTab !== "All" ? activeTab : undefined,
-        });
-        if (cancelled) {
-          return;
-        }
-        setAuctions(res.data.data || []);
-        setTotalCount(res.data.pagination?.totalCount || 0);
-      } catch (err) {
-        console.error(err);
-        if (!cancelled) {
-          toast.error("Failed to load auctions.");
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [page, pageSize, debouncedSearch, activeTab]);
-
-  const fetchAuctions = async () => {
+  const fetchAuctions = useCallback(async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true); else setLoading(true);
     try {
       const res = await getAllAuctions({
         page,
@@ -90,8 +62,13 @@ export default function Auctions() {
       toast.error("Failed to load auctions.");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
-  };
+  }, [page, pageSize, debouncedSearch, activeTab]);
+
+  useEffect(() => {
+    fetchAuctions();
+  }, [fetchAuctions]);
 
   const fetchBids = async (auctionId) => {
     setBidsLoading(true);
@@ -186,15 +163,18 @@ export default function Auctions() {
             </p>
           </div>
 
-          <div className="relative w-full sm:w-auto">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
-            <input
-              type="text"
-              placeholder="Search all auctions..."
-              value={searchTerm}
-              onChange={handleSearchChange}
-              className="pl-9 pr-4 py-2 border border-border-main rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none w-full sm:w-72 bg-surface"
-            />
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <RefreshButton onClick={() => fetchAuctions(true)} loading={refreshing} />
+            <div className="relative flex-1 sm:w-auto">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+              <input
+                type="text"
+                placeholder="Search all auctions..."
+                value={searchTerm}
+                onChange={handleSearchChange}
+                className="pl-9 pr-4 py-2 border border-border-main rounded-lg text-sm focus:ring-2 focus:ring-primary-500 outline-none w-full sm:w-72 bg-surface"
+              />
+            </div>
           </div>
         </div>
 

@@ -1,5 +1,5 @@
 import PageTitle from "../../../components/PageTitle";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { getAllSales } from "../../../services/adminApi";
 import {
   ShoppingCart,
@@ -15,10 +15,12 @@ import { SkeletonRow } from "../../../components/Skeleton";
 import { imageUrl, handleImageError } from "../../../utils/image";
 import { toast } from "../../../utils/toast";
 import Pagination from "../../../components/Pagination/Pagination";
+import RefreshButton from "../../../components/RefreshButton";
 
 export default function AdminSales() {
   const [sales, setSales] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
@@ -38,51 +40,44 @@ export default function AdminSales() {
     return () => clearTimeout(t);
   }, [searchTerm]);
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await getAllSales({
-          page,
-          pageSize,
-          search: debouncedSearch || undefined,
-          filter:
-            filterStatus !== "All"
-              ? filterStatus === "Awaiting Payment"
-                ? "Awaiting Payment"
-                : filterStatus === "In Progress"
-                  ? "InProgress"
-                  : filterStatus
-              : undefined,
-          deliveryStatus: deliveryFilter !== "All" ? deliveryFilter : undefined,
-        });
-        if (cancelled) {
-          return;
-        }
-        const data = res.data.data || {};
-        setSales(data.items || []);
-        setTotalCount(res.data.pagination?.totalCount || 0);
-        setStats({
-          totalSalesCount: data.totalSalesCount ?? 0,
-          awaitingPaymentCount: data.awaitingPaymentCount ?? 0,
-          activeDeliveriesCount: data.activeDeliveriesCount ?? 0,
-          completedCount: data.completedCount ?? 0,
-        });
-      } catch (err) {
-        console.error(err);
-        if (!cancelled) {
-          toast.error("Failed to load sales.");
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
+  const fetchSales = useCallback(async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true); else setLoading(true);
+    try {
+      const res = await getAllSales({
+        page,
+        pageSize,
+        search: debouncedSearch || undefined,
+        filter:
+          filterStatus !== "All"
+            ? filterStatus === "Awaiting Payment"
+              ? "Awaiting Payment"
+              : filterStatus === "In Progress"
+                ? "InProgress"
+                : filterStatus
+            : undefined,
+        deliveryStatus: deliveryFilter !== "All" ? deliveryFilter : undefined,
+      });
+      const data = res.data.data || {};
+      setSales(data.items || []);
+      setTotalCount(res.data.pagination?.totalCount || 0);
+      setStats({
+        totalSalesCount: data.totalSalesCount ?? 0,
+        awaitingPaymentCount: data.awaitingPaymentCount ?? 0,
+        activeDeliveriesCount: data.activeDeliveriesCount ?? 0,
+        completedCount: data.completedCount ?? 0,
+      });
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to load sales.");
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
   }, [page, pageSize, debouncedSearch, filterStatus, deliveryFilter]);
+
+  useEffect(() => {
+    fetchSales();
+  }, [fetchSales]);
 
   const goToPage = (p) => {
     if (p === page) {
@@ -143,6 +138,7 @@ export default function AdminSales() {
               lifecycles.
             </p>
           </div>
+          <RefreshButton onClick={() => fetchSales(true)} loading={refreshing} className="self-start sm:self-auto" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">

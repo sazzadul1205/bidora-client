@@ -34,7 +34,11 @@ export const deleteProduct = (id) =>
   authApi.delete(`/product/${id}`, getAuthConfig());
 
 export const resetForReAuction = (id) =>
-  authApi.post(`/auction/product/${id}/reset-for-reauction`, {}, getAuthConfig());
+  authApi.post(
+    `/auction/product/${id}/reset-for-reauction`,
+    {},
+    getAuthConfig(),
+  );
 
 // Auctions
 export const getAuctionByIdForSeller = (id) =>
@@ -71,6 +75,21 @@ export const submitProfileVerification = () =>
 // Re-export from authApi for convenience
 export { changePassword } from "./authApi";
 
+// Dispute Messaging
+export const getDisputeById = (id) =>
+  authApi.get(`/dispute/${id}`, getAuthConfig());
+
+export const getDisputeMessages = (id) =>
+  authApi.get(`/dispute/${id}/messages`, getAuthConfig());
+
+export const sendDisputeMessage = (id, formData) =>
+  authApi.post(`/dispute/${id}/messages`, formData, {
+    headers: {
+      ...getAuthConfig().headers,
+      "Content-Type": "multipart/form-data",
+    },
+  });
+
 export default {
   getSellerDashboard,
   getMyProducts,
@@ -87,4 +106,7 @@ export default {
   reportNonDelivery,
   createDisputeImage,
   submitProfileVerification,
+  getDisputeById,
+  getDisputeMessages,
+  sendDisputeMessage,
 };

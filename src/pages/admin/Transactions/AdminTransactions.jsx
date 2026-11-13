@@ -1,5 +1,5 @@
 import PageTitle from "../../../components/PageTitle";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { getAllTransactions, getAllReservations } from "../../../services/adminApi";
 import { formatCurrency as formatMoney } from "../../../utils/currency";
 import {
@@ -9,6 +9,7 @@ import { SkeletonRow } from "../../../components/Skeleton";
 import { toast } from "../../../utils/toast";
 import { formatDateTime } from "../../../utils/date";
 import Pagination from "../../../components/Pagination/Pagination";
+import RefreshButton from "../../../components/RefreshButton";
 
 export default function AdminTransactions() {
   const [activeTab, setActiveTab] = useState("transactions");
@@ -36,6 +37,7 @@ export default function AdminTransactions() {
   });
 
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [resTotal, setResTotal] = useState(0);
 
   useEffect(() => {
@@ -48,52 +50,53 @@ export default function AdminTransactions() {
     return () => clearTimeout(t);
   }, [resSearchTerm]);
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const [txRes, resRes] = await Promise.all([
-          getAllTransactions({
-            page: txPage,
-            pageSize: txPageSize,
-            search: txDebouncedSearch || undefined,
-            filter: txTypeFilter !== "All" ? txTypeFilter : undefined,
-          }),
-          getAllReservations({
-            page: resPage,
-            pageSize: resPageSize,
-            search: resDebouncedSearch || undefined,
-          }),
-        ]);
-        if (cancelled) {return;}
+  const fetchLedger = useCallback(async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true); else setLoading(true);
+    try {
+      const [txRes, resRes] = await Promise.all([
+        getAllTransactions({
+          page: txPage,
+          pageSize: txPageSize,
+          search: txDebouncedSearch || undefined,
+          filter: txTypeFilter !== "All" ? txTypeFilter : undefined,
+        }),
+        getAllReservations({
+          page: resPage,
+          pageSize: resPageSize,
+          search: resDebouncedSearch || undefined,
+        }),
+      ]);
 
-        const txData = txRes.data.data || {};
-        setTransactions(txData.items || []);
-        setTxTotal(txRes.data.pagination?.totalCount || 0);
-        setStats({
-          totalVolume: txData.totalVolume ?? 0,
-          totalEscrow: txData.totalEscrow ?? 0,
-          totalBuyerDeposits: txData.totalBuyerDeposits ?? 0,
-          totalSellerDeposits: txData.totalSellerDeposits ?? 0,
-          totalActiveReservations: txData.totalActiveReservations ?? 0,
-        });
+      const txData = txRes.data.data || {};
+      setTransactions(txData.items || []);
+      setTxTotal(txRes.data.pagination?.totalCount || 0);
+      setStats({
+        totalVolume: txData.totalVolume ?? 0,
+        totalEscrow: txData.totalEscrow ?? 0,
+        totalBuyerDeposits: txData.totalBuyerDeposits ?? 0,
+        totalSellerDeposits: txData.totalSellerDeposits ?? 0,
+        totalActiveReservations: txData.totalActiveReservations ?? 0,
+      });
 
-        const resData = resRes.data.data || [];
-        setReservations(Array.isArray(resData) ? resData : resData.items || []);
-        if (typeof resRes.data.pagination?.totalCount === "number") {
-          setResTotal(resRes.data.pagination.totalCount);
-        } else if (Array.isArray(resData)) {
-          setResTotal(resData.length);
-        }
-      } catch (err) {
-        console.error(err);
-        if (!cancelled) {toast.error("Failed to load financial ledger.");}
-      } finally {
-        if (!cancelled) {setLoading(false);}
+      const resData = resRes.data.data || [];
+      setReservations(Array.isArray(resData) ? resData : resData.items || []);
+      if (typeof resRes.data.pagination?.totalCount === "number") {
+        setResTotal(resRes.data.pagination.totalCount);
+      } else if (Array.isArray(resData)) {
+        setResTotal(resData.length);
       }
-    })();
-    return () => { cancelled = true; };
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to load financial ledger.");
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
   }, [txPage, txPageSize, txDebouncedSearch, txTypeFilter, resPage, resPageSize, resDebouncedSearch]);
+
+  useEffect(() => {
+    fetchLedger();
+  }, [fetchLedger]);
 
   const goToTxPage = (p) => { if (p === txPage) {return;} setLoading(true); setTxPage(p); };
   const changeTxPageSize = (s) => { if (s === txPageSize) {return;} setLoading(true); setTxPageSize(s); setTxPage(1); };
@@ -126,6 +129,7 @@ export default function AdminTransactions() {
             </h1>
             <p className="text-sm text-text-muted mt-1">Monitor global transactions, escrow funds, and active reservations.</p>
           </div>
+          <RefreshButton onClick={() => fetchLedger(true)} loading={refreshing} className="self-start sm:self-auto" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">

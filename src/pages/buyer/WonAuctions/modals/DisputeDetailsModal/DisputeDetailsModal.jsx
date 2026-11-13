@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   Scale,
   X,
@@ -8,8 +9,19 @@ import {
   DollarSign,
 } from "lucide-react";
 import { imageUrl, handleImageError } from "../../../../../utils/image";
+import { getDisputeById } from "../../../../../services/buyerApi";
+import MessageThread from "../../../../../components/DisputeMessageThread/MessageThread";
 
 export default function DisputeDetailsModal({ dispute, onClose }) {
+  const [details, setDetails] = useState(null);
+
+  useEffect(() => {
+    if (!dispute) { return; }
+    getDisputeById(dispute.id)
+      .then((res) => setDetails(res.data.data))
+      .catch(console.error);
+  }, [dispute]);
+
   if (!dispute) {
     return null;
   }
@@ -27,8 +39,8 @@ export default function DisputeDetailsModal({ dispute, onClose }) {
     });
   };
 
-  const isPending =
-    dispute.status === "UnderReview" || dispute.status === "Open";
+  const currentStatus = details?.status || dispute.status;
+  const isPending = currentStatus === "UnderReview" || currentStatus === "Open";
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-3 sm:p-4 z-50 backdrop-blur-sm">
@@ -45,7 +57,7 @@ export default function DisputeDetailsModal({ dispute, onClose }) {
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 sm:p-2 text-neutral-400 hover:text-text-main hover:bg-neutral-200 rounded-lg transition-colors shrink-0"
+            className="p-1.5 sm:p-2 text-neutral-400 hover:text-text-main hover:bg-neutral-200 rounded-lg shrink-0"
           >
             <X className="w-5 h-5" />
           </button>
@@ -56,10 +68,11 @@ export default function DisputeDetailsModal({ dispute, onClose }) {
             <div className="bg-warning-50 border border-warning-200 text-warning-800 p-3 sm:p-4 rounded-xl flex items-start gap-3">
               <ShieldAlert className="w-5 h-5 shrink-0 mt-0.5" />
               <div>
-                <h3 className="text-sm font-bold">Pending Admin Review</h3>
+                <h3 className="text-sm font-bold">{currentStatus === "Open" ? "Dispute Open" : "Pending Admin Review"}</h3>
                 <p className="text-sm mt-1">
-                  An administrator is currently reviewing this dispute. You will
-                  be notified once a decision is made.
+                  {currentStatus === "Open"
+                    ? "Your dispute has been submitted. An administrator will start reviewing it soon."
+                    : "An administrator is currently reviewing this dispute. You will be notified once a decision is made."}
                 </p>
               </div>
             </div>
@@ -67,7 +80,7 @@ export default function DisputeDetailsModal({ dispute, onClose }) {
             <div className="bg-danger-50 border border-danger-200 text-danger-800 p-3 sm:p-4 rounded-xl flex items-start gap-3">
               <Gavel className="w-5 h-5 shrink-0 mt-0.5" />
               <div>
-                <h3 className="text-sm font-bold">Dispute Resolved</h3>
+                <h3 className="text-sm font-bold">Dispute {currentStatus === "Resolved" ? "Resolved" : "Closed"}</h3>
                 <p className="text-sm mt-1">
                   The admin has reviewed this case and made a final decision.
                 </p>
@@ -104,8 +117,7 @@ export default function DisputeDetailsModal({ dispute, onClose }) {
               </div>
             </div>
           )}
-
-          {dispute.status === "Resolved" && dispute.adminDecision && (
+          {(details?.status || dispute.status) === "Resolved" && (details?.adminDecision || dispute.adminDecision) && (
             <div>
               <h3 className="text-sm font-bold text-text-main flex items-center gap-2 mb-2 sm:mb-3">
                 <ShieldAlert className="w-4 h-4 text-danger-600" /> Admin
@@ -113,47 +125,49 @@ export default function DisputeDetailsModal({ dispute, onClose }) {
               </h3>
               <div className="bg-surface border-2 border-danger-200 p-3 sm:p-4 rounded-xl shadow-sm">
                 <p className="text-sm text-text-main leading-relaxed font-medium wrap-break-word">
-                  "{dispute.adminDecision}"
+                  "{details?.adminDecision || dispute.adminDecision}"
                 </p>
               </div>
             </div>
           )}
-
-          {dispute.penalty && (
-            <div className="bg-danger-50/50 rounded-xl border border-danger-100 p-3 sm:p-5 mt-3 sm:mt-4">
-              <h3 className="text-sm font-bold text-danger-900 flex items-center gap-2 mb-2 sm:mb-3">
-                <DollarSign className="w-4 h-4 text-danger-600" /> Penalty
-                Breakdown
-              </h3>
-              <div className="space-y-2 sm:space-y-3 text-xs sm:text-sm">
-                <div className="flex justify-between items-center border-b border-danger-100 pb-2 gap-2">
-                  <span className="text-text-muted">Total Forfeited:</span>
-                  <span className="font-bold text-text-main whitespace-nowrap">
-                    ৳{dispute.penalty.totalAmount?.toFixed(2)}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center border-b border-danger-100 pb-2 gap-2">
-                  <span className="text-text-muted">
-                    To Opposite Party (80%):
-                  </span>
-                  <span className="font-bold text-success-700 whitespace-nowrap">
-                    +৳{dispute.penalty.oppositePartyAmount?.toFixed(2)}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center gap-2">
-                  <span className="text-text-muted">Platform Fee (20%):</span>
-                  <span className="font-bold text-neutral-500 whitespace-nowrap">
-                    ৳{dispute.penalty.platformAmount?.toFixed(2)}
-                  </span>
+          {(details?.penalty || dispute.penalty) && (() => {
+            const p = details?.penalty || dispute.penalty;
+            return (
+              <div className="bg-danger-50/50 rounded-xl border border-danger-100 p-3 sm:p-5 mt-3 sm:mt-4">
+                <h3 className="text-sm font-bold text-danger-900 flex items-center gap-2 mb-2 sm:mb-3">
+                  <DollarSign className="w-4 h-4 text-danger-600" /> Penalty Breakdown
+                </h3>
+                <div className="space-y-2 sm:space-y-3 text-xs sm:text-sm">
+                  <div className="flex justify-between items-center border-b border-danger-100 pb-2 gap-2">
+                    <span className="text-text-muted">Total Forfeited:</span>
+                    <span className="font-bold text-text-main whitespace-nowrap">৳{p.totalAmount?.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between items-center border-b border-danger-100 pb-2 gap-2">
+                    <span className="text-text-muted">To Opposite Party (80%):</span>
+                    <span className="font-bold text-success-700 whitespace-nowrap">+৳{p.oppositePartyAmount?.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between items-center gap-2">
+                    <span className="text-text-muted">Platform Fee (20%):</span>
+                    <span className="font-bold text-neutral-500 whitespace-nowrap">৳{p.platformAmount?.toFixed(2)}</span>
+                  </div>
                 </div>
               </div>
-            </div>
+            );
+          })()}
+
+          {/* NEW MESSAGE THREAD */}
+          {details && (
+            <MessageThread
+              disputeId={dispute.id}
+              canSend={details.canSendMessages}
+              status={details.status}
+            />
           )}
         </div>
 
         <div className="px-4 sm:px-6 py-3 sm:py-4 border-t border-border-main bg-neutral-50/50 flex justify-between items-center sticky bottom-0 z-10 rounded-b-2xl gap-2">
           <div>
-            {dispute.status === "Resolved" && (
+            {(details?.status || dispute.status) === "Resolved" && (
               <button
                 disabled
                 className="text-[10px] sm:text-xs font-semibold text-neutral-400 bg-neutral-100 px-2.5 sm:px-3 py-1.5 rounded border border-border-main cursor-not-allowed flex items-center gap-1.5"

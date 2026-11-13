@@ -1,5 +1,5 @@
 import PageTitle from "../../../components/PageTitle";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { getMyBids } from "../../../services/buyerApi";
 import {
@@ -14,10 +14,12 @@ import { SkeletonRow } from "../../../components/Skeleton";
 import { imageUrl, handleImageError } from "../../../utils/image";
 import { formatDateTime } from "../../../utils/date";
 import Pagination from "../../../components/Pagination/Pagination";
+import RefreshButton from "../../../components/RefreshButton";
 
 export default function MyBids() {
   const [bids, setBids] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [activeTab, setActiveTab] = useState("All");
@@ -33,56 +35,48 @@ export default function MyBids() {
     return () => clearTimeout(t);
   }, [searchTerm]);
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await getMyBids({
-          page,
-          pageSize,
-          search: debouncedSearch || undefined,
-          filter: activeTab !== "All" ? activeTab : undefined,
-        });
-        if (cancelled) {
-          return;
-        }
-        setBids(res.data.data?.items || []);
-        setTotalCount(res.data.pagination?.totalCount || 0);
-        setTotalBidsCount(res.data.data?.totalBidsCount || 0);
-        setServerActiveBids(res.data.data?.activeBidsCount || 0);
-        setServerHighestBids(res.data.data?.highestBidsCount || 0);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
+  const fetchBids = useCallback(async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true); else setLoading(true);
+    try {
+      const res = await getMyBids({
+        page,
+        pageSize,
+        search: debouncedSearch || undefined,
+        filter: activeTab !== "All" ? activeTab : undefined,
+      });
+      setBids(res.data.data?.items || []);
+      setTotalCount(res.data.pagination?.totalCount || 0);
+      setTotalBidsCount(res.data.data?.totalBidsCount || 0);
+      setServerActiveBids(res.data.data?.activeBidsCount || 0);
+      setServerHighestBids(res.data.data?.highestBidsCount || 0);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
   }, [page, pageSize, debouncedSearch, activeTab]);
+
+  useEffect(() => {
+    fetchBids();
+  }, [fetchBids]);
 
   const goToPage = (p) => {
     if (p === page) {
       return;
     }
-    setLoading(true);
     setPage(p);
   };
   const changePageSize = (s) => {
     if (s === pageSize) {
       return;
     }
-    setLoading(true);
     setPageSize(s);
     setPage(1);
   };
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
     setPage(1);
-    setLoading(true);
   };
   const handleTabChange = (tab) => {
     if (tab === activeTab) {
@@ -90,7 +84,6 @@ export default function MyBids() {
     }
     setActiveTab(tab);
     setPage(1);
-    setLoading(true);
   };
 
   return (
@@ -108,12 +101,15 @@ export default function MyBids() {
             </p>
           </div>
 
-          <Link
-            to="/auctions"
-            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-text-inverse text-sm font-semibold rounded-lg transition-colors shadow-sm w-full sm:w-auto"
-          >
-            Browse Auctions <ArrowRight className="w-4 h-4" />
-          </Link>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <RefreshButton onClick={() => fetchBids(true)} loading={refreshing} />
+            <Link
+              to="/auctions"
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-text-inverse text-sm font-semibold rounded-lg transition-colors shadow-sm flex-1 sm:flex-none"
+            >
+              Browse Auctions <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-8">
