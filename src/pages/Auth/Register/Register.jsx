@@ -3,8 +3,9 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { ShoppingBag, Store } from "lucide-react";
-import { register as registerUser } from "../../../services/authApi";
+import { register as registerUser, googleLogin } from "../../../services/authApi";
 import { getErrorMessage } from "../../../utils/apiError";
+import { GoogleLogin } from "@react-oauth/google";
 
 function Register() {
   const navigate = useNavigate();
@@ -111,11 +112,10 @@ function Register() {
                     <button
                       type="button"
                       onClick={() => setRole("buyer")}
-                      className={`flex flex-col items-start p-3 rounded-lg border text-left transition-colors ${
-                        role === "buyer"
+                      className={`flex flex-col items-start p-3 rounded-lg border text-left transition-colors ${role === "buyer"
                           ? "border-primary-600 bg-primary-50/50"
                           : "border-border-main hover:border-neutral-300 bg-surface"
-                      }`}
+                        }`}
                     >
                       <div className="flex items-center justify-between w-full mb-1">
                         <div className="flex items-center gap-2">
@@ -144,11 +144,10 @@ function Register() {
                     <button
                       type="button"
                       onClick={() => setRole("seller")}
-                      className={`flex flex-col items-start p-3 rounded-lg border text-left transition-colors ${
-                        role === "seller"
+                      className={`flex flex-col items-start p-3 rounded-lg border text-left transition-colors ${role === "seller"
                           ? "border-primary-600 bg-primary-50/50"
                           : "border-border-main hover:border-neutral-300 bg-surface"
-                      }`}
+                        }`}
                     >
                       <div className="flex items-center justify-between w-full mb-1">
                         <div className="flex items-center gap-2">
@@ -312,6 +311,33 @@ function Register() {
                     : `Create ${role} account`}
                 </button>
               </form>
+
+              <div className="mt-6">
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-border-main" />
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="bg-surface px-2 text-text-muted">Or continue with</span>
+                  </div>
+                </div>
+
+                <div className="mt-6 flex justify-center">
+                  <GoogleLogin
+                    onSuccess={async (credentialResponse) => {
+                      try {
+                        await googleLogin({ idToken: credentialResponse.credential });
+                        navigate("/");
+                      } catch (err) {
+                        setServerError(getErrorMessage(err, "Google login failed."));
+                      }
+                    }}
+                    onError={() => {
+                      setServerError("Google Login Failed.");
+                    }}
+                  />
+                </div>
+              </div>
 
               <div className="mt-6 text-center text-sm text-text-muted">
                 Already registered?{" "}

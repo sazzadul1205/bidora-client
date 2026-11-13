@@ -66,17 +66,29 @@ export const register = (userData) => {
   return authApi.post("/auth/register", userData);
 };
 
-// Logs in, saves the JWT token, roles, AND expiration (in minutes) to localStorage.
-export const login = async (credentials) => {
-  const response = await authApi.post("/auth/login", credentials);
-  const data = response.data?.data || {};
-  localStorage.setItem("token", data.token);
+const persistSession = (data = {}) => {
+  if (data.token) {
+    localStorage.setItem("token", data.token);
+  }
   if (data.roles) {
     localStorage.setItem("roles", JSON.stringify(data.roles));
   }
   if (data.expiresInMinutes) {
     localStorage.setItem("tokenExpiresInMinutes", data.expiresInMinutes);
   }
+};
+
+// Logs in, saves the JWT token, roles, AND expiration (in minutes) to localStorage.
+export const login = async (credentials) => {
+  const response = await authApi.post("/auth/login", credentials);
+  persistSession(response.data?.data || {});
+  return response;
+};
+
+// Logs in with a Google ID token and persists the returned session.
+export const googleLogin = async (payload) => {
+  const response = await authApi.post("/auth/google-login", payload);
+  persistSession(response.data?.data || {});
   return response;
 };
 
