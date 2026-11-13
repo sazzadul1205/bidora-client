@@ -22,6 +22,30 @@ export default defineConfig({
     },
   },
   build: {
+    // Keep this to control when the warning appears
     chunkSizeWarningLimit: 1024,
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          groups: [
+            {
+              name: "vendor-react",
+              test: /node_modules[\\/]react/,
+              priority: 20,
+            },
+            {
+              name: "vendor-ui",
+              test: /node_modules[\\/](sweetalert2|react-tooltip|lucide-react)/,
+              priority: 15,
+            },
+            {
+              name: "vendor-other",
+              test: /node_modules/,
+              priority: 10,
+            },
+          ],
+        },
+      },
+    },
   },
 });
