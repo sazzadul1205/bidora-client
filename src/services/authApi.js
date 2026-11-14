@@ -106,9 +106,34 @@ export const updateProfile = (profileData, frontNidFile, backNidFile) => {
   return authApi.put("/auth/me", formData, { headers });
 };
 
-// Changes the user's password
+// Changes the user's password (authenticated)
 export const changePassword = (passwordData) => {
   return authApi.post("/auth/change-password", passwordData, getAuthConfig());
+};
+
+// Sends a password reset link to the given email
+export const forgotPassword = (data) => {
+  return authApi.post("/auth/forgot-password", data);
+};
+
+// Resets the password using the emailed token
+export const resetPassword = (data) => {
+  return authApi.post("/auth/reset-password", data);
+};
+
+// Confirms the user's email address using the emailed token
+export const confirmEmail = (data) => {
+  return authApi.post("/auth/confirm-email", data);
+};
+
+// Resends the email confirmation link
+export const resendConfirmation = (data) => {
+  return authApi.post("/auth/resend-confirmation", data);
+};
+
+// Basic auth check for the current session/token
+export const checkAuth = () => {
+  return authApi.get("/auth/check", getAuthConfig());
 };
 
 // Clears the token, roles, and expiration from the browser

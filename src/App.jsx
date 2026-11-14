@@ -3,6 +3,9 @@ import PublicLayout from "./Layouts/PublicLayout/PublicLayout";
 import AuthenticatedLayout from "./Layouts/AuthenticatedLayout/AuthenticatedLayout";
 import Login from "./pages/Auth/Login/Login";
 import Register from "./pages/Auth/Register/Register";
+import ForgotPassword from "./pages/Auth/ForgotPassword/ForgotPassword";
+import ResetPassword from "./pages/Auth/ResetPassword/ResetPassword";
+import ConfirmEmail from "./pages/Auth/ConfirmEmail/ConfirmEmail";
 import Products from "./pages/Frontend/Products/Products";
 import Auctions from "./pages/Frontend/Auctions/Auctions";
 import AuctionDetails from "./pages/Frontend/AuctionDetails/AuctionDetails";
@@ -79,6 +82,9 @@ function App() {
               </GuestGuard>
             }
           />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/confirm-email" element={<ConfirmEmail />} />
         </Route>
 
         {/* Unauthorized page — full page, no layout */}
