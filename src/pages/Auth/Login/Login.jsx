@@ -134,6 +134,7 @@ function Login() {
                   </label>
                   <input
                     type="email"
+                    autoComplete="email"
                     placeholder="nadia.rahman@email.com"
                     className={`w-full px-3 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm ${errors.email ? "border-danger-500" : "border-border-main"}`}
                     {...register("email", {
@@ -157,6 +158,7 @@ function Login() {
                   </label>
                   <input
                     type="password"
+                    autoComplete="current-password"
                     placeholder="••••••••••••"
                     className={`w-full px-3 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm ${errors.password ? "border-danger-500" : "border-border-main"}`}
                     {...register("password", {

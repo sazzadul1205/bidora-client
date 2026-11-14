@@ -181,6 +181,7 @@ function Register() {
                   </label>
                   <input
                     type="text"
+                    autoComplete="name"
                     placeholder="Enter your full name"
                     className={`w-full px-3 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm ${errors.fullName ? "border-danger-500" : "border-border-main"}`}
                     {...register("fullName", {
@@ -200,6 +201,7 @@ function Register() {
                   </label>
                   <input
                     type="email"
+                    autoComplete="email"
                     placeholder="Enter your email address"
                     className={`w-full px-3 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm ${errors.email ? "border-danger-500" : "border-border-main"}`}
                     {...register("email", {
@@ -223,6 +225,7 @@ function Register() {
                   </label>
                   <input
                     type="password"
+                    autoComplete="new-password"
                     placeholder="Create a password"
                     className={`w-full px-3 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm mb-1 ${errors.password ? "border-danger-500" : "border-border-main"}`}
                     {...register("password", {
@@ -251,6 +254,7 @@ function Register() {
                   </label>
                   <input
                     type="password"
+                    autoComplete="new-password"
                     placeholder="Re-enter your password"
                     className={`w-full px-3 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm ${errors.confirmPassword ? "border-danger-500" : "border-border-main"}`}
                     {...register("confirmPassword", {

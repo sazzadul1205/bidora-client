@@ -5,10 +5,10 @@ export const imageUrl = (path) => {
   if (!path) {return "";}
   if (path.startsWith("http")) {return path;}
 
-  // Get the base URL from .env, or fallback to the hardcoded backend port
-  let base = import.meta.env.VITE_API_BASE_URL || "http://localhost:5102/api";
+  // Get the base URL from .env, or default to /api (works with Vite dev proxy and avoids mixed content).
+  let base = import.meta.env.VITE_API_BASE_URL || "/api";
 
-  // Remove "/api" from the end if it exists
+  // Remove "/api" from the end if it exists to get the server origin/root for static files.
   base = base.replace(/\/api\/?$/, "");
 
   // Ensure there is no double slash
