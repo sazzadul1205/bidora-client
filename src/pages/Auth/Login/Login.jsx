@@ -3,24 +3,32 @@ import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { TrendingUp, Package, ShieldCheck, CheckCircle2 } from "lucide-react";
-import { login, getCurrentUser } from "../../../services/authApi";
+import { login, getCurrentUser, resendConfirmation } from "../../../services/authApi";
 import { getErrorMessage } from "../../../utils/apiError";
+import { toast } from "../../../utils/toast";
 
 function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const [serverError, setServerError] = useState("");
+  const [needsConfirmation, setNeedsConfirmation] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState("");
+  const [resending, setResending] = useState(false);
+  const [resendMsg, setResendMsg] = useState("");
+  const [resendLink, setResendLink] = useState("");
 
   const successMessage = location.state?.message;
 
   const {
     register,
     handleSubmit,
+    getValues,
     formState: { errors, isSubmitting },
   } = useForm();
 
   const onSubmit = async (data) => {
     setServerError("");
+    setNeedsConfirmation(false);
     try {
       await login(data);
       const userRes = await getCurrentUser();
@@ -36,9 +44,36 @@ function Login() {
         navigate("/");
       }
     } catch (err) {
-      setServerError(
-        getErrorMessage(err, "Invalid email or password. Please try again."),
-      );
+      const msg = getErrorMessage(err, "Invalid email or password. Please try again.");
+      setServerError(msg);
+      const requires = err?.response?.data?.data?.requiresEmailConfirmation;
+      if (requires) {
+        setNeedsConfirmation(true);
+        setPendingEmail(err?.response?.data?.data?.email || getValues("email") || data.email);
+      }
+    }
+  };
+
+  const handleResend = async () => {
+    if (!pendingEmail) {
+      return;
+    }
+    setResending(true);
+    setResendMsg("");
+    setResendLink("");
+    try {
+      const res = await resendConfirmation({ email: pendingEmail });
+      const link = res?.data?.data?.confirmLink || "";
+      if (link) {
+        setResendMsg(res?.data?.message || "Confirmation link generated.");
+        setResendLink(link);
+      } else {
+        toast.success(res?.data?.message || "If the email is registered and unconfirmed, a confirmation link has been sent.");
+      }
+    } catch (err) {
+      toast.errorFrom(err, "Failed to resend confirmation email.");
+    } finally {
+      setResending(false);
     }
   };
 
@@ -122,7 +157,27 @@ function Login() {
 
               {serverError && (
                 <div className="mb-4 p-3 bg-danger-50 text-danger-700 text-xs sm:text-sm rounded-lg border border-danger-100 wrap-break-word">
-                  {serverError}
+                  <div>
+                    <p>{serverError}</p>
+                    {needsConfirmation && (
+                      <div className="mt-2 space-y-1">
+                        <button
+                          type="button"
+                          onClick={handleResend}
+                          disabled={resending}
+                          className="text-primary-700 font-medium hover:underline disabled:opacity-70"
+                        >
+                          {resending ? "Sending..." : "Resend confirmation email"}
+                        </button>
+                        {resendMsg && <p className="text-xs">{resendMsg}</p>}
+                        {resendLink && (
+                          <a href={resendLink} className="text-xs text-primary-700 font-medium hover:underline break-all block">
+                            Confirm email now (development link)
+                          </a>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
 
@@ -133,6 +188,7 @@ function Login() {
                   </label>
                   <input
                     type="email"
+                    autoComplete="email"
                     placeholder="nadia.rahman@email.com"
                     className={`w-full px-3 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm ${errors.email ? "border-danger-500" : "border-border-main"}`}
                     {...register("email", {
@@ -151,11 +207,17 @@ function Login() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-text-main mb-1">
-                    Password
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-sm font-medium text-text-main">
+                      Password
+                    </label>
+                    <Link to="/forgot-password" className="text-xs text-primary-600 hover:underline">
+                      Forgot password?
+                    </Link>
+                  </div>
                   <input
                     type="password"
+                    autoComplete="current-password"
                     placeholder="••••••••••••"
                     className={`w-full px-3 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm ${errors.password ? "border-danger-500" : "border-border-main"}`}
                     {...register("password", {

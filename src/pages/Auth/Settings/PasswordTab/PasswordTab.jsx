@@ -71,8 +71,8 @@ export default function PasswordTab() {
           {...register("newPassword", {
             required: "New password is required.",
             minLength: {
-              value: 6,
-              message: "Password must be at least 6 characters.",
+              value: 8,
+              message: "Password must be at least 8 characters.",
             },
           })}
           className={`w-full rounded-lg border px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary-500 ${errors.newPassword ? "border-danger-500" : "border-border-main"}`}

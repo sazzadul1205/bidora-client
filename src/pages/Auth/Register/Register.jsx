@@ -1,4 +1,4 @@
-import PageTitle from "../../../components/PageTitle";
+﻿import PageTitle from "../../../components/PageTitle";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -27,12 +27,24 @@ function Register() {
         password: data.password,
         role: backendRole,
       });
-      navigate("/login", {
+      navigate("/confirm-email", {
         state: {
-          message: "Registration successful! Please log in to continue.",
+          email: data.email,
+          pending: true,
         },
       });
     } catch (err) {
+      const responseData = err?.response?.data?.data;
+      if (responseData?.requiresEmailConfirmation && responseData?.emailSent === false) {
+        navigate("/confirm-email", {
+          state: {
+            email: responseData.email || data.email,
+            pending: true,
+            emailSent: false,
+          },
+        });
+        return;
+      }
       setServerError(
         getErrorMessage(err, "Registration failed. Please check your details and try again."),
       );
@@ -44,7 +56,6 @@ function Register() {
       <PageTitle title="Register" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-6 sm:py-8 md:py-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-16 items-start lg:items-center">
-          {/* Left Column - Marketing (hidden below lg) */}
           <div className="hidden lg:block max-w-lg">
             <p className="text-primary-600 font-semibold text-xs tracking-wider uppercase mb-4">
               Join the marketplace
@@ -58,10 +69,9 @@ function Register() {
               Create an account to bid on your next find or give your products a
               new home.
             </p>
-
             <div className="bg-neutral-50 border border-border-main rounded-xl p-6 mb-8">
               <h3 className="text-sm font-semibold text-text-main mb-4">
-                Choose how you'll use Bidora
+                Choose how you&apos;ll use Bidora
               </h3>
               <p className="text-sm text-text-muted mb-3 leading-relaxed">
                 <strong className="text-neutral-700 font-medium">Buyers</strong>{" "}
@@ -73,26 +83,19 @@ function Register() {
                 arrange handover directly.
               </p>
             </div>
-
             <div className="text-sm text-text-muted">
               Already have an account?{" "}
-              <Link
-                to="/login"
-                className="text-primary-600 font-medium hover:underline"
-              >
+              <Link to="/login" className="text-primary-600 font-medium hover:underline">
                 Log in
               </Link>
             </div>
           </div>
 
-          {/* Right Column - Register Card */}
           <div className="w-full max-w-md mx-auto lg:ml-auto">
             <div className="bg-surface rounded-2xl shadow-sm border border-border-main p-5 sm:p-6 md:p-8">
-              <h2 className="text-xl sm:text-2xl font-bold text-text-main">
-                Create your account
-              </h2>
+              <h2 className="text-xl sm:text-2xl font-bold text-text-main">Create your account</h2>
               <p className="text-sm text-text-muted mt-1 mb-5 sm:mb-6">
-                Start with the role that's right for you.
+                Start with the role that&apos;s right for you.
               </p>
 
               {serverError && (
@@ -102,170 +105,107 @@ function Register() {
               )}
 
               <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
-                {/* Role picker — stack on very small, side-by-side from 400px up */}
                 <div>
-                  <label className="block text-sm font-medium text-text-main mb-2">
-                    I want to join as a
-                  </label>
+                  <label className="block text-sm font-medium text-text-main mb-2">I want to join as a</label>
                   <div className="grid grid-cols-1 min-[400px]:grid-cols-2 gap-2 sm:gap-3">
                     <button
                       type="button"
                       onClick={() => setRole("buyer")}
                       className={`flex flex-col items-start p-3 rounded-lg border text-left transition-colors ${
-                        role === "buyer"
-                          ? "border-primary-600 bg-primary-50/50"
-                          : "border-border-main hover:border-neutral-300 bg-surface"
+                        role === "buyer" ? "border-primary-600 bg-primary-50/50" : "border-border-main hover:border-neutral-300 bg-surface"
                       }`}
                     >
                       <div className="flex items-center justify-between w-full mb-1">
                         <div className="flex items-center gap-2">
-                          <ShoppingBag
-                            className={`w-4 h-4 ${role === "buyer" ? "text-primary-600" : "text-text-muted"}`}
-                          />
-                          <span
-                            className={`text-sm font-medium ${role === "buyer" ? "text-primary-900" : "text-text-main"}`}
-                          >
-                            Buyer
-                          </span>
+                          <ShoppingBag className={`w-4 h-4 ${role === "buyer" ? "text-primary-600" : "text-text-muted"}`} />
+                          <span className={`text-sm font-medium ${role === "buyer" ? "text-primary-900" : "text-text-main"}`}>Buyer</span>
                         </div>
-                        <div
-                          className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${role === "buyer" ? "border-primary-600" : "border-border-main"}`}
-                        >
-                          {role === "buyer" && (
-                            <div className="w-2 h-2 rounded-full bg-primary-600" />
-                          )}
+                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${role === "buyer" ? "border-primary-600" : "border-border-main"}`}>
+                          {role === "buyer" && <div className="w-2 h-2 rounded-full bg-primary-600" />}
                         </div>
                       </div>
-                      <span className="text-xs text-text-muted">
-                        Bid and buy
-                      </span>
+                      <span className="text-xs text-text-muted">Bid and buy</span>
                     </button>
-
                     <button
                       type="button"
                       onClick={() => setRole("seller")}
                       className={`flex flex-col items-start p-3 rounded-lg border text-left transition-colors ${
-                        role === "seller"
-                          ? "border-primary-600 bg-primary-50/50"
-                          : "border-border-main hover:border-neutral-300 bg-surface"
+                        role === "seller" ? "border-primary-600 bg-primary-50/50" : "border-border-main hover:border-neutral-300 bg-surface"
                       }`}
                     >
                       <div className="flex items-center justify-between w-full mb-1">
                         <div className="flex items-center gap-2">
-                          <Store
-                            className={`w-4 h-4 ${role === "seller" ? "text-primary-600" : "text-text-muted"}`}
-                          />
-                          <span
-                            className={`text-sm font-medium ${role === "seller" ? "text-primary-900" : "text-text-main"}`}
-                          >
-                            Seller
-                          </span>
+                          <Store className={`w-4 h-4 ${role === "seller" ? "text-primary-600" : "text-text-muted"}`} />
+                          <span className={`text-sm font-medium ${role === "seller" ? "text-primary-900" : "text-text-main"}`}>Seller</span>
                         </div>
-                        <div
-                          className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${role === "seller" ? "border-primary-600" : "border-border-main"}`}
-                        >
-                          {role === "seller" && (
-                            <div className="w-2 h-2 rounded-full bg-primary-600" />
-                          )}
+                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${role === "seller" ? "border-primary-600" : "border-border-main"}`}>
+                          {role === "seller" && <div className="w-2 h-2 rounded-full bg-primary-600" />}
                         </div>
                       </div>
-                      <span className="text-xs text-text-muted">
-                        Sell your stuff
-                      </span>
+                      <span className="text-xs text-text-muted">Sell your stuff</span>
                     </button>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-text-main mb-1">
-                    Full name
-                  </label>
+                  <label className="block text-sm font-medium text-text-main mb-1">Full name</label>
                   <input
                     type="text"
+                    autoComplete="name"
                     placeholder="Enter your full name"
                     className={`w-full px-3 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm ${errors.fullName ? "border-danger-500" : "border-border-main"}`}
-                    {...register("fullName", {
-                      required: "Full name is required",
-                    })}
+                    {...register("fullName", { required: "Full name is required" })}
                   />
-                  {errors.fullName && (
-                    <p className="text-danger-500 text-xs mt-1">
-                      {errors.fullName.message}
-                    </p>
-                  )}
+                  {errors.fullName && <p className="text-danger-500 text-xs mt-1">{errors.fullName.message}</p>}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-text-main mb-1">
-                    Email address
-                  </label>
+                  <label className="block text-sm font-medium text-text-main mb-1">Email address</label>
                   <input
                     type="email"
+                    autoComplete="email"
                     placeholder="Enter your email address"
                     className={`w-full px-3 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm ${errors.email ? "border-danger-500" : "border-border-main"}`}
                     {...register("email", {
                       required: "Email is required",
-                      pattern: {
-                        value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                        message: "Invalid email address",
-                      },
+                      pattern: { value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i, message: "Invalid email address" },
                     })}
                   />
-                  {errors.email && (
-                    <p className="text-danger-500 text-xs mt-1">
-                      {errors.email.message}
-                    </p>
-                  )}
+                  {errors.email && <p className="text-danger-500 text-xs mt-1">{errors.email.message}</p>}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-text-main mb-1">
-                    Password
-                  </label>
+                  <label className="block text-sm font-medium text-text-main mb-1">Password</label>
                   <input
                     type="password"
+                    autoComplete="new-password"
                     placeholder="Create a password"
                     className={`w-full px-3 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm mb-1 ${errors.password ? "border-danger-500" : "border-border-main"}`}
                     {...register("password", {
                       required: "Password is required",
-                      minLength: {
-                        value: 8,
-                        message: "Password must be at least 8 characters",
-                      },
+                      minLength: { value: 8, message: "Password must be at least 8 characters" },
                     })}
                   />
                   {errors.password ? (
-                    <p className="text-danger-500 text-xs mt-1">
-                      {errors.password.message}
-                    </p>
+                    <p className="text-danger-500 text-xs mt-1">{errors.password.message}</p>
                   ) : (
-                    <p className="text-[11px] text-text-muted">
-                      Use at least 8 characters, including a letter and a
-                      number.
-                    </p>
+                    <p className="text-[11px] text-text-muted">Use at least 8 characters, including a letter and a number.</p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-text-main mb-1">
-                    Confirm password
-                  </label>
+                  <label className="block text-sm font-medium text-text-main mb-1">Confirm password</label>
                   <input
                     type="password"
+                    autoComplete="new-password"
                     placeholder="Re-enter your password"
                     className={`w-full px-3 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm ${errors.confirmPassword ? "border-danger-500" : "border-border-main"}`}
                     {...register("confirmPassword", {
                       required: "Please confirm your password",
-                      validate: (value, formValues) =>
-                        value === formValues.password ||
-                        "Passwords do not match",
+                      validate: (value, formValues) => value === formValues.password || "Passwords do not match",
                     })}
                   />
-                  {errors.confirmPassword && (
-                    <p className="text-danger-500 text-xs mt-1">
-                      {errors.confirmPassword.message}
-                    </p>
-                  )}
+                  {errors.confirmPassword && <p className="text-danger-500 text-xs mt-1">{errors.confirmPassword.message}</p>}
                 </div>
 
                 <div className="pt-2">
@@ -273,33 +213,14 @@ function Register() {
                     <input
                       type="checkbox"
                       className="mt-0.5 rounded border-border-main text-primary-600 focus:ring-primary-500 shrink-0"
-                      {...register("terms", {
-                        required: "You must agree to the terms",
-                      })}
+                      {...register("terms", { required: "You must agree to the terms" })}
                     />
                     <span className="text-xs text-text-muted leading-tight">
-                      I agree to the{" "}
-                      <Link
-                        to="/terms"
-                        className="text-primary-600 hover:text-primary-700 hover:underline"
-                      >
-                        Terms of Use
-                      </Link>{" "}
-                      and{" "}
-                      <Link
-                        to="/privacy"
-                        className="text-primary-600 hover:text-primary-700 hover:underline"
-                      >
-                        Privacy Policy
-                      </Link>
-                      .
+                      I agree to the <Link to="/terms" className="text-primary-600 hover:text-primary-700 hover:underline">Terms of Use</Link> and{" "}
+                      <Link to="/privacy" className="text-primary-600 hover:text-primary-700 hover:underline">Privacy Policy</Link>.
                     </span>
                   </label>
-                  {errors.terms && (
-                    <p className="text-danger-500 text-xs mt-1">
-                      {errors.terms.message}
-                    </p>
-                  )}
+                  {errors.terms && <p className="text-danger-500 text-xs mt-1">{errors.terms.message}</p>}
                 </div>
 
                 <button
@@ -307,20 +228,12 @@ function Register() {
                   disabled={isSubmitting}
                   className="w-full bg-primary-600 text-text-inverse font-medium py-2.5 rounded-lg hover:bg-primary-700 transition-colors mt-2 capitalize disabled:opacity-70"
                 >
-                  {isSubmitting
-                    ? "Creating account..."
-                    : `Create ${role} account`}
+                  {isSubmitting ? "Creating account..." : `Create ${role} account`}
                 </button>
               </form>
 
               <div className="mt-6 text-center text-sm text-text-muted">
-                Already registered?{" "}
-                <Link
-                  to="/login"
-                  className="text-primary-600 font-medium hover:underline"
-                >
-                  Log in
-                </Link>
+                Already registered? <Link to="/login" className="text-primary-600 font-medium hover:underline">Log in</Link>
               </div>
             </div>
           </div>
