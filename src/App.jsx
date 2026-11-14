@@ -42,6 +42,7 @@ import Settings from "./pages/Auth/Settings/Settings.jsx";
 import AdminTransactions from "./pages/admin/Transactions/AdminTransactions";
 import AdminSales from "./pages/admin/Sales/AdminSales";
 import Roles from "./pages/admin/Roles/Roles";
+import Notifications from "./pages/Notifications/Notifications";
 import TermsOfUse from "./pages/Frontend/TermsOfUse/TermsOfUse";
 import PrivacyPolicy from "./pages/Frontend/PrivacyPolicy/PrivacyPolicy";
 import AboutUs from "./pages/Frontend/AboutUs/AboutUs";
@@ -203,6 +204,9 @@ function App() {
                 </ProfileCompletionGuard>
               }
             />
+          </Route>
+          <Route element={<RoleGuard allowedRoles={["Buyer", "Seller", "Admin"]} allowStaff />}>
+            <Route path="/notifications" element={<Notifications />} />
           </Route>
           <Route path="/settings" element={<Settings />} />
         </Route>

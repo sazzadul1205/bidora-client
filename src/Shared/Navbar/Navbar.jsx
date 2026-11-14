@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { getCurrentUser, logout } from "../../services/authApi";
 import { getMyWallet } from "../../services/buyerApi";
 import { Wallet, LogOut, LayoutDashboard, Menu, X } from "lucide-react";
+import NotificationBell from "../../components/Notifications/NotificationBell";
 
 function Navbar() {
   const [user, setUser] = useState(null);
@@ -218,7 +219,7 @@ function Navbar() {
                     >
                       <Wallet className="w-4 h-4 text-primary-600" />
                       <span className="font-bold text-primary-800 text-sm">
-                        ৳
+                        à§³
                         {walletBalance.toLocaleString(undefined, {
                           minimumFractionDigits: 2,
                           maximumFractionDigits: 2,
@@ -226,6 +227,10 @@ function Navbar() {
                       </span>
                     </Link>
                   )}
+
+                  <div className="hidden sm:block">
+                    <NotificationBell />
+                  </div>
 
                   <div className="hidden lg:flex flex-col items-end mr-2">
                     <span className="text-sm font-bold text-text-main leading-tight truncate max-w-35">

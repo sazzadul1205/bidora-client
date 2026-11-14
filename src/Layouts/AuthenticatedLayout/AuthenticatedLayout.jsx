@@ -27,6 +27,7 @@ import authApi, {
 } from "../../services/authApi";
 import AuctionLoader from "../../components/AuctionLoader";
 import { formatDateTime } from "../../utils/date";
+import NotificationBell from "../../components/Notifications/NotificationBell";
 
 function AuthenticatedLayout() {
   const navigate = useNavigate();
@@ -426,6 +427,7 @@ function AuthenticatedLayout() {
             <span className="hidden md:block text-xs text-neutral-400">
               {currentDate}
             </span>
+            {userData && <NotificationBell />}
             {!isStaff && (
               <Link
                 to="/wallet"
@@ -434,7 +436,7 @@ function AuthenticatedLayout() {
               >
                 <Wallet className="w-4 h-4 text-primary-600" />
                 <span className="font-bold text-primary-800 text-sm">
-                  ৳
+                  à§³
                   {balance.toLocaleString(undefined, {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
