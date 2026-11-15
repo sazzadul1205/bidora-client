@@ -16,7 +16,9 @@ export default function DisputeDetailsModal({ dispute, onClose }) {
   const [details, setDetails] = useState(null);
 
   useEffect(() => {
-    if (!dispute) { return; }
+    if (!dispute) {
+      return;
+    }
     getDisputeById(dispute.id)
       .then((res) => setDetails(res.data.data))
       .catch(console.error);
@@ -45,7 +47,7 @@ export default function DisputeDetailsModal({ dispute, onClose }) {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-3 sm:p-4 z-50 backdrop-blur-sm">
       <div className="bg-surface rounded-2xl w-full max-w-2xl max-h-[92vh] overflow-y-auto shadow-xl flex flex-col">
-        <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-border-main flex items-center justify-between bg-neutral-50/50 sticky top-0 z-10">
+        <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-border-main flex items-center justify-between bg-white sticky top-0 z-10">
           <div className="min-w-0">
             <h2 className="text-base sm:text-lg font-bold text-text-main flex items-center gap-2">
               <Scale className="w-4 h-4 sm:w-5 sm:h-5 text-text-main" /> Dispute
@@ -68,7 +70,11 @@ export default function DisputeDetailsModal({ dispute, onClose }) {
             <div className="bg-warning-50 border border-warning-200 text-warning-800 p-3 sm:p-4 rounded-xl flex items-start gap-3">
               <ShieldAlert className="w-5 h-5 shrink-0 mt-0.5" />
               <div>
-                <h3 className="text-sm font-bold">{currentStatus === "Open" ? "Dispute Open" : "Pending Admin Review"}</h3>
+                <h3 className="text-sm font-bold">
+                  {currentStatus === "Open"
+                    ? "Dispute Open"
+                    : "Pending Admin Review"}
+                </h3>
                 <p className="text-sm mt-1">
                   {currentStatus === "Open"
                     ? "Your dispute has been submitted. An administrator will start reviewing it soon."
@@ -80,7 +86,9 @@ export default function DisputeDetailsModal({ dispute, onClose }) {
             <div className="bg-danger-50 border border-danger-200 text-danger-800 p-3 sm:p-4 rounded-xl flex items-start gap-3">
               <Gavel className="w-5 h-5 shrink-0 mt-0.5" />
               <div>
-                <h3 className="text-sm font-bold">Dispute {currentStatus === "Resolved" ? "Resolved" : "Closed"}</h3>
+                <h3 className="text-sm font-bold">
+                  Dispute {currentStatus === "Resolved" ? "Resolved" : "Closed"}
+                </h3>
                 <p className="text-sm mt-1">
                   The admin has reviewed this case and made a final decision.
                 </p>
@@ -117,43 +125,56 @@ export default function DisputeDetailsModal({ dispute, onClose }) {
               </div>
             </div>
           )}
-          {(details?.status || dispute.status) === "Resolved" && (details?.adminDecision || dispute.adminDecision) && (
-            <div>
-              <h3 className="text-sm font-bold text-text-main flex items-center gap-2 mb-2 sm:mb-3">
-                <ShieldAlert className="w-4 h-4 text-danger-600" /> Admin
-                Decision
-              </h3>
-              <div className="bg-surface border-2 border-danger-200 p-3 sm:p-4 rounded-xl shadow-sm">
-                <p className="text-sm text-text-main leading-relaxed font-medium wrap-break-word">
-                  "{details?.adminDecision || dispute.adminDecision}"
-                </p>
-              </div>
-            </div>
-          )}
-          {(details?.penalty || dispute.penalty) && (() => {
-            const p = details?.penalty || dispute.penalty;
-            return (
-              <div className="bg-danger-50/50 rounded-xl border border-danger-100 p-3 sm:p-5 mt-3 sm:mt-4">
-                <h3 className="text-sm font-bold text-danger-900 flex items-center gap-2 mb-2 sm:mb-3">
-                  <DollarSign className="w-4 h-4 text-danger-600" /> Penalty Breakdown
+          {(details?.status || dispute.status) === "Resolved" &&
+            (details?.adminDecision || dispute.adminDecision) && (
+              <div>
+                <h3 className="text-sm font-bold text-text-main flex items-center gap-2 mb-2 sm:mb-3">
+                  <ShieldAlert className="w-4 h-4 text-danger-600" /> Admin
+                  Decision
                 </h3>
-                <div className="space-y-2 sm:space-y-3 text-xs sm:text-sm">
-                  <div className="flex justify-between items-center border-b border-danger-100 pb-2 gap-2">
-                    <span className="text-text-muted">Total Forfeited:</span>
-                    <span className="font-bold text-text-main whitespace-nowrap">৳{p.totalAmount?.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between items-center border-b border-danger-100 pb-2 gap-2">
-                    <span className="text-text-muted">To Opposite Party (80%):</span>
-                    <span className="font-bold text-success-700 whitespace-nowrap">+৳{p.oppositePartyAmount?.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between items-center gap-2">
-                    <span className="text-text-muted">Platform Fee (20%):</span>
-                    <span className="font-bold text-neutral-500 whitespace-nowrap">৳{p.platformAmount?.toFixed(2)}</span>
-                  </div>
+                <div className="bg-surface border-2 border-danger-200 p-3 sm:p-4 rounded-xl shadow-sm">
+                  <p className="text-sm text-text-main leading-relaxed font-medium wrap-break-word">
+                    "{details?.adminDecision || dispute.adminDecision}"
+                  </p>
                 </div>
               </div>
-            );
-          })()}
+            )}
+          {(details?.penalty || dispute.penalty) &&
+            (() => {
+              const p = details?.penalty || dispute.penalty;
+              return (
+                <div className="bg-danger-50/50 rounded-xl border border-danger-100 p-3 sm:p-5 mt-3 sm:mt-4">
+                  <h3 className="text-sm font-bold text-danger-900 flex items-center gap-2 mb-2 sm:mb-3">
+                    <DollarSign className="w-4 h-4 text-danger-600" /> Penalty
+                    Breakdown
+                  </h3>
+                  <div className="space-y-2 sm:space-y-3 text-xs sm:text-sm">
+                    <div className="flex justify-between items-center border-b border-danger-100 pb-2 gap-2">
+                      <span className="text-text-muted">Total Forfeited:</span>
+                      <span className="font-bold text-text-main whitespace-nowrap">
+                        ৳{p.totalAmount?.toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center border-b border-danger-100 pb-2 gap-2">
+                      <span className="text-text-muted">
+                        To Opposite Party (80%):
+                      </span>
+                      <span className="font-bold text-success-700 whitespace-nowrap">
+                        +৳{p.oppositePartyAmount?.toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center gap-2">
+                      <span className="text-text-muted">
+                        Platform Fee (20%):
+                      </span>
+                      <span className="font-bold text-neutral-500 whitespace-nowrap">
+                        ৳{p.platformAmount?.toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
 
           {/* NEW MESSAGE THREAD */}
           {details && (
