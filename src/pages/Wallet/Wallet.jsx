@@ -224,52 +224,82 @@ export default function Wallet() {
   }, [depSearchTerm]);
 
   // Fetch all data whenever any tab's query state changes
-  const fetchWalletData = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true); else setLoading(true);
-    try {
-      const [w, t, r, d] = await Promise.all([
-        getMyWallet(),
-        getWalletTransactions({
-          page: txPage,
-          pageSize: txPageSize,
-          search: txDebouncedSearch || undefined,
-          filter: txTypeFilter !== "All" ? txTypeFilter : undefined,
-        }),
-        getWalletReservations({
-          page: resPage,
-          pageSize: resPageSize,
-          search: resDebouncedSearch || undefined,
-          filter: resStatusFilter !== "All" ? resStatusFilter : undefined,
-        }),
-        getMyDepositRequests({
-          page: depPage,
-          pageSize: depPageSize,
-          search: depDebouncedSearch || undefined,
-          filter: depStatusFilter !== "All" ? depStatusFilter : undefined,
-        }),
-      ]);
-      setWallet(w.data.data);
-      setTransactions(t.data.data || []);
-      setTxTotal(t.data.pagination?.totalCount || 0);
-      setReservations(r.data.data || []);
-      setResTotal(r.data.pagination?.totalCount || 0);
-      setDepositRequests(d.data.data || []);
-      setDepTotal(d.data.pagination?.totalCount || 0);
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to load wallet data.");
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [
-    txPage, txPageSize, txDebouncedSearch, txTypeFilter,
-    resPage, resPageSize, resDebouncedSearch, resStatusFilter,
-    depPage, depPageSize, depDebouncedSearch, depStatusFilter,
-  ]);
+  const fetchWalletData = useCallback(
+    async (isRefresh = false) => {
+      if (isRefresh) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
+      try {
+        const [w, t, r, d] = await Promise.all([
+          getMyWallet(),
+          getWalletTransactions({
+            page: txPage,
+            pageSize: txPageSize,
+            search: txDebouncedSearch || undefined,
+            filter: txTypeFilter !== "All" ? txTypeFilter : undefined,
+          }),
+          getWalletReservations({
+            page: resPage,
+            pageSize: resPageSize,
+            search: resDebouncedSearch || undefined,
+            filter: resStatusFilter !== "All" ? resStatusFilter : undefined,
+          }),
+          getMyDepositRequests({
+            page: depPage,
+            pageSize: depPageSize,
+            search: depDebouncedSearch || undefined,
+            filter: depStatusFilter !== "All" ? depStatusFilter : undefined,
+          }),
+        ]);
+        setWallet(w.data.data);
+        setTransactions(t.data.data || []);
+        setTxTotal(t.data.pagination?.totalCount || 0);
+        setReservations(r.data.data || []);
+        setResTotal(r.data.pagination?.totalCount || 0);
+        setDepositRequests(d.data.data || []);
+        setDepTotal(d.data.pagination?.totalCount || 0);
+      } catch (err) {
+        console.error(err);
+        toast.error("Failed to load wallet data.");
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    },
+    [
+      txPage,
+      txPageSize,
+      txDebouncedSearch,
+      txTypeFilter,
+      resPage,
+      resPageSize,
+      resDebouncedSearch,
+      resStatusFilter,
+      depPage,
+      depPageSize,
+      depDebouncedSearch,
+      depStatusFilter,
+    ],
+  );
 
   useEffect(() => {
-    fetchWalletData();
+    let cancelled = false;
+
+    const load = async () => {
+      await fetchWalletData();
+    };
+
+    queueMicrotask(() => {
+      if (!cancelled) {
+        load();
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [fetchWalletData]);
 
   const refreshDepositRequests = async () => {
@@ -318,7 +348,7 @@ export default function Wallet() {
 
   const formatDate = formatDateTime;
 
-  // Memoized: only changes when `type` changes
+  // only changes when `type` changes
   const getTxColor = useCallback((type) => {
     if (type === "Credit" || type === "Release") {
       return "text-success-600 bg-success-50";
@@ -332,7 +362,7 @@ export default function Wallet() {
     return "text-text-muted bg-neutral-50";
   }, []);
 
-  // Memoized: only recomputes when `transactions` changes
+  // only recomputes when `transactions` changes
   const disputeTransactions = useMemo(
     () =>
       transactions.filter((tx) =>
@@ -375,7 +405,10 @@ export default function Wallet() {
             </p>
           </div>
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            <RefreshButton onClick={() => fetchWalletData(true)} loading={refreshing} />
+            <RefreshButton
+              onClick={() => fetchWalletData(true)}
+              loading={refreshing}
+            />
             <button
               onClick={() => setShowDepositModal(true)}
               className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-text-inverse text-sm font-semibold rounded-lg transition-colors flex-1 sm:flex-none"
