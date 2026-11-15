@@ -34,7 +34,7 @@ export default function PlatformWallet() {
   }, [searchTerm]);
 
   const fetchWallet = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true); else if (!data) setLoading(true); else setLoading(true);
+    if (isRefresh) {setRefreshing(true);} else if (!data) {setLoading(true);} else {setLoading(true);}
     try {
       const res = await adminApi.getPlatformWallet({
         page,

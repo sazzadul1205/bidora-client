@@ -56,7 +56,7 @@ export default function SellerSales() {
   }, [searchTerm]);
 
   const fetchSales = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true); else setLoading(true);
+    if (isRefresh) {setRefreshing(true);} else {setLoading(true);}
     try {
       const res = await getMySales({
         page,

@@ -22,7 +22,7 @@ export default function BuyerDashboard() {
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchDashboard = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true); else setLoading(true);
+    if (isRefresh) {setRefreshing(true);} else {setLoading(true);}
     try {
       const res = await getBuyerDashboard();
       setData(res.data.data);

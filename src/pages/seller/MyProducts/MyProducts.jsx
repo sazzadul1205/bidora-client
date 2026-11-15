@@ -48,7 +48,7 @@ export default function MyProducts() {
   }, [searchTerm]);
 
   const fetchProducts = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true); else setLoading(true);
+    if (isRefresh) {setRefreshing(true);} else {setLoading(true);}
     try {
       const res = await getMyProducts({
         page,

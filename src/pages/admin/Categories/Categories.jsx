@@ -26,7 +26,7 @@ export default function Categories() {
   } = useForm();
 
   const fetchCategories = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true); else setLoading(true);
+    if (isRefresh) {setRefreshing(true);} else {setLoading(true);}
     try {
       const res = await getCategories({ page, pageSize, search: searchTerm });
       setCategories(res.data.data || []);

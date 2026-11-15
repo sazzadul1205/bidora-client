@@ -28,7 +28,7 @@ export default function Roles() {
   const [saving, setSaving] = useState(false);
 
   const load = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true); else setLoading(true);
+    if (isRefresh) {setRefreshing(true);} else {setLoading(true);}
     try {
       const res = await getRoles();
       setRoles(res.data.data || []);

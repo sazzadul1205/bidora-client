@@ -41,7 +41,7 @@ export default function AdminSales() {
   }, [searchTerm]);
 
   const fetchSales = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true); else setLoading(true);
+    if (isRefresh) {setRefreshing(true);} else {setLoading(true);}
     try {
       const res = await getAllSales({
         page,

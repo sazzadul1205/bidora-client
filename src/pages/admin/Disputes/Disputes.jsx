@@ -43,7 +43,7 @@ export default function Disputes() {
   const [totalCount, setTotalCount] = useState(0);
 
   const fetchDisputes = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true); else setLoading(true);
+    if (isRefresh) {setRefreshing(true);} else {setLoading(true);}
     try {
       const res = await getAllDisputes({
         page,
@@ -66,7 +66,7 @@ export default function Disputes() {
       }
     } catch (err) {
       console.error(err);
-      if (isRefresh) toast.errorFrom(err, "Failed to load disputes.");
+      if (isRefresh) {toast.errorFrom(err, "Failed to load disputes.");}
     } finally {
       setLoading(false);
       setRefreshing(false);

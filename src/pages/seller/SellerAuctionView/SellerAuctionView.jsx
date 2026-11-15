@@ -30,7 +30,7 @@ export default function SellerAuctionView() {
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchData = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true); else setLoading(true);
+    if (isRefresh) {setRefreshing(true);} else {setLoading(true);}
     try {
       const aucRes = await getAuctionByIdForSeller(id);
       const auctionData = aucRes.data.data;

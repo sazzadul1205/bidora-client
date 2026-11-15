@@ -203,14 +203,14 @@ export default function CreateProduct() {
   } = useForm();
 
   const fetchCategories = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setCatLoading(true);
+    if (isRefresh) {setCatLoading(true);}
     try {
       const res = await getCategories();
       setCategories(res.data.data);
     } catch {
       toast.error("Failed to load categories.");
     } finally {
-      if (isRefresh) setCatLoading(false);
+      if (isRefresh) {setCatLoading(false);}
     }
   }, []);
 

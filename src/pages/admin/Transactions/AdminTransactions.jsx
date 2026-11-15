@@ -51,7 +51,7 @@ export default function AdminTransactions() {
   }, [resSearchTerm]);
 
   const fetchLedger = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true); else setLoading(true);
+    if (isRefresh) {setRefreshing(true);} else {setLoading(true);}
     try {
       const [txRes, resRes] = await Promise.all([
         getAllTransactions({

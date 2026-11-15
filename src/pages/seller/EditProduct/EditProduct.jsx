@@ -287,7 +287,7 @@ export default function EditProduct() {
   } = useForm();
 
   const fetchData = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true); else setLoading(true);
+    if (isRefresh) {setRefreshing(true);} else {setLoading(true);}
     try {
       const [catRes, prodRes] = await Promise.all([
         getCategories(),
@@ -319,7 +319,7 @@ export default function EditProduct() {
       }
     } catch {
       toast.error("Failed to load product details.");
-      if (!isRefresh) navigate("/seller/products");
+      if (!isRefresh) {navigate("/seller/products");}
     } finally {
       setLoading(false);
       setRefreshing(false);

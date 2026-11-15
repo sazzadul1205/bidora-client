@@ -56,7 +56,7 @@ export default function Deposits() {
   const [totalCount, setTotalCount] = useState(0);
 
   const fetchRequests = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true); else setLoading(true);
+    if (isRefresh) {setRefreshing(true);} else {setLoading(true);}
     try {
       const res = await getDepositRequests({
         status: statusFilter,

@@ -50,7 +50,7 @@ export default function WonAuctions() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fetchWonAuctions = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true); else setLoading(true);
+    if (isRefresh) {setRefreshing(true);} else {setLoading(true);}
     try {
       const res = await getWonAuctions({
         page,

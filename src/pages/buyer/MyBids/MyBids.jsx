@@ -36,7 +36,7 @@ export default function MyBids() {
   }, [searchTerm]);
 
   const fetchBids = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true); else setLoading(true);
+    if (isRefresh) {setRefreshing(true);} else {setLoading(true);}
     try {
       const res = await getMyBids({
         page,

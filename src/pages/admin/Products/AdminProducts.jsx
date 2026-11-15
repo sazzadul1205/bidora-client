@@ -28,7 +28,7 @@ export default function AdminProducts() {
   const [totalCount, setTotalCount] = useState(0);
 
   const fetchProducts = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true); else setLoading(true);
+    if (isRefresh) {setRefreshing(true);} else {setLoading(true);}
     try {
       const res = await getPendingProducts({
         page,
@@ -41,7 +41,7 @@ export default function AdminProducts() {
       }
     } catch (err) {
       console.error(err);
-      if (isRefresh) toast.error("Failed to load products.");
+      if (isRefresh) {toast.error("Failed to load products.");}
     } finally {
       setLoading(false);
       setRefreshing(false);

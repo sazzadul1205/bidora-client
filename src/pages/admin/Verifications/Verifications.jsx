@@ -24,13 +24,13 @@ export default function Verifications() {
   const [pageSize, setPageSize] = useState(20);
 
   const fetchProfiles = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true); else setLoading(true);
+    if (isRefresh) {setRefreshing(true);} else {setLoading(true);}
     try {
       const res = await getPendingVerifications();
       setProfiles(res.data.data || []);
     } catch (err) {
       console.error(err);
-      if (isRefresh) toast.error("Failed to load verifications.");
+      if (isRefresh) {toast.error("Failed to load verifications.");}
     } finally {
       setLoading(false);
       setRefreshing(false);

@@ -15,7 +15,6 @@ import {
   CheckCircle2,
   Clock,
   Star,
-  Loader2,
 } from "lucide-react";
 import AuctionLoader from "../../../components/AuctionLoader";
 import RefreshButton from "../../../components/RefreshButton";
@@ -29,7 +28,7 @@ export default function ViewProduct() {
   const [activeImage, setActiveImage] = useState(null);
 
   const fetchProduct = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true); else setLoading(true);
+    if (isRefresh) {setRefreshing(true);} else {setLoading(true);}
     try {
       const res = await getMyProductById(id);
       const data = res.data.data;
@@ -38,7 +37,7 @@ export default function ViewProduct() {
       setActiveImage(mainImg?.imageUrl || null);
     } catch (err) {
       toast.errorFrom(err, "Failed to load product.");
-      if (!isRefresh) navigate("/seller/products");
+      if (!isRefresh) {navigate("/seller/products");}
     } finally {
       setLoading(false);
       setRefreshing(false);
