@@ -70,8 +70,7 @@ function AuthenticatedLayout() {
           }
         }
       } catch (err) {
-        // Only force logout on authentication failure (401),
-        // not on transient network errors.
+        // Only force logout on authentication failure.
         const status = err?.response?.status;
         if (status === 401 || status === 403) {
           logout();
@@ -91,7 +90,7 @@ function AuthenticatedLayout() {
     };
   }, [navigate]);
 
-  // Close sidebar on Escape (desktop irrelevant, but harmless)
+  // Close sidebar on Escape
   useEffect(() => {
     if (!sidebarOpen) {
       return;

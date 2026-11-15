@@ -81,15 +81,15 @@ function App() {
           />
         </Route>
 
-        {/* Unauthorized page — full page, no layout */}
+        {/* Unauthorized page */}
         <Route path="/unauthorized" element={<Unauthorized />} />
 
-        {/* Profile Pending Route (Outside Auth Layout) */}
+        {/* Profile Pending Route */}
         <Route path="/profile-pending" element={<ProfilePending />} />
 
         {/* Authenticated Routes */}
         <Route element={<AuthenticatedLayout />}>
-          {/* ADMIN ROUTES — Admin & custom staff roles (not Buyer/Seller) */}
+          {/* ADMIN ROUTES */}
           <Route element={<RoleGuard allowedRoles={["Admin"]} allowStaff />}>
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/admin/users" element={<Users />} />
@@ -105,7 +105,7 @@ function App() {
             <Route path="/admin/sales" element={<AdminSales />} />
           </Route>
 
-          {/* BUYER ROUTES — Buyer only */}
+          {/* BUYER ROUTES */}
           <Route element={<RoleGuard allowedRoles={["Buyer"]} />}>
             <Route
               path="/buyer/dashboard"
@@ -133,7 +133,7 @@ function App() {
             />
           </Route>
 
-          {/* SELLER ROUTES — Seller only */}
+          {/* SELLER ROUTES*/}
           <Route element={<RoleGuard allowedRoles={["Seller"]} />}>
             <Route
               path="/seller/dashboard"
@@ -193,7 +193,7 @@ function App() {
             />
           </Route>
 
-          {/* SHARED ROUTES — all authenticated roles */}
+          {/* SHARED ROUTES  */}
           <Route element={<RoleGuard allowedRoles={["Buyer", "Seller", "Admin"]} />}>
             <Route
               path="/wallet"

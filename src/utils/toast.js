@@ -62,7 +62,7 @@ export const toast = {
       showConfirmButton: false,
       timer: 3000,
       timerProgressBar: true,
-didOpen: (toast) => {
+      didOpen: (toast) => {
         toast.addEventListener('mouseenter', Swal.stopTimer)
         toast.addEventListener('mouseleave', Swal.resumeTimer)
       },
@@ -109,7 +109,6 @@ export const confirmDialog = async (title, text, confirmText = 'Yes', cancelText
 }
 
 // Quick yes/no confirmation with a sensible default.
-// Usage: if (await toast.confirm('Delete?', 'This cannot be undone.')) { ... }
 export const confirm = async (title, text = '', confirmText = 'Yes', cancelText = 'Cancel') => {
   const result = await Swal.fire({
     title,

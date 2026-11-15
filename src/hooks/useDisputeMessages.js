@@ -14,7 +14,6 @@ export default function useDisputeMessages(disputeId, canSend) {
 
     let isMounted = true;
 
-    //  Define the fetcher INSIDE the effect
     const loadMessages = async () => {
       try {
         const res = await authApi.get(

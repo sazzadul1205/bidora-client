@@ -10,18 +10,18 @@ export default function useOnlineStatus() {
     navigator.onLine ? new Date() : null,
   );
 
-  // Counts consecutive ping failures. Two failures = offline.
+  // Counts consecutive ping failures.
   const failureCount = useRef(0);
 
   // Prevents overlapping pings if one is slow.
   const pingInFlight = useRef(false);
-  
+
   // Tracks previous status so we can toast on change.
   const prevStatus = useRef(status);
 
   // Backend ping
   const pingBackend = async () => {
-    if (pingInFlight.current) {return;}
+    if (pingInFlight.current) { return; }
     if (!navigator.onLine) {
       setStatus("offline");
       return;
@@ -67,18 +67,18 @@ export default function useOnlineStatus() {
       window.removeEventListener("offline", handleOffline);
     };
   }, []);
-  // Poll the backend every 20s while online. Pauses when the tab is hidden.
+  // Poll the backend every 20s while online.
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      if (navigator.onLine && !document.hidden) {pingBackend();}
+      if (navigator.onLine && !document.hidden) { pingBackend(); }
     }, 0);
 
     const intervalId = setInterval(() => {
-      if (navigator.onLine && !document.hidden) {pingBackend();}
+      if (navigator.onLine && !document.hidden) { pingBackend(); }
     }, 5000);
 
     const handleVisibilityChange = () => {
-      if (!document.hidden && navigator.onLine) {pingBackend();}
+      if (!document.hidden && navigator.onLine) { pingBackend(); }
     };
 
     window.addEventListener("visibilitychange", handleVisibilityChange);
@@ -92,14 +92,13 @@ export default function useOnlineStatus() {
 
   // Toast on status change 
   useEffect(() => {
-    if (prevStatus.current === status) {return;}
+    if (prevStatus.current === status) { return; }
 
     if (status === "offline") {
       toast.error("You're offline. Some features may not work.");
     } else if (
       status === "online" &&
-      (prevStatus.current === "offline" ||
-        prevStatus.current === "reconnecting")
+      (prevStatus.current === "offline" || prevStatus.current === "reconnecting")
     ) {
       toast.success("Back online.");
     }

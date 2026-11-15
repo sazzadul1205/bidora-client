@@ -1,6 +1,4 @@
-// Centralized API error message extraction.
-// Reads the standardized backend envelope { message, errors } and falls back gracefully.
-
+// Centralized API error message.
 export function getErrorMessage(error, fallback = "Something went wrong.") {
   const data = error?.response?.data;
 
