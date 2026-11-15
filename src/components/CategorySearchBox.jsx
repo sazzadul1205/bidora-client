@@ -16,7 +16,6 @@ export default function CategorySearchBox({
   const dropdownRef = useRef(null);
   const searchInputRef = useRef(null);
 
-  // Defensive: categories may arrive as undefined on first render
   const safeCategories = useMemo(
     () => (Array.isArray(categories) ? categories : []),
     [categories],

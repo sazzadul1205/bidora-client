@@ -29,7 +29,7 @@ export const getWalletTransactions = (params = {}) =>
 export const getWalletReservations = (params = {}) =>
   authApi.get("/wallet/reservations", { ...getAuthConfig(), params });
 
-// Submit a deposit request (FormData required for receipt image)
+// Submit a deposit request
 export const requestDeposit = (formData) =>
   authApi.post("/wallet/deposit-request", formData, {
     headers: {
@@ -42,7 +42,7 @@ export const requestDeposit = (formData) =>
 export const payForSale = (id) =>
   authApi.post(`/sale/${id}/pay`, {}, getAuthConfig());
 
-// Confirm receipt (FormData required for proof image)
+// Confirm receipt
 export const confirmReceipt = (id, formData) =>
   authApi.post(`/sale/${id}/confirm-receipt`, formData, {
     headers: {
@@ -51,7 +51,7 @@ export const confirmReceipt = (id, formData) =>
     },
   });
 
-// Create a dispute with an optional photo (FormData required)
+// Create a dispute with an optional photo
 export const createDisputeImage = (formData) =>
   authApi.post("/dispute", formData, {
     headers: {
@@ -64,7 +64,6 @@ export const createDisputeImage = (formData) =>
 export const submitProfileVerification = () =>
   authApi.put("/profile/submit-verification", {}, getAuthConfig());
 
-// Re-export from authApi for convenience
 export { changePassword } from "./authApi";
 
 // Dispute Messaging

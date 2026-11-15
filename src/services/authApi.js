@@ -66,7 +66,7 @@ export const register = (userData) => {
   return authApi.post("/auth/register", userData);
 };
 
-// Logs in, saves the JWT token, roles, AND expiration (in minutes) to localStorage.
+// Logs in, 
 export const login = async (credentials) => {
   const response = await authApi.post("/auth/login", credentials);
   const data = response.data?.data || {};

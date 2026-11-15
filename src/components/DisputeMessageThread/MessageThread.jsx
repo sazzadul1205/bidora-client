@@ -33,7 +33,10 @@ function MessageSkeleton() {
 }
 
 export default function MessageThread({ disputeId, canSend, status }) {
-  const { messages, loading, isSending, sendMessage } = useDisputeMessages(disputeId, canSend);
+  const { messages, loading, isSending, sendMessage } = useDisputeMessages(
+    disputeId,
+    canSend,
+  );
   const endRef = useRef(null);
 
   useEffect(() => {
@@ -52,13 +55,17 @@ export default function MessageThread({ disputeId, canSend, status }) {
           <MessageSquare className="w-4 h-4 text-gray-500" />
           Conversation
           {!loading && (
-            <span className={`inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-full text-[11px] font-bold ${limitReached ? "bg-red-600 text-white" : "bg-blue-600 text-white"}`}>
+            <span
+              className={`inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full text-[11px] font-bold ${limitReached ? "bg-red-600 text-white" : "bg-blue-600 text-white"}`}
+            >
               {count}
             </span>
           )}
         </h3>
         {!loading && (
-          <span className={`text-[11px] ${limitReached ? "text-red-600 font-semibold" : "text-gray-500"}`}>
+          <span
+            className={`text-[11px] ${limitReached ? "text-red-600 font-semibold" : "text-gray-500"}`}
+          >
             {count}/{MAX_MESSAGES} messages
           </span>
         )}
@@ -73,7 +80,9 @@ export default function MessageThread({ disputeId, canSend, status }) {
               <MessageBubble key={msg.id} msg={msg} />
             ))}
             {messages.length === 0 && (
-              <p className="text-xs text-gray-400 text-center italic py-6">No messages yet.</p>
+              <p className="text-xs text-gray-400 text-center italic py-6">
+                No messages yet.
+              </p>
             )}
             <div ref={endRef} />
           </>
@@ -83,17 +92,25 @@ export default function MessageThread({ disputeId, canSend, status }) {
       {canSend ? (
         limitReached ? (
           <div className="mt-4 p-3 bg-amber-50 rounded-lg text-center border border-amber-200">
-            <p className="text-xs font-medium text-amber-700">Message limit reached ({MAX_MESSAGES}). No new messages can be sent.</p>
+            <p className="text-xs font-medium text-amber-700">
+              Message limit reached ({MAX_MESSAGES}). No new messages can be
+              sent.
+            </p>
           </div>
         ) : (
-          <MessageComposer onSend={sendMessage} isSending={isSending} maxMessages={MAX_MESSAGES} currentCount={count} />
+          <MessageComposer
+            onSend={sendMessage}
+            isSending={isSending}
+            maxMessages={MAX_MESSAGES}
+            currentCount={count}
+          />
         )
       ) : (
         <div className="mt-4 p-3 bg-gray-100 rounded-lg text-center border border-gray-200">
           <p className="text-xs font-medium text-gray-500">
             {status === "Open"
-              ? "Messaging unlocks once an Admin starts review."
-              : "This dispute is closed. Messages are read-only."}
+              ? "Messaging Will start once an Admin starts review Process."
+              : "This dispute has Concluded. Messages are now read-only."}
           </p>
         </div>
       )}

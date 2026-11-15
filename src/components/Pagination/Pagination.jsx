@@ -6,7 +6,7 @@ export default function Pagination({
   totalCount = 0,
   onPageChange,
   onPageSizeChange,
-  pageSizeOptions = [10, 20, 50, 100],
+  pageSizeOptions = [5, 10, 20, 50, 100],
   className = "",
 }) {
   if (!totalCount || totalCount <= 0) {

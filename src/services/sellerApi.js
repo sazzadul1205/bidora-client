@@ -72,7 +72,6 @@ export const createDisputeImage = (formData) =>
 export const submitProfileVerification = () =>
   authApi.put("/profile/submit-verification", {}, getAuthConfig());
 
-// Re-export from authApi for convenience
 export { changePassword } from "./authApi";
 
 // Dispute Messaging

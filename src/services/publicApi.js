@@ -8,14 +8,14 @@ const publicApi = axios.create({
 // View all available categories 
 export const getCategories = (params = {}) => publicApi.get("/category", { params });
 
-// View details of one auction by ID (optional Axios config, e.g. { signal })
+// View details of one auction by ID 
 export const getAuctionById = (id, options = {}) => publicApi.get(`/auction/${id}`, options);
 
 // View all auctions 
 export const getAuctions = (params = {}) =>
   publicApi.get("/auction", { params });
 
-// Home page: banner + max 8 active + max 8 upcoming (optional search/categoryId)
+// Home page
 export const getHomeAuctions = (params = {}) => publicApi.get("/auction/home", { params });
 
 export default publicApi;
