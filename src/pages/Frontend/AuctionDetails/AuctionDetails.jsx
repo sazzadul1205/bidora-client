@@ -22,6 +22,7 @@ import {
   XCircle,
   TrendingUp,
   Target,
+  Eye,
 } from "lucide-react";
 
 export default function AuctionDetails() {
@@ -382,14 +383,17 @@ export default function AuctionDetails() {
             </div>
 
             <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 sm:p-6 space-y-4 sm:space-y-6">
-              <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
-                  {auction.productTitle}
-                </h1>
-                <p className="text-sm text-gray-500 line-clamp-2">
-                  {auction.productDescription?.substring(0, 100)}...
-                </p>
-              </div>
+                <div>
+                  <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
+                    {auction.productTitle}
+                  </h1>
+                  <p className="text-sm text-gray-500 line-clamp-2">
+                    {auction.productDescription?.substring(0, 100)}...
+                  </p>
+                  <span className="text-xs sm:text-sm font-medium text-gray-500 flex items-center gap-1 mt-1">
+                    <Eye className="w-4 h-4" /> {(auction.viewCount ?? 0).toLocaleString()} views
+                  </span>
+                </div>
 
               <div className="grid grid-cols-2 gap-3 sm:gap-4 bg-gray-50 p-3 sm:p-4 rounded-xl text-sm">
                 <div>

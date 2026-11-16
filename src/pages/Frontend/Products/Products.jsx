@@ -19,10 +19,13 @@ import {
   ChevronRight,
   Gavel,
   Clock,
+  Flame,
+  Star,
+  Tag,
 } from "lucide-react";
 
 // Services
-import { getHomeAuctions, getCategories } from "../../../services/publicApi";
+import { getHomeAuctions, getHotAuctions, getCategories } from "../../../services/publicApi";
 
 // Utils
 import { imageUrl, handleImageError } from "../../../utils/image";
@@ -33,18 +36,19 @@ import AuctionCard from "../../../components/AuctionCard";
 import AuctionLoader from "../../../components/AuctionLoader";
 import CategorySearchBox from "../../../components/CategorySearchBox";
 
-const ICON_POOL = [
-  Laptop,
-  Shirt,
-  Armchair,
-  Car,
-  Watch,
-  Camera,
-  Headphones,
-  Gamepad2,
-  BookOpen,
-  Dumbbell,
-];
+const ICON_POOL = [Laptop, Shirt, Armchair, Car, Watch, Camera, Headphones, Gamepad2, BookOpen, Dumbbell];
+
+const flattenCategories = (nodes = []) => {
+  const out = [];
+  const walk = (arr) => {
+    arr.forEach((n) => {
+      out.push(n);
+      if (Array.isArray(n.children) && n.children.length) walk(n.children);
+    });
+  };
+  walk(nodes);
+  return out;
+};
 
 const parseUtc = (str) => {
   if (!str) {
@@ -115,6 +119,8 @@ export default function Home() {
   const [activeAuctions, setActiveAuctions] = useState([]);
   const [upcomingAuctions, setUpcomingAuctions] = useState([]);
   const [bannerAuction, setBannerAuction] = useState(null);
+  const [featuredAuctions, setFeaturedAuctions] = useState([]);
+  const [hotAuctions, setHotAuctions] = useState([]);
 
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -179,8 +185,9 @@ export default function Home() {
           params.categoryId = Number(selectedCategory);
         }
 
-        const [homeRes, catRes] = await Promise.all([
+        const [homeRes, hotRes, catRes] = await Promise.all([
           getHomeAuctions(params),
+          getHotAuctions(),
           getCategories(),
         ]);
         if (!mounted) {
@@ -191,6 +198,8 @@ export default function Home() {
         setBannerAuction(home.banner || null);
         setActiveAuctions(home.active || []);
         setUpcomingAuctions(home.upcoming || []);
+        setFeaturedAuctions(home.featured || []);
+        setHotAuctions(hotRes.data.data || []);
         setCategories(catRes.data.data || []);
       } catch (err) {
         console.error(err);
@@ -393,7 +402,7 @@ export default function Home() {
             className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 scrollbar-hide cursor-grab active:cursor-grabbing px-1"
           >
             {categories && categories.length > 0 ? (
-              categories.map((c, index) => {
+              flattenCategories(categories).map((c, index) => {
                 const Icon = ICON_POOL[index % ICON_POOL.length];
                 const isActive = selectedCategory === c.id.toString();
                 return (
@@ -407,21 +416,25 @@ export default function Home() {
                     }`}
                   >
                     <div
-                      className={`w-9 sm:w-10 h-9 sm:h-10 rounded-lg flex items-center justify-center mb-2 sm:mb-3 pointer-events-none ${
+                      className={`w-9 sm:w-10 h-9 sm:h-10 rounded-lg flex items-center justify-center mb-2 sm:mb-3 pointer-events-none overflow-hidden ${
                         isActive ? "bg-blue-600" : "bg-blue-50"
                       }`}
                     >
-                      <Icon
-                        className={`w-4 sm:w-5 h-4 sm:h-5 ${
-                          isActive ? "text-white" : "text-blue-600"
-                        }`}
-                      />
+                      {c.iconUrl ? (
+                        <img src={imageUrl(c.iconUrl)} alt="" className="w-8 h-8 md:w-10 md:h-10 object-contain" />
+                      ) : (
+                        <Icon
+                          className={`w-4 sm:w-5 h-4 sm:h-5 ${
+                            isActive ? "text-white" : "text-blue-600"
+                          }`}
+                        />
+                      )}
                     </div>
                     <p className="font-semibold text-sm sm:text-base text-gray-900 line-clamp-1 w-full pointer-events-none">
                       {c.name}
                     </p>
                     <p className="text-xs text-gray-500 mt-1 pointer-events-none">
-                      Explore items
+                      {typeof c.productCount === "number" ? `${c.productCount} items` : "Explore items"}
                     </p>
                   </button>
                 );
@@ -438,6 +451,60 @@ export default function Home() {
             <ChevronRight className="w-5 h-5 text-gray-700" />
           </button>
         </div>
+
+        {/* HOT RIGHT NOW */}
+        {hotAuctions.length > 0 && (
+          <div className="mb-12 sm:mb-14">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 sm:mb-6">
+              <div>
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2">
+                  <Flame className="w-6 h-6 text-orange-500" />
+                  🔥 Hot Right Now
+                </h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  Most active auctions with high bid counts.
+                </p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+              {hotAuctions.map((auction) => (
+                <div key={auction.id} className="relative">
+                  <span className="absolute top-3 right-3 z-10 bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded-md shadow">
+                    {auction.bidCount} bids
+                  </span>
+                  <AuctionCard auction={auction} variant="home" />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* FEATURED AUCTIONS */}
+        {featuredAuctions.length > 0 && (
+          <div className="mb-12 sm:mb-14">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 sm:mb-6">
+              <div>
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2">
+                  <Star className="w-6 h-6 text-yellow-500" />
+                  ⭐ Featured Auctions
+                </h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  Hand-picked highlights from active auctions.
+                </p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+              {featuredAuctions.map((auction) => (
+                <div key={auction.id} className="relative rounded-2xl ring-2 ring-yellow-400/70 shadow-[0_0_0_1px_rgba(250,204,21,0.25)]">
+                  <span className="absolute top-3 right-3 z-10 bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-1 rounded-md shadow flex items-center gap-1">
+                    <Star className="w-3 h-3" /> Featured
+                  </span>
+                  <AuctionCard auction={auction} variant="home" />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* ACTIVE AUCTIONS */}
         <div className="mb-12 sm:mb-14">

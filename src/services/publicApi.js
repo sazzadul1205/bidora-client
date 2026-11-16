@@ -18,4 +18,7 @@ export const getAuctions = (params = {}) =>
 // Home page
 export const getHomeAuctions = (params = {}) => publicApi.get("/auction/home", { params });
 
+// Hot auctions
+export const getHotAuctions = (params = {}) => publicApi.get("/auction/hot", { params });
+
 export default publicApi;

@@ -30,8 +30,14 @@ export const reviewProduct = (id, data) =>
   authApi.put(`/product/${id}/approval`, data, getAuthConfig());
 
 // Categories
-export const createCategory = (data) =>
-  authApi.post("/category", data, getAuthConfig());
+export const createCategory = (data) => {
+  const isFormData = typeof FormData !== "undefined" && data instanceof FormData;
+  const config = getAuthConfig();
+  if (isFormData) {
+    config.headers = { ...(config.headers || {}), "Content-Type": "multipart/form-data" };
+  }
+  return authApi.post("/category", data, config);
+};
 export const deleteCategory = (id) =>
   authApi.delete(`/category/${id}`, getAuthConfig());
 

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
-import { ArrowRight, Search as SearchIcon, X } from "lucide-react";
+import { ArrowRight, Search as SearchIcon, X, ChevronRight } from "lucide-react";
 
 export default function CategorySearchBox({
   categories,
@@ -21,12 +21,47 @@ export default function CategorySearchBox({
     [categories],
   );
 
-  const selectedCategory =
-    safeCategories.find((c) => c.id.toString() === value?.toString()) || null;
+  const flatAll = useMemo(() => {
+    const out = [];
+    const walk = (nodes) => {
+      (nodes || []).forEach((n) => {
+        out.push(n);
+        if (Array.isArray(n.children) && n.children.length) walk(n.children);
+      });
+    };
+    walk(safeCategories);
+    return out;
+  }, [safeCategories]);
 
-  const filteredCategories = safeCategories.filter((c) =>
-    c.name.toLowerCase().includes(query.toLowerCase()),
-  );
+  const selectedCategory =
+    flatAll.find((c) => c.id?.toString() === value?.toString()) || null;
+
+  const tree = useMemo(() => {
+    const q = query.toLowerCase().trim();
+    if (!q) return safeCategories;
+    const filterNodes = (nodes) =>
+      (nodes || [])
+        .map((n) => {
+          const kids = filterNodes(n.children || []);
+          const match = (n.name || "").toLowerCase().includes(q);
+          if (match || kids.length) return { ...n, children: kids };
+          return null;
+        })
+        .filter(Boolean);
+    return filterNodes(safeCategories);
+  }, [safeCategories, query]);
+
+  const selectableFlat = useMemo(() => {
+    const out = [];
+    const walk = (nodes) => {
+      (nodes || []).forEach((n) => {
+        out.push(n);
+        if (Array.isArray(n.children) && n.children.length) walk(n.children);
+      });
+    };
+    walk(tree);
+    return out;
+  }, [tree]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -81,19 +116,49 @@ export default function CategorySearchBox({
     if (e.key === "ArrowDown") {
       e.preventDefault();
       setHighlightedIndex((prev) =>
-        prev >= filteredCategories.length - 1 ? 0 : prev + 1,
+        prev >= selectableFlat.length - 1 ? 0 : prev + 1,
       );
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
       setHighlightedIndex((prev) =>
-        prev <= 0 ? filteredCategories.length - 1 : prev - 1,
+        prev <= 0 ? selectableFlat.length - 1 : prev - 1,
       );
     } else if (e.key === "Enter") {
       e.preventDefault();
-      if (highlightedIndex >= 0 && filteredCategories[highlightedIndex]) {
-        handleSelect(filteredCategories[highlightedIndex].id.toString());
+      if (highlightedIndex >= 0 && selectableFlat[highlightedIndex]) {
+        handleSelect(selectableFlat[highlightedIndex].id.toString());
       }
     }
+  };
+
+  const renderNodes = (nodes, depth = 0) => {
+    return (nodes || []).flatMap((c) => {
+      const idx = selectableFlat.findIndex((x) => x.id === c.id);
+      const hasChildren = Array.isArray(c.children) && c.children.length > 0;
+      const isParent = depth === 0 || hasChildren;
+      const isSelected = value?.toString() === c.id.toString();
+      const isHighlighted = highlightedIndex === idx;
+      const row = (
+        <button
+          type="button"
+          key={c.id}
+          data-index={idx}
+          onClick={() => handleSelect(c.id.toString())}
+          onMouseEnter={() => setHighlightedIndex(idx)}
+          className={`w-full text-left py-2 rounded-md text-sm transition-colors flex items-center gap-2 ${
+            isSelected || isHighlighted
+              ? "bg-primary-50 text-primary-700"
+              : "text-text-muted hover:bg-neutral-100"
+          } ${isParent && depth === 0 ? "font-semibold text-text-main" : ""}`}
+          style={{ paddingLeft: `${12 + depth * 16}px`, paddingRight: "12px" }}
+        >
+          {depth > 0 && <ChevronRight className="w-3 h-3 text-neutral-400 shrink-0" />}
+          <span className="truncate">{c.name}</span>
+        </button>
+      );
+      const children = hasChildren ? renderNodes(c.children, depth + 1) : [];
+      return [row, ...children];
+    });
   };
 
   return (
@@ -146,9 +211,9 @@ export default function CategorySearchBox({
       </div>
 
       {open && !disabled && (
-        <div className="absolute z-50 mt-1 w-full bg-surface border border-border-main rounded-lg shadow-lg max-h-64 overflow-y-auto">
+        <div className="absolute z-50 mt-1 w-full bg-surface border border-border-main rounded-lg shadow-lg max-h-72 overflow-y-auto">
           <div ref={dropdownRef} className="px-2 py-1">
-            {!query && !selectedCategory && (
+            {!query && (
               <button
                 type="button"
                 onClick={() => handleSelect("")}
@@ -158,31 +223,13 @@ export default function CategorySearchBox({
                     : "text-text-muted hover:bg-neutral-100"
                 }`}
               >
-                {placeholder === "Search categories..."
-                  ? "All Categories"
-                  : placeholder}
+                {placeholder === "Search categories..." ? "All Categories" : placeholder}
               </button>
             )}
 
-            {filteredCategories.map((c, index) => (
-              <button
-                type="button"
-                key={c.id}
-                data-index={index}
-                onClick={() => handleSelect(c.id.toString())}
-                onMouseEnter={() => setHighlightedIndex(index)}
-                className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
-                  highlightedIndex === index ||
-                  value?.toString() === c.id.toString()
-                    ? "bg-primary-50 text-primary-700 font-medium"
-                    : "text-text-muted hover:bg-neutral-100"
-                }`}
-              >
-                {c.name}
-              </button>
-            ))}
+            {renderNodes(tree)}
 
-            {query && filteredCategories.length === 0 && (
+            {query && selectableFlat.length === 0 && (
               <p className="px-3 py-2 text-xs text-neutral-400 text-center">
                 No matching categories
               </p>
