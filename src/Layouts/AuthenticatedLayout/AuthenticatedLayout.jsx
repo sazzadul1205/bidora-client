@@ -19,6 +19,7 @@ import {
   Menu,
   X,
   Shield,
+  Heart,
 } from "lucide-react";
 import authApi, {
   logout,
@@ -229,6 +230,13 @@ function AuthenticatedLayout() {
                       <Trophy className="w-4 h-4" /> Won Auctions
                     </NavLink>
                     <NavLink
+                      to="/favorites"
+                      className={navLinkClass}
+                      onClick={closeSidebar}
+                    >
+                      <Heart className="w-4 h-4" /> Favorites
+                    </NavLink>
+                    <NavLink
                       to="/wallet"
                       className={navLinkClass}
                       onClick={closeSidebar}
@@ -253,6 +261,13 @@ function AuthenticatedLayout() {
                       onClick={closeSidebar}
                     >
                       <ShoppingCart className="w-4 h-4" /> My sales
+                    </NavLink>
+                    <NavLink
+                      to="/favorites"
+                      className={navLinkClass}
+                      onClick={closeSidebar}
+                    >
+                      <Heart className="w-4 h-4" /> Favorites
                     </NavLink>
                     <NavLink
                       to="/wallet"
@@ -370,6 +385,13 @@ function AuthenticatedLayout() {
                 Activity
               </p>
               <nav className="space-y-1">
+                <NavLink
+                  to="/favorites"
+                  className={navLinkClass}
+                  onClick={closeSidebar}
+                >
+                  <Heart className="w-4 h-4" /> Favorites
+                </NavLink>
                 <NavLink
                   to="/settings"
                   className={navLinkClass}

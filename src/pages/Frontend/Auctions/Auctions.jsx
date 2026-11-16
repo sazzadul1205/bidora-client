@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { Search, Gavel } from "lucide-react";
 import PageTitle from "../../../components/PageTitle";
 
 // Services
 import { getAuctions, getCategories } from "../../../services/publicApi";
+import { getFavoriteIds } from "../../../services/favoriteApi";
 
 // Components
 import AuctionCard from "../../../components/AuctionCard";
@@ -15,6 +16,7 @@ export default function Auctions() {
   const [auctions, setAuctions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState([]);
+  const [favIds, setFavIds] = useState(new Set());
 
   // Server-side pagination
   const [pageSize, setPageSize] = useState(20);
@@ -64,9 +66,22 @@ export default function Auctions() {
           return;
         }
 
-        setAuctions(aucRes.data.data || []);
+        const list = aucRes.data.data || [];
+        setAuctions(list);
         setTotalCount(aucRes.data.pagination?.totalCount || 0);
         setCategories(catRes.data.data || []);
+
+        const token = localStorage.getItem("token");
+        if (token && list.length) {
+          try {
+            const favRes = await getFavoriteIds(list.map((a) => a.id));
+            if (mounted) setFavIds(new Set(favRes.data?.data?.ids || []));
+          } catch {
+            if (mounted) setFavIds(new Set());
+          }
+        } else {
+          setFavIds(new Set());
+        }
       } catch (err) {
         console.error("Failed to fetch auctions:", err);
       } finally {
@@ -79,6 +94,14 @@ export default function Auctions() {
       mounted = false;
     };
   }, [page, pageSize, debouncedSearch, activeStatus, activeCategory]);
+
+  const onFavoriteChange = (auctionId, isFav) => {
+    setFavIds((prev) => {
+      const next = new Set(prev);
+      if (isFav) next.add(auctionId); else next.delete(auctionId);
+      return next;
+    });
+  };
 
   // Handlers that reset pagination
   const handleSearchChange = (e) => {
@@ -178,6 +201,8 @@ export default function Auctions() {
                 key={auction.id}
                 auction={auction}
                 variant="browse"
+                isFavorited={favIds.has(auction.id)}
+                onFavoriteChange={onFavoriteChange}
               />
             ))}
           </div>

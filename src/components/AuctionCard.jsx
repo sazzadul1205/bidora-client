@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Tag, Gavel, ArrowRight } from "lucide-react";
 import { imageUrl, handleImageError } from "../utils/image";
 import Countdown from "./Countdown";
+import FavoriteButton from "./FavoriteButton";
 
 const parseUtc = (str) => {
   if (!str) {
@@ -12,7 +13,7 @@ const parseUtc = (str) => {
   return new Date(hasTimezone ? str : `${str}Z`).getTime();
 };
 
-export default function AuctionCard({ auction, variant = "home" }) {
+export default function AuctionCard({ auction, variant = "home", isFavorited, onFavoriteChange }) {
   const {
     id,
     productTitle,
@@ -71,6 +72,17 @@ export default function AuctionCard({ auction, variant = "home" }) {
             <Gavel className="w-10 h-10" />
           </div>
         )}
+
+        <div className="absolute top-3 right-3 z-30">
+          <FavoriteButton
+            auctionId={id}
+            initialFavorited={!!(isFavorited ?? auction.isFavorited)}
+            onChange={onFavoriteChange}
+            stopNavigation
+            size={16}
+            className="p-2 bg-white/90 hover:bg-white shadow-sm border border-gray-200"
+          />
+        </div>
 
         {variant === "browse" && isLive && (
           <span className="absolute top-3 left-3 bg-danger-600 text-text-inverse text-xs font-bold px-2.5 py-1 rounded-md shadow-sm flex items-center gap-1.5">

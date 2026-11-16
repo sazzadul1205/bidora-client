@@ -2,7 +2,7 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { getCurrentUser, logout } from "../../services/authApi";
 import { getMyWallet } from "../../services/buyerApi";
-import { Wallet, LogOut, LayoutDashboard, Menu, X } from "lucide-react";
+import { Wallet, LogOut, LayoutDashboard, Menu, X, Heart } from "lucide-react";
 
 function Navbar() {
   const [user, setUser] = useState(null);
@@ -239,6 +239,15 @@ function Navbar() {
                   <div className="h-6 w-px bg-neutral-200 mx-1 hidden sm:block" />
 
                   <Link
+                    to="/favorites"
+                    className="hidden sm:flex text-sm font-medium text-text-main hover:text-primary-600 hover:bg-primary-50 px-3 py-2 rounded-lg transition-colors items-center gap-2"
+                    title="Favorites"
+                  >
+                    <Heart className="w-4 h-4" />
+                    <span className="hidden lg:inline">Favorites</span>
+                  </Link>
+
+                  <Link
                     to={getDashboardPath()}
                     className="hidden sm:flex text-sm font-medium text-text-main hover:text-primary-600 hover:bg-primary-50 px-3 py-2 rounded-lg transition-colors items-center gap-2"
                   >
@@ -329,6 +338,13 @@ function Navbar() {
                   onClick={closeMenu}
                 >
                   Dashboard
+                </Link>
+                <Link
+                  to="/favorites"
+                  className="block px-4 py-3 rounded-lg text-base font-medium text-text-main hover:bg-neutral-50"
+                  onClick={closeMenu}
+                >
+                  Favorites
                 </Link>
                 <Link
                   to="/wallet"

@@ -1,602 +1,527 @@
-import { useEffect, useState, useRef } from "react";
+﻿import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import PageTitle from "../../../components/PageTitle";
-
 import {
-  Search,
-  ArrowRight,
-  Laptop,
-  Shirt,
-  Armchair,
-  Car,
-  Watch,
-  Camera,
-  Headphones,
-  Gamepad2,
-  BookOpen,
-  Dumbbell,
-  ChevronLeft,
-  ChevronRight,
-  Gavel,
-  Clock,
   Flame,
-  Star,
-  Tag,
+  ShieldCheck,
+  TrendingUp,
+  Clock,
+  ArrowRight,
+  Zap,
+  Users,
+  PackageCheck,
+  Eye,
 } from "lucide-react";
+
+import PageTitle from "../../../components/PageTitle";
 
 // Services
 import { getHomeAuctions, getHotAuctions, getCategories } from "../../../services/publicApi";
+import { getFavoriteIds } from "../../../services/favoriteApi";
 
 // Utils
 import { imageUrl, handleImageError } from "../../../utils/image";
+import Countdown from "../../../components/Countdown";
 
 // Components
-import Countdown from "../../../components/Countdown";
 import AuctionCard from "../../../components/AuctionCard";
 import AuctionLoader from "../../../components/AuctionLoader";
 import CategorySearchBox from "../../../components/CategorySearchBox";
 
-const ICON_POOL = [Laptop, Shirt, Armchair, Car, Watch, Camera, Headphones, Gamepad2, BookOpen, Dumbbell];
+const FEATURED_ICONS = [Flame, Zap, TrendingUp, ShieldCheck];
 
-const flattenCategories = (nodes = []) => {
-  const out = [];
-  const walk = (arr) => {
-    arr.forEach((n) => {
-      out.push(n);
-      if (Array.isArray(n.children) && n.children.length) walk(n.children);
-    });
-  };
-  walk(nodes);
-  return out;
-};
-
-const parseUtc = (str) => {
-  if (!str) {
-    return 0;
-  }
-  const hasTimezone = str.endsWith("Z") || str.includes("+");
-  return new Date(hasTimezone ? str : `${str}Z`).getTime();
-};
-
-function HeroStatusBadge({ status, hasStartTime, endTime, startTime }) {
-  const [now, setNow] = useState(0);
-
-  useEffect(() => {
-    const update = () => setNow(Date.now());
-    update();
-    const timer = setInterval(update, 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const endMs = parseUtc(endTime);
-  const startMs = parseUtc(startTime);
-
-  const isTimeUp = endMs > 0 && endMs <= now;
-  const hasStarted = startMs > 0 && startMs <= now;
-
-  let effectiveStatus = status;
-  if (status === "Active" && isTimeUp) {
-    effectiveStatus = "Completed";
-  } else if (status === "Upcoming" && isTimeUp) {
-    effectiveStatus = "Completed";
-  } else if (status === "Upcoming" && hasStarted && !isTimeUp) {
-    effectiveStatus = "Active";
-  }
-
-  if (effectiveStatus === "Active") {
-    return (
-      <span className="inline-flex items-center gap-1.5 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-md">
-        <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
-        LIVE
-      </span>
-    );
-  }
-
-  if (effectiveStatus === "Upcoming") {
-    return (
-      <span className="inline-flex items-center gap-1.5 bg-orange-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-md">
-        {hasStartTime ? "UPCOMING" : "SCHEDULED"}
-      </span>
-    );
-  }
-
-  if (effectiveStatus === "Cancelled") {
-    return (
-      <span className="inline-flex items-center gap-1.5 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-md">
-        CANCELLED
-      </span>
-    );
-  }
+// --- HERO BANNER (uses banner from backend) ---
+function HeroBanner({ banner }) {
+  const hasData = banner && banner.productTitle;
 
   return (
-    <span className="inline-flex items-center gap-1.5 bg-gray-700 text-white text-[10px] font-bold px-2 py-0.5 rounded-md">
-      ENDED
-    </span>
+    <section className="bg-primary-900 text-text-inverse overflow-hidden relative">
+      <div className="absolute top-0 right-0 -mt-20 -mr-20 w-96 h-96 bg-primary-600 rounded-full blur-3xl opacity-20" />
+      <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-72 h-72 bg-info-600 rounded-full blur-3xl opacity-20" />
+
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center min-h-105 sm:min-h-130 relative z-10">
+        {/* Left: text */}
+        <div className="w-full md:w-1/2 p-6 sm:p-10 md:p-16 text-center md:text-left">
+          {hasData ? (
+            <span className="inline-block py-1 px-3 rounded-full bg-primary-800 text-info-200 text-xs font-bold tracking-wider mb-4 sm:mb-6 border border-primary-700">
+              FEATURED AUCTION
+            </span>
+          ) : (
+            <span className="inline-block py-1 px-3 rounded-full bg-primary-800 text-info-200 text-xs font-bold tracking-wider mb-4 sm:mb-6 border border-primary-700">
+              LIVE AUCTIONS
+            </span>
+          )}
+
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 sm:mb-6">
+            {hasData ? (
+              <>
+                <span className="block text-balance">{banner.productTitle}</span>
+                <span className="text-info-400">
+                  Bidding {banner.status === "Active" ? "Live Now" : "Soon"}
+                </span>
+              </>
+            ) : (
+              <>
+                Secure Bidding, <br />
+                <span className="text-info-400">Trusted Value.</span>
+              </>
+            )}
+          </h1>
+
+          {hasData && banner.currentHighestBid != null ? (
+            <p className="text-primary-200 text-base sm:text-lg mb-6 sm:mb-8 max-w-md mx-auto md:mx-0">
+              Current bid:{" "}
+              <strong className="text-text-inverse text-lg sm:text-xl">
+                à§³{Number(banner.currentHighestBid).toLocaleString()}
+              </strong>
+              {banner.endTime && banner.status === "Active" && (
+                <>
+                  {" Â· "}Ends in{" "}
+                  <Countdown targetDate={banner.endTime} variant="hero" />
+                </>
+              )}
+            </p>
+          ) : (
+            <p className="text-primary-200 text-base sm:text-lg mb-6 sm:mb-8 max-w-md mx-auto md:mx-0">
+              Join the marketplace where verified sellers meet serious buyers.
+              Zero hidden fees, 100% escrow protected.
+            </p>
+          )}
+
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center md:justify-start">
+            {hasData ? (
+              <Link
+                to={`/auction/${banner.id}`}
+                className="bg-info-500 hover:bg-info-600 text-text-inverse px-6 sm:px-8 py-3 sm:py-3.5 rounded-lg font-semibold transition-all shadow-lg flex items-center justify-center gap-2 text-sm sm:text-base"
+              >
+                Bid now <ArrowRight className="w-4 h-4" />
+              </Link>
+            ) : (
+              <Link
+                to="/auctions"
+                className="bg-info-500 hover:bg-info-600 text-text-inverse px-6 sm:px-8 py-3 sm:py-3.5 rounded-lg font-semibold transition-all shadow-lg flex items-center justify-center gap-2 text-sm sm:text-base"
+              >
+                Explore auctions <ArrowRight className="w-4 h-4" />
+              </Link>
+            )}
+            <Link
+              to="/auctions"
+              className="bg-transparent border border-primary-400 hover:bg-primary-800 text-text-inverse px-6 sm:px-8 py-3 sm:py-3.5 rounded-lg font-semibold transition-all text-center text-sm sm:text-base"
+            >
+              Browse all
+            </Link>
+          </div>
+        </div>
+
+        {/* Right: featured card */}
+        <div className="md:w-1/2 p-4 sm:p-8 md:p-10 flex justify-center md:justify-end relative z-10 w-full">
+          <Link
+            to={hasData ? `/auction/${banner.id}` : "/auctions"}
+            className="bg-surface/10 backdrop-blur-md border border-surface/20 p-4 sm:p-6 rounded-2xl w-full max-w-85 shadow-2xl transform hover:-translate-y-2 transition-transform duration-300 block"
+          >
+            <div className="relative mb-4">
+              <img
+                src={
+                  hasData && banner.mainImageUrl
+                    ? imageUrl(banner.mainImageUrl)
+                    : "https://placehold.co/400x300/1e293b/94a3b8?text=No+Featured+Auction"
+                }
+                alt={hasData ? banner.productTitle : "Featured auction"}
+                onError={handleImageError}
+                className="rounded-xl w-full h-40 sm:h-48 object-cover"
+              />
+              {hasData && banner.endTime && (
+                <span className="absolute top-3 right-3 bg-danger-500 text-text-inverse text-xs font-bold px-2.5 py-1 rounded-md flex items-center gap-1">
+                  <Clock className="w-3 h-3" />
+                  <Countdown targetDate={banner.endTime} />
+                </span>
+              )}
+            </div>
+            <div>
+              {hasData && banner.categoryName && (
+                <span className="text-info-300 text-xs font-semibold tracking-wide uppercase">
+                  {banner.categoryName}
+                </span>
+              )}
+              <h3 className="text-lg sm:text-xl font-bold mt-1 mb-2 text-text-inverse line-clamp-1">
+                {hasData ? banner.productTitle : "Featured item coming soon"}
+              </h3>
+              {hasData && (
+                <div className="flex justify-between items-end border-t border-surface/20 pt-3 sm:pt-4 mt-3 sm:mt-4">
+                  <div>
+                    <p className="text-primary-300 text-xs">Current bid</p>
+                    <p className="text-base sm:text-lg font-bold text-text-inverse">
+                      à§³{Number(banner.currentHighestBid ?? banner.startingPrice ?? 0).toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-primary-300 text-xs">Buyout</p>
+                    <p className="text-xs sm:text-sm font-medium text-primary-200">
+                      à§³{Number(banner.buyoutPrice ?? 0).toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </Link>
+        </div>
+      </div>
+    </section>
   );
 }
 
-export default function Home() {
-  const [activeAuctions, setActiveAuctions] = useState([]);
-  const [upcomingAuctions, setUpcomingAuctions] = useState([]);
-  const [bannerAuction, setBannerAuction] = useState(null);
-  const [featuredAuctions, setFeaturedAuctions] = useState([]);
+// --- CATEGORY CARD ---
+function CategoryCard({ category }) {
+  const colors = [
+    "text-primary-600 bg-primary-50",
+    "text-warning-600 bg-warning-50",
+    "text-success-600 bg-success-50",
+    "text-danger-600 bg-danger-50",
+    "text-info-600 bg-info-50",
+    "text-accent-purple-600 bg-accent-purple-50",
+    "text-accent-pink-600 bg-accent-pink-50",
+    "text-warning-600 bg-warning-50",
+  ];
+  const color = colors[(category.id || 0) % colors.length];
+
+  return (
+    <Link
+      to={`/auctions?categoryId=${category.id}`}
+      className="group flex flex-col items-center p-4 sm:p-6 bg-surface border border-border-main rounded-2xl hover:border-primary-200 hover:shadow-md transition-all cursor-pointer"
+    >
+      {category.iconUrl ? (
+        <img src={imageUrl(category.iconUrl)} alt={category.name} onError={handleImageError} className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full mb-2 sm:mb-3 object-cover ${color}`} />
+      ) : (
+        <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center mb-2 sm:mb-3 ${color} transition-transform group-hover:scale-110`}>
+          <PackageCheck className="w-5 h-5 sm:w-6 sm:h-6" />
+        </div>
+      )}
+      <span className="font-semibold text-text-main text-sm text-center line-clamp-1">
+        {category.name}
+      </span>
+      <span className="text-xs text-text-muted mt-1">
+        {category.productCount ?? 0} items
+      </span>
+    </Link>
+  );
+}
+
+// --- FEATURED AUCTION (large format) ---
+function FeaturedAuctionCard({ auction, rank, isFavorited, onFavoriteChange }) {
+  const IconComp = FEATURED_ICONS[rank % FEATURED_ICONS.length];
+  const endTimeMs = auction.endTime ? new Date(auction.endTime + (auction.endTime.endsWith("Z") ? "" : "Z")).getTime() : 0;
+  const isEnded = endTimeMs > 0 && endTimeMs <= Date.now();
+
+  return (
+    <Link
+      to={`/auction/${auction.id}`}
+      className="group relative bg-surface rounded-2xl border border-border-main overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-200 flex flex-col sm:flex-row"
+    >
+      {/* Image */}
+      <div className="relative sm:w-64 md:w-72 shrink-0 aspect-4/3 sm:aspect-auto bg-neutral-100 overflow-hidden">
+        <img
+          src={imageUrl(auction.mainImageUrl)}
+          alt={auction.productTitle}
+          onError={handleImageError}
+          className={`w-full h-full object-cover ${isEnded ? "grayscale opacity-60" : "group-hover:scale-105 transition-transform duration-300"}`}
+        />
+        <div className="absolute top-3 left-3 bg-warning-500 text-text-inverse text-xs font-bold px-2.5 py-1 rounded-md shadow-sm flex items-center gap-1.5">
+          <IconComp className="w-3.5 h-3.5" /> Featured #{rank + 1}
+        </div>
+      </div>
+
+      {/* Info */}
+      <div className="flex-1 p-5 sm:p-6 flex flex-col">
+        <div className="flex justify-between items-start gap-2">
+          <p className="text-xs text-primary-600 font-medium mb-1">
+            {auction.categoryName || "Uncategorized"}
+          </p>
+          <FavoriteButtonWrapper auctionId={auction.id} initialFavorited={isFavorited} onChange={onFavoriteChange} />
+        </div>
+        <h3 className="text-lg sm:text-xl font-bold text-text-main mb-2 line-clamp-2 group-hover:text-primary-600 transition-colors">
+          {auction.productTitle}
+        </h3>
+
+        <div className="grid grid-cols-2 gap-3 mt-auto pt-4 border-t border-border-main">
+          <div>
+            <p className="text-xs text-text-muted mb-0.5">
+              {auction.currentHighestBid > 0 ? "Current Bid" : "Starting Price"}
+            </p>
+            <p className="text-lg font-bold text-primary-600">
+              à§³{Number(auction.currentHighestBid > 0 ? auction.currentHighestBid : auction.startingPrice).toLocaleString()}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-text-muted mb-0.5">Time Left</p>
+            <p className="text-sm font-semibold text-danger-600">
+              {auction.endTime ? <Countdown targetDate={auction.endTime} /> : "â€”"}
+            </p>
+          </div>
+          <div className="flex items-center gap-1.5 text-xs text-text-muted">
+            <Eye className="w-3.5 h-3.5" /> {auction.viewCount ?? 0} views
+          </div>
+          <div className="flex items-center gap-1.5 text-xs text-text-muted">
+            <Users className="w-3.5 h-3.5" /> {auction.bidCount ?? 0} bids
+          </div>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+import FavoriteButton from "../../../components/FavoriteButton";
+function FavoriteButtonWrapper({ auctionId, initialFavorited, onChange }) {
+  return (
+    <FavoriteButton
+      auctionId={auctionId}
+      initialFavorited={initialFavorited}
+      onChange={onChange}
+      stopNavigation
+      size={16}
+      className="p-2 bg-gray-50 hover:bg-white border border-gray-200"
+    />
+  );
+}
+
+// --- MAIN ---
+export default function Products() {
+  const [homeData, setHomeData] = useState({ banner: null, active: [], upcoming: [], featured: [] });
   const [hotAuctions, setHotAuctions] = useState([]);
-
   const [categories, setCategories] = useState([]);
+  const [favIds, setFavIds] = useState(new Set());
   const [loading, setLoading] = useState(true);
-  const [now, setNow] = useState(0);
 
-  useEffect(() => {
-    const update = () => setNow(Date.now());
-    update();
-    const timer = setInterval(update, 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("");
-
-  const scrollRef = useRef(null);
-  const isDown = useRef(false);
-  const startX = useRef(0);
-  const scrollLeft = useRef(0);
-
-  const handleMouseDown = (e) => {
-    isDown.current = true;
-    scrollRef.current?.classList.add("active");
-    startX.current = e.pageX - scrollRef.current.offsetLeft;
-    scrollLeft.current = scrollRef.current.scrollLeft;
-  };
-  const handleMouseLeave = () => {
-    isDown.current = false;
-    scrollRef.current?.classList.remove("active");
-  };
-  const handleMouseUp = () => {
-    isDown.current = false;
-    scrollRef.current?.classList.remove("active");
-  };
-  const handleMouseMove = (e) => {
-    if (!isDown.current) {
-      return;
-    }
-    e.preventDefault();
-    const x = e.pageX - scrollRef.current.offsetLeft;
-    const walk = (x - startX.current) * 2;
-    scrollRef.current.scrollLeft = scrollLeft.current - walk;
-  };
-  const scroll = (direction) => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollBy({
-        left: direction === "left" ? -300 : 300,
-        behavior: "smooth",
-      });
-    }
-  };
+  // Single category picker for both sections
+  const [selectedCat, setSelectedCat] = useState("");
 
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
-        const params = {};
-        if (searchTerm.trim()) {
-          params.search = searchTerm.trim();
-        }
-        if (selectedCategory) {
-          params.categoryId = Number(selectedCategory);
-        }
-
         const [homeRes, hotRes, catRes] = await Promise.all([
-          getHomeAuctions(params),
+          getHomeAuctions(),
           getHotAuctions(),
           getCategories(),
         ]);
-        if (!mounted) {
-          return;
-        }
+        if (!mounted) return;
 
-        const home = homeRes.data.data || {};
-        setBannerAuction(home.banner || null);
-        setActiveAuctions(home.active || []);
-        setUpcomingAuctions(home.upcoming || []);
-        setFeaturedAuctions(home.featured || []);
-        setHotAuctions(hotRes.data.data || []);
+        const hd = homeRes.data.data || {};
+        setHomeData({
+          banner: hd.banner || null,
+          active: hd.active || [],
+          upcoming: hd.upcoming || [],
+          featured: hd.featured || [],
+        });
+        const hot = hotRes.data.data || [];
+        setHotAuctions(hot);
         setCategories(catRes.data.data || []);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        if (mounted) {
-          setLoading(false);
+
+        const token = localStorage.getItem("token");
+        if (token) {
+          const ids = [...new Set([...(hd.active || []), ...(hd.upcoming || []), ...(hd.featured || []), ...hot].map((a) => a.id))];
+          if (ids.length) {
+            try {
+              const favRes = await getFavoriteIds(ids);
+              const list = favRes.data?.data?.ids || [];
+              if (mounted) setFavIds(new Set(list));
+            } catch {
+              // ignore favorites prefetch failure
+            }
+          }
         }
+      } catch (err) {
+        console.error("Failed to fetch home page data:", err);
+      } finally {
+        if (mounted) setLoading(false);
       }
     })();
     return () => {
       mounted = false;
     };
-  }, [searchTerm, selectedCategory]);
+  }, []);
 
-  const getEffectiveStatus = (a) => {
-    if (!a) {
-      return "";
-    }
-    const endMs = parseUtc(a.endTime),
-      startMs = parseUtc(a.startTime);
-    const isTimeUp = endMs > 0 && endMs <= now,
-      hasStarted = startMs > 0 && startMs <= now;
-
-    if (a.status === "Active" && isTimeUp) {
-      return "Completed";
-    }
-    if (a.status === "Upcoming" && isTimeUp) {
-      return "Completed";
-    }
-    if (a.status === "Upcoming" && hasStarted && !isTimeUp) {
-      return "Active";
-    }
-    return a.status;
+  const onFavoriteChange = (auctionId, isFav) => {
+    setFavIds((prev) => {
+      const next = new Set(prev);
+      if (isFav) next.add(auctionId); else next.delete(auctionId);
+      return next;
+    });
   };
 
-  const heroAuction = bannerAuction;
-  const heroEffectiveStatus = heroAuction
-    ? getEffectiveStatus(heroAuction)
-    : "";
-  const activeGrid = activeAuctions.slice(0, 8);
-  const upcomingGrid = upcomingAuctions.slice(0, 8);
+  // Apply category filter client-side
+  const filterByCat = (list) =>
+    selectedCat ? list.filter((a) => String(a.categoryId) === String(selectedCat)) : list;
+
+  const active = filterByCat(homeData.active);
+  const upcoming = filterByCat(homeData.upcoming);
+  const featured = filterByCat(homeData.featured);
+  const hot = filterByCat(hotAuctions);
 
   if (loading) {
-    return <AuctionLoader />;
+    return <AuctionLoader fullScreen />;
   }
 
   return (
-    <div className="bg-white min-h-screen pb-20">
+    <div className="bg-neutral-50 min-h-screen">
       <PageTitle title="Home" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6">
-        {/* HERO BANNER */}
-        {heroAuction && (
-          <div className="relative bg-bg-alt rounded-2xl sm:rounded-3xl overflow-hidden mb-6 sm:mb-8 flex flex-col md:flex-row items-stretch">
-            {/* Left: copy */}
-            <div className="p-6 sm:p-10 md:p-14 md:w-1/2 relative z-10 flex flex-col justify-center">
-              <p className="text-blue-600 font-semibold text-xs sm:text-sm mb-2 sm:mb-3">
-                {heroEffectiveStatus === "Active"
-                  ? "Live right now"
-                  : heroAuction.startTime
-                    ? "Coming soon"
-                    : "Scheduled soon"}
-              </p>
-              <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold text-gray-900 leading-tight mb-3 sm:mb-4">
-                Find something great.
-                <br />
-                Make your next bid.
-              </h1>
-              <p className="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8 max-w-md">
-                Discover unique items, place your bids in real-time, and secure
-                your next treasure from trusted sellers.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                <Link
-                  to="/auctions"
-                  className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg text-sm font-semibold transition-colors text-center"
-                >
-                  Explore Auctions
-                </Link>
-                <Link
-                  to="/register"
-                  className="w-full sm:w-auto bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-6 py-3 rounded-lg text-sm font-semibold transition-colors text-center"
-                >
-                  Sell an item
-                </Link>
-              </div>
-            </div>
+      <HeroBanner banner={homeData.banner} />
 
-            {/* Right: featured card */}
-            <div className="md:w-1/2 p-4 sm:p-8 md:p-10 flex justify-center md:justify-end relative z-10 w-full">
-              <Link
-                to={`/auction/${heroAuction.id}`}
-                className="bg-white p-4 rounded-2xl shadow-xl w-full max-w-sm block hover:-translate-y-1 transition-transform"
-              >
-                <div className="relative aspect-4/3 bg-gray-100 rounded-xl overflow-hidden mb-4">
-                  <img
-                    src={imageUrl(heroAuction.mainImageUrl)}
-                    alt={heroAuction.productTitle}
-                    onError={handleImageError}
-                    className="w-full h-full object-contain bg-gray-100"
-                  />
-                  <div className="absolute top-3 left-3">
-                    <HeroStatusBadge
-                      status={heroAuction.status}
-                      hasStartTime={!!heroAuction.startTime}
-                      endTime={heroAuction.endTime}
-                      startTime={heroAuction.startTime}
-                    />
-                  </div>
-                </div>
-
-                <div className="flex justify-between items-center gap-2">
-                  <div className="min-w-0">
-                    <h3 className="font-bold text-gray-900 line-clamp-1">
-                      {heroAuction.productTitle}
-                    </h3>
-                    <p className="text-xs text-gray-500">
-                      {heroEffectiveStatus === "Active"
-                        ? "Current bid"
-                        : "Starting price"}
-                    </p>
-                  </div>
-                  <p className="text-lg sm:text-xl font-bold text-blue-600 shrink-0">
-                    ৳
-                    {heroEffectiveStatus === "Active"
-                      ? heroAuction.currentHighestBid?.toLocaleString() ||
-                        heroAuction.startingPrice?.toLocaleString() ||
-                        "0.00"
-                      : heroAuction.startingPrice?.toLocaleString() || "0.00"}
-                  </p>
-                </div>
-
-                <div className="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-500">
-                  {heroEffectiveStatus === "Active" && heroAuction.endTime && (
-                    <>
-                      Ends in{" "}
-                      <span className="font-semibold text-red-600">
-                        <Countdown targetDate={heroAuction.endTime} />
-                      </span>
-                    </>
-                  )}
-                  {heroEffectiveStatus !== "Active" &&
-                    heroAuction.startTime && (
-                      <>
-                        Starts in{" "}
-                        <span className="font-semibold text-orange-600">
-                          <Countdown targetDate={heroAuction.startTime} />
-                        </span>
-                      </>
-                    )}
-                  {heroEffectiveStatus !== "Active" &&
-                    !heroAuction.startTime && (
-                      <>Schedule pending — check back soon.</>
-                    )}
-                </div>
-              </Link>
-            </div>
-
-            <div className="hidden sm:block absolute top-0 right-0 w-xl h-144 bg-blue-100 rounded-full blur-3xl opacity-50 -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
-          </div>
-        )}
-
-        {/* SEARCH + CATEGORY */}
-        <div className="flex flex-col sm:flex-row gap-3 mb-6 sm:mb-8">
-          <div className="relative flex-1">
-            <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search for a product, brand, or category..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-            />
-          </div>
-
-          <div className="w-full sm:w-80">
-            <CategorySearchBox
-              categories={categories}
-              value={selectedCategory}
-              onChange={setSelectedCategory}
-            />
-          </div>
-        </div>
-
-        {/* CATEGORIES */}
-        <div className="mb-10 sm:mb-12 relative group">
-          <button
-            onClick={() => scroll("left")}
-            className="absolute left-0 top-1/2 -translate-y-1/2 -ml-4 z-10 bg-white/90 hover:bg-white border border-gray-200 shadow-md rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hidden md:block"
-          >
-            <ChevronLeft className="w-5 h-5 text-gray-700" />
-          </button>
-
-          <div
-            ref={scrollRef}
-            onMouseDown={handleMouseDown}
-            onMouseLeave={handleMouseLeave}
-            onMouseUp={handleMouseUp}
-            onMouseMove={handleMouseMove}
-            className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 scrollbar-hide cursor-grab active:cursor-grabbing px-1"
-          >
-            {categories && categories.length > 0 ? (
-              flattenCategories(categories).map((c, index) => {
-                const Icon = ICON_POOL[index % ICON_POOL.length];
-                const isActive = selectedCategory === c.id.toString();
-                return (
-                  <button
-                    key={c.id}
-                    onClick={() => setSelectedCategory(c.id.toString())}
-                    className={`shrink-0 w-40 sm:w-48 flex flex-col items-start p-3 sm:p-4 rounded-xl border transition-colors text-left select-none ${
-                      isActive
-                        ? "border-blue-600 bg-blue-50"
-                        : "border-gray-100 bg-white hover:border-blue-200 hover:bg-blue-50/30"
-                    }`}
-                  >
-                    <div
-                      className={`w-9 sm:w-10 h-9 sm:h-10 rounded-lg flex items-center justify-center mb-2 sm:mb-3 pointer-events-none overflow-hidden ${
-                        isActive ? "bg-blue-600" : "bg-blue-50"
-                      }`}
-                    >
-                      {c.iconUrl ? (
-                        <img src={imageUrl(c.iconUrl)} alt="" className="w-8 h-8 md:w-10 md:h-10 object-contain" />
-                      ) : (
-                        <Icon
-                          className={`w-4 sm:w-5 h-4 sm:h-5 ${
-                            isActive ? "text-white" : "text-blue-600"
-                          }`}
-                        />
-                      )}
-                    </div>
-                    <p className="font-semibold text-sm sm:text-base text-gray-900 line-clamp-1 w-full pointer-events-none">
-                      {c.name}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1 pointer-events-none">
-                      {typeof c.productCount === "number" ? `${c.productCount} items` : "Explore items"}
-                    </p>
-                  </button>
-                );
-              })
-            ) : (
-              <p className="text-gray-500 text-sm">No categories available.</p>
-            )}
-          </div>
-
-          <button
-            onClick={() => scroll("right")}
-            className="absolute right-0 top-1/2 -translate-y-1/2 -mr-4 z-10 bg-white/90 hover:bg-white border border-gray-200 shadow-md rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hidden md:block"
-          >
-            <ChevronRight className="w-5 h-5 text-gray-700" />
-          </button>
-        </div>
-
-        {/* HOT RIGHT NOW */}
-        {hotAuctions.length > 0 && (
-          <div className="mb-12 sm:mb-14">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 sm:mb-6">
-              <div>
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2">
-                  <Flame className="w-6 h-6 text-orange-500" />
-                  🔥 Hot Right Now
-                </h2>
-                <p className="text-sm text-gray-500 mt-1">
-                  Most active auctions with high bid counts.
-                </p>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-              {hotAuctions.map((auction) => (
-                <div key={auction.id} className="relative">
-                  <span className="absolute top-3 right-3 z-10 bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded-md shadow">
-                    {auction.bidCount} bids
-                  </span>
-                  <AuctionCard auction={auction} variant="home" />
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* FEATURED AUCTIONS */}
-        {featuredAuctions.length > 0 && (
-          <div className="mb-12 sm:mb-14">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 sm:mb-6">
-              <div>
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2">
-                  <Star className="w-6 h-6 text-yellow-500" />
-                  ⭐ Featured Auctions
-                </h2>
-                <p className="text-sm text-gray-500 mt-1">
-                  Hand-picked highlights from active auctions.
-                </p>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-              {featuredAuctions.map((auction) => (
-                <div key={auction.id} className="relative rounded-2xl ring-2 ring-yellow-400/70 shadow-[0_0_0_1px_rgba(250,204,21,0.25)]">
-                  <span className="absolute top-3 right-3 z-10 bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-1 rounded-md shadow flex items-center gap-1">
-                    <Star className="w-3 h-3" /> Featured
-                  </span>
-                  <AuctionCard auction={auction} variant="home" />
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ACTIVE AUCTIONS */}
-        <div className="mb-12 sm:mb-14">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 sm:mb-6">
+      {/* â”€â”€ HOT / TRENDING AUCTIONS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {hot.length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 sm:gap-4 mb-6">
             <div>
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2">
-                <span className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse"></span>
-                Open for bidding
+              <h2 className="text-2xl sm:text-3xl font-bold text-text-main flex items-center gap-2">
+                <Flame className="w-7 h-7 text-danger-500" /> Hot Auctions
               </h2>
-              <p className="text-sm text-gray-500 mt-1">
-                The latest auctions ending soon. Don't miss out.
+              <p className="text-sm sm:text-base text-text-muted mt-1">
+                Trending right now â€” most viewed and bid on.
               </p>
             </div>
-            <Link
-              to="/auctions"
-              className="text-sm font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1 mt-2 sm:mt-0 self-start sm:self-auto"
-            >
+            <Link to="/auctions" className="text-primary-600 font-medium hover:text-primary-700 flex items-center gap-1 transition-colors text-sm sm:text-base">
               View all <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
 
-          {activeGrid.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-14 sm:py-20 bg-linear-to-b from-gray-50 to-white rounded-2xl sm:rounded-3xl border-2 border-dashed border-gray-200 px-4">
-              <div className="w-14 sm:w-16 h-14 sm:h-16 bg-gray-100 rounded-full flex items-center justify-center mb-3 sm:mb-4">
-                <Gavel className="w-7 sm:w-8 h-7 sm:h-8 text-gray-400" />
+          <div className="flex gap-4 sm:gap-5 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 snap-x snap-mandatory">
+            {hot.map((auction) => (
+              <div key={auction.id} className="min-w-65 sm:min-w-70 max-w-75 snap-start shrink-0">
+                <AuctionCard auction={auction} variant="home" isFavorited={favIds.has(auction.id)} onFavoriteChange={onFavoriteChange} />
               </div>
-              <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 text-center">
-                No active auctions
-              </h3>
-              <p className="text-sm sm:text-base text-gray-500 mb-6 max-w-sm text-center">
-                Try adjusting your search or category filter to find live
-                auctions.
-              </p>
-              <Link
-                to="/auctions"
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition-colors"
-              >
-                Browse All Auctions
-              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* â”€â”€ FEATURED AUCTIONS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {featured.length > 0 && (
+        <section className="bg-surface border-y border-border-main">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 sm:gap-4 mb-6 sm:mb-8">
+              <div>
+                <h2 className="text-2xl sm:text-3xl font-bold text-text-main flex items-center gap-2">
+                  <Zap className="w-7 h-7 text-warning-500" /> Featured Auctions
+                </h2>
+                <p className="text-sm sm:text-base text-text-muted mt-1">
+                  Hand-picked items you won't want to miss.
+                </p>
+              </div>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-              {activeGrid.map((auction) => (
-                <AuctionCard
-                  key={auction.id}
-                  auction={auction}
-                  variant="home"
-                />
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-6">
+              {featured.map((auction, idx) => (
+                <FeaturedAuctionCard key={auction.id} auction={auction} rank={idx} isFavorited={favIds.has(auction.id)} onFavoriteChange={onFavoriteChange} />
               ))}
             </div>
-          )}
-        </div>
+          </div>
+        </section>
+      )}
 
-        {/* UPCOMING AUCTIONS */}
-        <div className="mb-12 sm:mb-14">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 sm:mb-6">
+      {/* â”€â”€ CATEGORY GRID â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {categories.length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+          <h2 className="text-xl sm:text-2xl font-bold text-text-main mb-6 sm:mb-8 text-center">
+            Browse by category
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+            {categories.filter((c) => !c.parentId).slice(0, 8).map((cat) => (
+              <CategoryCard key={cat.id} category={cat} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* â”€â”€ LIVE & UPCOMING â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      <section className="bg-surface border-y border-border-main">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
+          {/* Header with category filter */}
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 sm:gap-4 mb-6 sm:mb-8">
             <div>
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2">
-                <span className="w-2.5 h-2.5 bg-orange-400 rounded-full"></span>
-                Upcoming Auctions
+              <h2 className="text-2xl sm:text-3xl font-bold text-text-main">
+                Live auctions
               </h2>
-              <p className="text-sm text-gray-500 mt-1">
-                Get ready. These auctions are starting soon.
+              <p className="text-sm sm:text-base text-text-muted mt-1">
+                Bid on these items before time runs out.
               </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3 sm:items-center w-full sm:w-auto">
+              <div className="w-full sm:w-64">
+                <CategorySearchBox
+                  categories={categories}
+                  value={selectedCat}
+                  onChange={(val) => setSelectedCat(val)}
+                  placeholder="Filter by category..."
+                />
+              </div>
+              <Link to="/auctions" className="text-primary-600 font-medium hover:text-primary-700 flex items-center gap-1 transition-colors text-sm sm:text-base whitespace-nowrap">
+                View all <ArrowRight className="w-4 h-4" />
+              </Link>
             </div>
           </div>
 
-          {upcomingGrid.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-14 sm:py-20 bg-linear-to-b from-gray-50 to-white rounded-2xl sm:rounded-3xl border-2 border-dashed border-gray-200 px-4">
-              <div className="w-14 sm:w-16 h-14 sm:h-16 bg-gray-100 rounded-full flex items-center justify-center mb-3 sm:mb-4">
-                <Clock className="w-7 sm:w-8 h-7 sm:h-8 text-gray-400" />
-              </div>
-              <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 text-center">
-                No upcoming auctions
-              </h3>
-              <p className="text-sm sm:text-base text-gray-500 mb-6 max-w-sm text-center">
-                Check back soon for new auction listings.
-              </p>
+          {active.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+              {active.map((auction) => (
+                <AuctionCard key={auction.id} auction={auction} variant="home" isFavorited={favIds.has(auction.id)} onFavoriteChange={onFavoriteChange} />
+              ))}
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-              {upcomingGrid.map((auction) => (
-                <AuctionCard
-                  key={auction.id}
-                  auction={auction}
-                  variant="home"
-                />
-              ))}
+            <div className="text-center py-10 sm:py-12 bg-neutral-50 rounded-2xl border border-dashed border-neutral-300">
+              <TrendingUp className="w-10 h-10 sm:w-12 sm:h-12 text-neutral-300 mx-auto mb-3" />
+              <p className="text-text-muted text-sm sm:text-base">
+                {selectedCat ? "No live auctions in this category." : "No live auctions right now. Check back soon!"}
+              </p>
+            </div>
+          )}
+
+          {/* Upcoming */}
+          {upcoming.length > 0 && (
+            <div className="mt-10 sm:mt-14">
+              <h2 className="text-xl sm:text-2xl font-bold text-text-main mb-4 sm:mb-6">
+                Starting soon
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                {upcoming.map((auction) => (
+                  <AuctionCard key={auction.id} auction={auction} variant="home" isFavorited={favIds.has(auction.id)} onFavoriteChange={onFavoriteChange} />
+                ))}
+              </div>
             </div>
           )}
         </div>
-      </div>
+      </section>
+
+      {/* â”€â”€ TRUST INDICATORS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 text-center">
+          <div className="p-4 sm:p-6">
+            <div className="w-12 h-12 bg-success-100 text-success-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <ShieldCheck className="w-6 h-6" />
+            </div>
+            <h3 className="text-lg font-bold text-text-main mb-2">Verified sellers</h3>
+            <p className="text-text-muted text-sm">
+              Every seller is identity-verified and manually approved by our moderation team.
+            </p>
+          </div>
+          <div className="p-4 sm:p-6">
+            <div className="w-12 h-12 bg-info-100 text-info-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Zap className="w-6 h-6" />
+            </div>
+            <h3 className="text-lg font-bold text-text-main mb-2">Secure escrow</h3>
+            <p className="text-text-muted text-sm">
+              Your funds are held safely until you confirm receipt of the item.
+            </p>
+          </div>
+          <div className="p-4 sm:p-6">
+            <div className="w-12 h-12 bg-accent-purple-100 text-accent-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Users className="w-6 h-6" />
+            </div>
+            <h3 className="text-lg font-bold text-text-main mb-2">Anti-fraud protection</h3>
+            <p className="text-text-muted text-sm">
+              Dispute resolution, automated penalties, and admin oversight keep the marketplace fair.
+            </p>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

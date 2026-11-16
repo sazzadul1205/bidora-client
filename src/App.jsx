@@ -38,6 +38,7 @@ import GuestGuard from "./components/Auth/GuestGuard";
 import RoleGuard from "./components/Auth/RoleGuard";
 import ProfilePending from "./pages/ProfilePending/ProfilePending";
 import Wallet from "./pages/Wallet/Wallet";
+import Favorites from "./pages/Favorites/Favorites";
 import Settings from "./pages/Auth/Settings/Settings.jsx";
 import AdminTransactions from "./pages/admin/Transactions/AdminTransactions";
 import AdminSales from "./pages/admin/Sales/AdminSales";
@@ -200,6 +201,14 @@ function App() {
               element={
                 <ProfileCompletionGuard>
                   <Wallet />
+                </ProfileCompletionGuard>
+              }
+            />
+            <Route
+              path="/favorites"
+              element={
+                <ProfileCompletionGuard>
+                  <Favorites />
                 </ProfileCompletionGuard>
               }
             />

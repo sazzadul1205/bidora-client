@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getAuctionById } from "../../../services/publicApi";
 import PageTitle from "../../../components/PageTitle";
@@ -23,6 +23,7 @@ import {
   TrendingUp,
   Target,
   Eye,
+  Heart,
 } from "lucide-react";
 
 export default function AuctionDetails() {
@@ -122,7 +123,7 @@ export default function AuctionDetails() {
     };
   }, [id, navigate]);
 
-  // ─── LIVE POLLING ──────────────────────────────────────────────
+  // â”€â”€â”€ LIVE POLLING â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   useEffect(() => {
     if (!auction) {
       return;
@@ -219,7 +220,7 @@ export default function AuctionDetails() {
     }
     if (Number(bidAmount) < calculatedMinBid) {
       return toast.error(
-        `Minimum bid is ৳${calculatedMinBid.toLocaleString()}`,
+        `Minimum bid is à§³${calculatedMinBid.toLocaleString()}`,
       );
     }
 
@@ -383,16 +384,47 @@ export default function AuctionDetails() {
             </div>
 
             <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 sm:p-6 space-y-4 sm:space-y-6">
-                <div>
-                  <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
-                    {auction.productTitle}
-                  </h1>
-                  <p className="text-sm text-gray-500 line-clamp-2">
-                    {auction.productDescription?.substring(0, 100)}...
-                  </p>
-                  <span className="text-xs sm:text-sm font-medium text-gray-500 flex items-center gap-1 mt-1">
-                    <Eye className="w-4 h-4" /> {(auction.viewCount ?? 0).toLocaleString()} views
-                  </span>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
+                      {auction.productTitle}
+                    </h1>
+                    <p className="text-sm text-gray-500 line-clamp-2">
+                      {auction.productDescription?.substring(0, 100)}...
+                    </p>
+                    <span className="text-xs sm:text-sm font-medium text-gray-500 flex items-center gap-1 mt-1">
+                      <Eye className="w-4 h-4" /> {(auction.viewCount ?? 0).toLocaleString()} views
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!token) {
+                        toast.info("Please log in to save favorites.");
+                        return navigate("/login");
+                      }
+                      const next = !auction.isFavorited;
+                      setAuction((a) => (a ? { ...a, isFavorited: next } : a));
+                      try {
+                        const { addFavorite, removeFavorite } = await import("../../../services/favoriteApi");
+                        if (next) {
+                          await addFavorite(auction.id);
+                          toast.success("Added to favorites.");
+                        } else {
+                          await removeFavorite(auction.id);
+                          toast.success("Removed from favorites.");
+                        }
+                      } catch (err) {
+                        setAuction((a) => (a ? { ...a, isFavorited: !next } : a));
+                        toast.errorFrom(err, "Failed to update favorite.");
+                      }
+                    }}
+                    className="shrink-0 inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-sm font-medium"
+                    title={auction.isFavorited ? "Remove from favorites" : "Add to favorites"}
+                  >
+                    <Heart className={`w-4 h-4 ${auction.isFavorited ? "fill-red-500 text-red-500" : "text-gray-500"}`} />
+                    <span className="hidden sm:inline">{auction.isFavorited ? "Saved" : "Save"}</span>
+                  </button>
                 </div>
 
               <div className="grid grid-cols-2 gap-3 sm:gap-4 bg-gray-50 p-3 sm:p-4 rounded-xl text-sm">
@@ -486,7 +518,7 @@ export default function AuctionDetails() {
                     : "Starting price"}
                 </p>
                 <p className="text-2xl sm:text-3xl lg:text-4xl font-bold text-blue-600 mb-3 break-all">
-                  ৳
+                  à§³
                   {(
                     auction.currentHighestBid ?? startingPrice
                   ).toLocaleString()}
@@ -543,7 +575,7 @@ export default function AuctionDetails() {
                       <TrendingUp className="w-3.5 h-3.5" /> Bid Increment Tiers
                     </span>
                     <span className="text-[10px] sm:text-xs font-semibold text-blue-600 whitespace-nowrap">
-                      Current: ৳{currentIncrement}
+                      Current: à§³{currentIncrement}
                     </span>
                   </div>
                   <div className="relative h-2.5 sm:h-3 bg-gray-200 rounded-full overflow-hidden mb-2">
@@ -555,9 +587,9 @@ export default function AuctionDetails() {
                     <div className="absolute top-0 bottom-0 left-2/3 w-0.5 bg-white opacity-50" />
                   </div>
                   <div className="flex justify-between text-[9px] sm:text-[10px] font-medium text-gray-400 uppercase gap-1">
-                    <span>T1 +৳20</span>
-                    <span>T2 +৳50</span>
-                    <span>T3 +৳100</span>
+                    <span>T1 +à§³20</span>
+                    <span>T2 +à§³50</span>
+                    <span>T3 +à§³100</span>
                   </div>
                 </div>
               )}
@@ -577,7 +609,7 @@ export default function AuctionDetails() {
                       <p className="text-xs text-gray-500 mt-1">
                         Winning bid:{" "}
                         <strong className="text-gray-900 text-sm">
-                          ৳{auction.currentHighestBid?.toLocaleString()}
+                          à§³{auction.currentHighestBid?.toLocaleString()}
                         </strong>
                       </p>
                     </div>
@@ -601,12 +633,12 @@ export default function AuctionDetails() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       <span className="mr-2">Your Bid</span>
                       <span className="text-[10px] sm:text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
-                        Min: ৳{calculatedMinBid.toLocaleString()}
+                        Min: à§³{calculatedMinBid.toLocaleString()}
                       </span>
                     </label>
                     <div className="relative">
                       <span className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">
-                        ৳
+                        à§³
                       </span>
                       <input
                         type="number"
@@ -639,7 +671,7 @@ export default function AuctionDetails() {
                       onClick={handleBuyout}
                       className="w-full bg-white border-2 border-gray-900 text-gray-900 hover:bg-gray-50 py-2.5 sm:py-3 rounded-xl font-bold text-sm sm:text-base transition-colors"
                     >
-                      Buy It Now for ৳{auction.buyoutPrice.toLocaleString()}
+                      Buy It Now for à§³{auction.buyoutPrice.toLocaleString()}
                     </button>
                   )}
                 </div>
@@ -661,7 +693,7 @@ export default function AuctionDetails() {
                           {bid.bidderName}
                         </span>
                         <span className="font-bold text-gray-900 whitespace-nowrap">
-                          ৳{bid.amount.toLocaleString()}
+                          à§³{bid.amount.toLocaleString()}
                         </span>
                       </div>
                     ))}
@@ -696,3 +728,4 @@ export default function AuctionDetails() {
     </div>
   );
 }
+
