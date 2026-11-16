@@ -358,7 +358,15 @@ export default function SellerAuctionView() {
                   </div>
                 )}
 
-                <div className="grid grid-cols-2 gap-3 sm:gap-4 border-t border-gray-100 pt-3 sm:pt-4">
+                <div className="grid grid-cols-3 gap-3 sm:gap-4 border-t border-gray-100 pt-3 sm:pt-4">
+                  <div>
+                    <p className="text-[10px] sm:text-xs text-gray-500 mb-1 flex items-center justify-center gap-1">
+                      <Eye className="w-3 h-3" /> Views
+                    </p>
+                    <p className="text-lg sm:text-xl font-bold text-gray-900">
+                      {(auction.viewCount ?? 0).toLocaleString()}
+                    </p>
+                  </div>
                   <div>
                     <p className="text-[10px] sm:text-xs text-gray-500 mb-1 flex items-center justify-center gap-1">
                       <Users className="w-3 h-3" /> Bidders

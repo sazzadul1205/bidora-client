@@ -11,6 +11,7 @@ import {
   TrendingUp,
   Wallet,
   AlertCircle,
+  Eye,
 } from "lucide-react";
 import { Skeleton } from "../../../components/Skeleton";
 import { formatCurrency as formatMoney } from "../../../utils/currency";
@@ -90,7 +91,7 @@ export default function SellerDashboard() {
         </div>
 
         {/* STATS GRID */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
           <div className="bg-surface p-4 sm:p-5 rounded-xl border border-border-main shadow-sm flex items-center gap-3 sm:gap-4">
             <div className="p-2.5 sm:p-3 bg-primary-50 text-primary-600 rounded-lg shrink-0">
               <Package className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -115,6 +116,20 @@ export default function SellerDashboard() {
               </p>
               <p className="text-xl sm:text-2xl font-bold text-text-main">
                 {data?.activeAuctions || 0}
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-surface p-4 sm:p-5 rounded-xl border border-border-main shadow-sm flex items-center gap-3 sm:gap-4">
+            <div className="p-2.5 sm:p-3 bg-info-50 text-info-600 rounded-lg shrink-0">
+              <Eye className="w-5 h-5 sm:w-6 sm:h-6" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs sm:text-sm font-medium text-text-muted truncate">
+                Auction Views
+              </p>
+              <p className="text-xl sm:text-2xl font-bold text-text-main">
+                {(data?.totalAuctionViews ?? 0).toLocaleString()}
               </p>
             </div>
           </div>

@@ -15,6 +15,8 @@ import {
   CheckCircle2,
   Clock,
   Star,
+  Eye,
+  Gavel,
 } from "lucide-react";
 import AuctionLoader from "../../../components/AuctionLoader";
 import RefreshButton from "../../../components/RefreshButton";
@@ -210,7 +212,7 @@ export default function ViewProduct() {
                     Starting Price
                   </p>
                   <p className="text-lg sm:text-2xl font-bold text-gray-900 break-all">
-                    ৳{product.startingPrice?.toLocaleString()}
+                    à§³{product.startingPrice?.toLocaleString()}
                   </p>
                 </div>
                 <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
@@ -218,16 +220,59 @@ export default function ViewProduct() {
                     Buyout Price
                   </p>
                   <p className="text-lg sm:text-2xl font-bold text-gray-900 break-all">
-                    ৳{product.buyoutPrice?.toLocaleString()}
+                    à§³{product.buyoutPrice?.toLocaleString()}
                   </p>
                 </div>
               </div>
               <p className="text-[11px] sm:text-xs text-gray-500 mt-3 sm:mt-4 bg-blue-50 p-2 rounded border border-blue-100">
                 A reserved deposit of{" "}
-                <strong>৳{(product.startingPrice * 0.25).toFixed(2)}</strong>{" "}
+                <strong>à§³{(product.startingPrice * 0.25).toFixed(2)}</strong>{" "}
                 (25%) is required when you submit this for approval.
               </p>
             </div>
+
+            {product.auctionId && (
+              <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6">
+                <div className="flex items-center justify-between gap-2 mb-3 sm:mb-4">
+                  <h2 className="text-xs sm:text-sm font-bold text-gray-900 uppercase tracking-wider flex items-center gap-2">
+                    <Gavel className="w-4 h-4 text-blue-600" /> Auction Performance
+                  </h2>
+                  <Link
+                    to={`/seller/auctions/${product.auctionId}`}
+                    className="text-xs font-semibold text-blue-600 hover:text-blue-700"
+                  >
+                    View auction
+                  </Link>
+                </div>
+                <div className="grid grid-cols-3 gap-3 sm:gap-4">
+                  <div className="bg-gray-50 p-3 rounded-lg text-center">
+                    <p className="text-[10px] sm:text-xs text-gray-500 mb-1 flex items-center justify-center gap-1">
+                      <Eye className="w-3 h-3" /> Views
+                    </p>
+                    <p className="text-lg font-bold text-gray-900">
+                      {(product.auctionViewCount ?? 0).toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded-lg text-center">
+                    <p className="text-[10px] sm:text-xs text-gray-500 mb-1">Bids</p>
+                    <p className="text-lg font-bold text-gray-900">
+                      {product.auctionBidCount ?? 0}
+                    </p>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded-lg text-center">
+                    <p className="text-[10px] sm:text-xs text-gray-500 mb-1">Status</p>
+                    <p className="text-xs sm:text-sm font-bold text-gray-900">
+                      {product.auctionStatus || "—"}
+                    </p>
+                  </div>
+                </div>
+                {product.auctionCurrentHighestBid != null && (
+                  <p className="text-xs text-gray-600 mt-3">
+                    Current/highest bid: <span className="font-semibold text-gray-900">à§³{Number(product.auctionCurrentHighestBid).toLocaleString()}</span>
+                  </p>
+                )}
+              </div>
+            )}
 
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6">
               <h2 className="text-xs sm:text-sm font-bold text-gray-900 uppercase tracking-wider mb-3 sm:mb-4 flex items-center gap-2">

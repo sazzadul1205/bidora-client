@@ -439,7 +439,7 @@ export default function MyProducts() {
                               </div>
                             )}
 
-                          {p.auctionStatus && (
+                              {p.auctionStatus && (
                             <div className="space-y-1 mt-1">
                               <span
                                 className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wide border ${
@@ -458,6 +458,14 @@ export default function MyProducts() {
                                 Auction: {p.auctionStatus}
                               </span>
 
+                              {p.auctionId != null && (
+                                <p className="text-[11px] text-text-muted font-medium flex items-center gap-1">
+                                  <Eye className="w-3 h-3 text-neutral-400" />
+                                  {(p.auctionViewCount ?? 0).toLocaleString()} views
+                                  {p.auctionBidCount != null ? ` · ${p.auctionBidCount} bids` : ""}
+                                </p>
+                              )}
+
                               {p.auctionStatus === "Cancelled" &&
                                 p.auctionCancellationReason && (
                                   <div className="text-[11px] text-danger-600 flex items-start gap-1">
@@ -472,10 +480,7 @@ export default function MyProducts() {
                                 p.auctionBidCount > 0 && (
                                   <p className="text-[11px] text-text-muted font-medium flex items-center gap-1">
                                     <Gavel className="w-3 h-3 text-neutral-400" />
-                                    {p.auctionBidCount} bids ·{" "}
-                                    {formatCurrency(
-                                      p.auctionCurrentHighestBid ?? 0,
-                                    )}
+                                    High bid: {formatCurrency(p.auctionCurrentHighestBid ?? 0)}
                                   </p>
                                 )}
                             </div>
