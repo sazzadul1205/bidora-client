@@ -42,13 +42,93 @@ authApi.interceptors.request.use(
     return Promise.reject(err);
   },
 );
+
+// Flag to prevent multiple simultaneous refresh attempts
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
 authApi.interceptors.response.use(
   (res) => {
     resLog(res);
     return res;
   },
-  (err) => {
+  async (err) => {
     errLog(err);
+    const originalRequest = err.config;
+
+    // If error is 401 and we haven't tried to refresh yet
+    if (err.response?.status === 401 && !originalRequest._retry) {
+      // Don't try to refresh for auth endpoints
+      if (originalRequest.url.includes("/auth/login") || 
+          originalRequest.url.includes("/auth/register") ||
+          originalRequest.url.includes("/auth/refresh")) {
+        return Promise.reject(err);
+      }
+
+      originalRequest._retry = true;
+
+      if (isRefreshing) {
+        // Wait for the refresh to complete
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        }).then((token) => {
+          originalRequest.headers.Authorization = `Bearer ${token}`;
+          return authApi(originalRequest);
+        }).catch((err) => {
+          return Promise.reject(err);
+        });
+      }
+
+      isRefreshing = true;
+
+      try {
+        const refreshToken = localStorage.getItem("refreshToken");
+        if (!refreshToken) {
+          throw new Error("No refresh token available");
+        }
+
+        const response = await authApi.post("/auth/refresh", { refreshToken });
+        const data = response.data?.data || {};
+        
+        const newToken = data.token;
+        const newRefreshToken = data.refreshToken;
+
+        localStorage.setItem("token", newToken);
+        if (newRefreshToken) {
+          localStorage.setItem("refreshToken", newRefreshToken);
+        }
+
+        // Update the auth header for future requests
+        authApi.defaults.headers.common["Authorization"] = `Bearer ${newToken}`;
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+
+        processQueue(null, newToken);
+        return authApi(originalRequest);
+      } catch (refreshError) {
+        processQueue(refreshError, null);
+        // Clear tokens and redirect to login
+        localStorage.removeItem("token");
+        localStorage.removeItem("refreshToken");
+        localStorage.removeItem("roles");
+        localStorage.removeItem("tokenExpiresInMinutes");
+        window.location.href = "/login";
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
+      }
+    }
+
     return Promise.reject(err);
   },
 );
@@ -71,12 +151,35 @@ export const login = async (credentials) => {
   const response = await authApi.post("/auth/login", credentials);
   const data = response.data?.data || {};
   localStorage.setItem("token", data.token);
+  if (data.refreshToken) {
+    localStorage.setItem("refreshToken", data.refreshToken);
+  }
   if (data.roles) {
     localStorage.setItem("roles", JSON.stringify(data.roles));
   }
   if (data.expiresInMinutes) {
     localStorage.setItem("tokenExpiresInMinutes", data.expiresInMinutes);
   }
+  return response;
+};
+
+// Refresh access token using refresh token
+export const refreshToken = async () => {
+  const refreshToken = localStorage.getItem("refreshToken");
+  if (!refreshToken) {
+    throw new Error("No refresh token available");
+  }
+  const response = await authApi.post("/auth/refresh", { refreshToken });
+  const data = response.data?.data || {};
+  const newToken = data.token;
+  const newRefreshToken = data.refreshToken;
+  
+  localStorage.setItem("token", newToken);
+  if (newRefreshToken) {
+    localStorage.setItem("refreshToken", newRefreshToken);
+  }
+  
+  authApi.defaults.headers.common["Authorization"] = `Bearer ${newToken}`;
   return response;
 };
 
@@ -112,8 +215,18 @@ export const changePassword = (passwordData) => {
 };
 
 // Clears the token, roles, and expiration from the browser
-export const logout = () => {
+export const logout = async () => {
+  try {
+    const refreshToken = localStorage.getItem("refreshToken");
+    if (refreshToken) {
+      await authApi.post("/auth/logout", { refreshToken });
+    }
+  } catch (err) {
+    // Ignore errors, still clear local storage
+    console.warn("Server logout failed:", err);
+  }
   localStorage.removeItem("token");
+  localStorage.removeItem("refreshToken");
   localStorage.removeItem("roles");
   localStorage.removeItem("tokenExpiresInMinutes");
 };
