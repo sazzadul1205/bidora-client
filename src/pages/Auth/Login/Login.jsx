@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { TrendingUp, Package, ShieldCheck, CheckCircle2 } from "lucide-react";
-import { login, getCurrentUser } from "../../../services/authApi";
+import { login } from "../../../services/authApi";
 import { getErrorMessage } from "../../../utils/apiError";
 
 function Login() {
@@ -19,22 +19,30 @@ function Login() {
     formState: { errors, isSubmitting },
   } = useForm();
 
+  const getDashboardPath = (role) => {
+    if (role === "Admin") {
+      return "/admin/dashboard";
+    }
+    if (role === "Seller") {
+      return "/seller/dashboard";
+    }
+    return "/buyer/dashboard";
+  };
+
   const onSubmit = async (data) => {
     setServerError("");
     try {
-      await login(data);
-      const userRes = await getCurrentUser();
-      const role = userRes.data?.data?.account?.roles?.[0];
+      const response = await login(data);
+      const resData = response.data?.data || {};
 
-      if (role === "Admin") {
-        navigate("/admin/dashboard");
-      } else if (role === "Seller") {
-        navigate("/seller/dashboard");
-      } else if (role === "Buyer") {
-        navigate("/buyer/dashboard");
-      } else {
-        navigate("/");
+      // Onboarding-aware routing: incomplete users go to profile setup.
+      if (resData.profileSetupRequired === true) {
+        navigate("/setup-profile", { replace: true });
+        return;
       }
+
+      const role = resData.roles?.[0];
+      navigate(getDashboardPath(role));
     } catch (err) {
       setServerError(
         getErrorMessage(err, "Invalid email or password. Please try again."),

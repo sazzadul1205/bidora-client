@@ -15,8 +15,20 @@ export const getAuthConfig = () => {
 
 // Public Auth Endpoints
 
-export const register = (userData) => {
-  return authApi.post("/auth/register", userData);
+export const register = async (userData) => {
+  const response = await authApi.post("/auth/register", userData);
+  const data = response.data?.data || {};
+  if (data.token) {
+    localStorage.setItem("token", data.token);
+  }
+  if (data.refreshToken) {
+    localStorage.setItem("refreshToken", data.refreshToken);
+  }
+  if (data.roles) {
+    localStorage.setItem("roles", JSON.stringify(data.roles));
+  }
+  localStorage.setItem("profileSetupRequired", String(!!data.profileSetupRequired));
+  return response;
 };
 
 export const login = async (credentials) => {
@@ -32,6 +44,7 @@ export const login = async (credentials) => {
   if (data.expiresInMinutes) {
     localStorage.setItem("tokenExpiresInMinutes", data.expiresInMinutes);
   }
+  localStorage.setItem("profileSetupRequired", String(!!data.profileSetupRequired));
   return response;
 };
 
@@ -55,6 +68,27 @@ export const refreshToken = async () => {
 
 export const getCurrentUser = () => {
   return authApi.get("/auth/me", getAuthConfig());
+};
+
+export const setupProfile = async (profileData) => {
+  const token = localStorage.getItem("token");
+  const response = await authApi.post(
+    "/profile/setup",
+    profileData,
+    token ? { headers: { Authorization: `Bearer ${token}` } } : {},
+  );
+  const data = response.data?.data || {};
+  if (data.token) {
+    localStorage.setItem("token", data.token);
+  }
+  if (data.refreshToken) {
+    localStorage.setItem("refreshToken", data.refreshToken);
+  }
+  if (data.roles) {
+    localStorage.setItem("roles", JSON.stringify(data.roles));
+  }
+  localStorage.setItem("profileSetupRequired", String(!!data.profileSetupRequired));
+  return response;
 };
 
 export const updateProfile = (profileData, frontNidFile, backNidFile) => {
@@ -96,6 +130,7 @@ export const logout = async () => {
   localStorage.removeItem("refreshToken");
   localStorage.removeItem("roles");
   localStorage.removeItem("tokenExpiresInMinutes");
+  localStorage.removeItem("profileSetupRequired");
 };
 
 export default authApi;

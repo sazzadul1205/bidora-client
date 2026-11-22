@@ -20,36 +20,29 @@ export default function ProfileCompletionGuard({ children }) {
 
         const user = res.data?.data;
         const role = user?.account?.roles?.[0];
-        const profile = user?.profile || {};
-        const account = user?.account || {};
+        const isComplete = user?.profile?.isProfileSetupCompleted === true;
 
-        // Admins bypass profile-completion checks
+        // Admins are pre-provisioned and bypass buyer/seller onboarding.
         if (role === "Admin") {
           setAllowed(true);
           return;
         }
 
-        const isComplete = Boolean(
-          profile.fullName &&
-          account.phoneNumber &&
-          profile.address &&
-          profile.city &&
-          profile.nationalIdNumber,
-        );
-
-        // Verification status enum is NotSubmitted | PendingReview | Verified | Rejected
-        const status = profile.verificationStatus || "NotSubmitted";
-
-        if (isComplete && status === "Verified") {
-          setAllowed(true);
+        if (!isComplete) {
+          navigate("/setup-profile", { replace: true });
           return;
         }
 
-        navigate("/profile-pending", { replace: true });
+        setAllowed(true);
       } catch (err) {
-        console.error("Profile check failed:", err);
+        console.error("Profile completion check failed:", err);
         if (mounted) {
-          navigate("/login", { replace: true });
+          const status = err?.response?.status;
+          if (status === 401 || status === 403) {
+            navigate("/login", { replace: true });
+          } else {
+            navigate("/setup-profile", { replace: true });
+          }
         }
       } finally {
         if (mounted) {

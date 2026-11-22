@@ -2,13 +2,11 @@ import PageTitle from "../../../components/PageTitle";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { ShoppingBag, Store } from "lucide-react";
 import { register as registerUser } from "../../../services/authApi";
 import { getErrorMessage } from "../../../utils/apiError";
 
 function Register() {
   const navigate = useNavigate();
-  const [role, setRole] = useState("buyer");
   const [serverError, setServerError] = useState("");
 
   const {
@@ -20,16 +18,15 @@ function Register() {
   const onSubmit = async (data) => {
     setServerError("");
     try {
-      const backendRole = role === "buyer" ? "Buyer" : "Seller";
       await registerUser({
-        fullName: data.fullName,
         email: data.email,
         password: data.password,
-        role: backendRole,
+        confirmPassword: data.confirmPassword,
       });
-      navigate("/login", {
+      navigate("/setup-profile", {
+        replace: true,
         state: {
-          message: "Registration successful! Please log in to continue.",
+          message: "Account created successfully. Please complete your profile setup.",
         },
       });
     } catch (err) {
@@ -47,30 +44,34 @@ function Register() {
           {/* Left Column - Marketing (hidden below lg) */}
           <div className="hidden lg:block max-w-lg">
             <p className="text-primary-600 font-semibold text-xs tracking-wider uppercase mb-4">
-              Join the marketplace
+              Create an account
             </p>
             <h1 className="text-4xl xl:text-5xl font-bold text-text-main leading-tight mb-4">
-              Great products.
+              Join Bidora.
               <br />
-              New possibilities.
+              Start bidding today.
             </h1>
             <p className="text-text-muted mb-8 text-base">
-              Create an account to bid on your next find or give your products a
-              new home.
+              Create your identity with just your email and password. You will
+              complete your buyer or seller profile in the next step.
             </p>
 
             <div className="bg-neutral-50 border border-border-main rounded-xl p-6 mb-8">
               <h3 className="text-sm font-semibold text-text-main mb-4">
-                Choose how you'll use Bidora
+                How onboarding works
               </h3>
               <p className="text-sm text-text-muted mb-3 leading-relaxed">
-                <strong className="text-neutral-700 font-medium">Buyers</strong>{" "}
-                browse, bid and buy out. Sellers upload products and follow
-                their auctions from approval to result.
+                <strong className="text-neutral-700 font-medium">Step 1:</strong>{" "}
+                Create your account with email and password.
+              </p>
+              <p className="text-sm text-text-muted mb-3 leading-relaxed">
+                <strong className="text-neutral-700 font-medium">Step 2:</strong>{" "}
+                Set your profile name, choose Buyer or Seller, and add your
+                phone number.
               </p>
               <p className="text-sm text-text-muted leading-relaxed">
-                Products are reviewed before going live. Winners and sellers
-                arrange handover directly.
+                Identity and profile are kept separate so you can connect other
+                sign-in methods later.
               </p>
             </div>
 
@@ -92,7 +93,7 @@ function Register() {
                 Create your account
               </h2>
               <p className="text-sm text-text-muted mt-1 mb-5 sm:mb-6">
-                Start with the role that's right for you.
+                Start with your email and password.
               </p>
 
               {serverError && (
@@ -102,99 +103,6 @@ function Register() {
               )}
 
               <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
-                {/* Role picker — stack on very small, side-by-side from 400px up */}
-                <div>
-                  <label className="block text-sm font-medium text-text-main mb-2">
-                    I want to join as a
-                  </label>
-                  <div className="grid grid-cols-1 min-[400px]:grid-cols-2 gap-2 sm:gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setRole("buyer")}
-                      className={`flex flex-col items-start p-3 rounded-lg border text-left transition-colors ${
-                        role === "buyer"
-                          ? "border-primary-600 bg-primary-50/50"
-                          : "border-border-main hover:border-neutral-300 bg-surface"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between w-full mb-1">
-                        <div className="flex items-center gap-2">
-                          <ShoppingBag
-                            className={`w-4 h-4 ${role === "buyer" ? "text-primary-600" : "text-text-muted"}`}
-                          />
-                          <span
-                            className={`text-sm font-medium ${role === "buyer" ? "text-primary-900" : "text-text-main"}`}
-                          >
-                            Buyer
-                          </span>
-                        </div>
-                        <div
-                          className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${role === "buyer" ? "border-primary-600" : "border-border-main"}`}
-                        >
-                          {role === "buyer" && (
-                            <div className="w-2 h-2 rounded-full bg-primary-600" />
-                          )}
-                        </div>
-                      </div>
-                      <span className="text-xs text-text-muted">
-                        Bid and buy
-                      </span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setRole("seller")}
-                      className={`flex flex-col items-start p-3 rounded-lg border text-left transition-colors ${
-                        role === "seller"
-                          ? "border-primary-600 bg-primary-50/50"
-                          : "border-border-main hover:border-neutral-300 bg-surface"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between w-full mb-1">
-                        <div className="flex items-center gap-2">
-                          <Store
-                            className={`w-4 h-4 ${role === "seller" ? "text-primary-600" : "text-text-muted"}`}
-                          />
-                          <span
-                            className={`text-sm font-medium ${role === "seller" ? "text-primary-900" : "text-text-main"}`}
-                          >
-                            Seller
-                          </span>
-                        </div>
-                        <div
-                          className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${role === "seller" ? "border-primary-600" : "border-border-main"}`}
-                        >
-                          {role === "seller" && (
-                            <div className="w-2 h-2 rounded-full bg-primary-600" />
-                          )}
-                        </div>
-                      </div>
-                      <span className="text-xs text-text-muted">
-                        Sell your stuff
-                      </span>
-                    </button>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-text-main mb-1">
-                    Full name
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Enter your full name"
-                    className={`w-full px-3 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm ${errors.fullName ? "border-danger-500" : "border-border-main"}`}
-                    {...register("fullName", {
-                      required: "Full name is required",
-                    })}
-                  />
-                  {errors.fullName && (
-                    <p className="text-danger-500 text-xs mt-1">
-                      {errors.fullName.message}
-                    </p>
-                  )}
-                </div>
-
                 <div>
                   <label className="block text-sm font-medium text-text-main mb-1">
                     Email address
@@ -229,8 +137,8 @@ function Register() {
                     {...register("password", {
                       required: "Password is required",
                       minLength: {
-                        value: 8,
-                        message: "Password must be at least 8 characters",
+                        value: 6,
+                        message: "Password must be at least 6 characters",
                       },
                     })}
                   />
@@ -240,8 +148,7 @@ function Register() {
                     </p>
                   ) : (
                     <p className="text-[11px] text-text-muted">
-                      Use at least 8 characters, including a letter and a
-                      number.
+                      Use at least 6 characters.
                     </p>
                   )}
                 </div>
@@ -268,48 +175,12 @@ function Register() {
                   )}
                 </div>
 
-                <div className="pt-2">
-                  <label className="flex items-start gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      className="mt-0.5 rounded border-border-main text-primary-600 focus:ring-primary-500 shrink-0"
-                      {...register("terms", {
-                        required: "You must agree to the terms",
-                      })}
-                    />
-                    <span className="text-xs text-text-muted leading-tight">
-                      I agree to the{" "}
-                      <Link
-                        to="/terms"
-                        className="text-primary-600 hover:text-primary-700 hover:underline"
-                      >
-                        Terms of Use
-                      </Link>{" "}
-                      and{" "}
-                      <Link
-                        to="/privacy"
-                        className="text-primary-600 hover:text-primary-700 hover:underline"
-                      >
-                        Privacy Policy
-                      </Link>
-                      .
-                    </span>
-                  </label>
-                  {errors.terms && (
-                    <p className="text-danger-500 text-xs mt-1">
-                      {errors.terms.message}
-                    </p>
-                  )}
-                </div>
-
                 <button
                   type="submit"
                   disabled={isSubmitting}
                   className="w-full bg-primary-600 text-text-inverse font-medium py-2.5 rounded-lg hover:bg-primary-700 transition-colors mt-2 capitalize disabled:opacity-70"
                 >
-                  {isSubmitting
-                    ? "Creating account..."
-                    : `Create ${role} account`}
+                  {isSubmitting ? "Creating account..." : "Create account"}
                 </button>
               </form>
 

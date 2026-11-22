@@ -8,6 +8,7 @@ import Auctions from "./pages/Frontend/Auctions/Auctions";
 import AuctionDetails from "./pages/Frontend/AuctionDetails/AuctionDetails";
 
 // Admin Pages
+import SetupProfile from "./pages/Auth/ProfileSetup/SetupProfile";
 import AdminDashboard from "./pages/admin/Dashboard/AdminDashboard";
 import Users from "./pages/admin/Users/Users";
 import AdminProducts from "./pages/admin/Products/AdminProducts";
@@ -86,6 +87,9 @@ function App() {
 
         {/* Profile Pending Route */}
         <Route path="/profile-pending" element={<ProfilePending />} />
+
+        {/* Independent onboarding route (not inside AuthLayout). */}
+        <Route path="/setup-profile" element={<SetupProfile />} />
 
         {/* Authenticated Routes */}
         <Route element={<AuthenticatedLayout />}>

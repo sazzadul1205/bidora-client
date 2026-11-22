@@ -25,10 +25,10 @@ export default function GuestGuard({ children }) {
     localStorage.removeItem("token");
     localStorage.removeItem("roles");
     localStorage.removeItem("tokenExpiresInMinutes");
+    localStorage.removeItem("profileSetupRequired");
     return children;
   }
 
-  // No initializer — both try and catch assign before use.
   let roles;
   try {
     roles = JSON.parse(localStorage.getItem("roles") || "[]");
@@ -48,9 +48,16 @@ export default function GuestGuard({ children }) {
     return <Navigate to="/buyer/dashboard" replace />;
   }
 
+  // Authenticated but has no application role: onboarding is incomplete.
+  // Send them to profile setup instead of showing login/register again.
+  if (localStorage.getItem("profileSetupRequired") === "true" || roles.length === 0) {
+    return <Navigate to="/setup-profile" replace />;
+  }
+
   // Token exists but no role info → stale, clear and let them log in fresh
   localStorage.removeItem("token");
   localStorage.removeItem("roles");
   localStorage.removeItem("tokenExpiresInMinutes");
+  localStorage.removeItem("profileSetupRequired");
   return children;
 }

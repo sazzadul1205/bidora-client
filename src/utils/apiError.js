@@ -4,7 +4,16 @@ export function getErrorMessage(error, fallback = "Something went wrong.") {
 
   if (data) {
     if (typeof data.message === "string" && data.message.trim()) {
-      return data.message;
+      let msg = data.message;
+      if (Array.isArray(data.errors) && data.errors.length > 0) {
+        msg += ": " + data.errors.join(", ");
+      } else if (data.errors && typeof data.errors === "object") {
+        const messages = Object.values(data.errors).flat();
+        if (messages.length > 0) {
+          msg += ": " + messages.join(" ");
+        }
+      }
+      return msg;
     }
     if (Array.isArray(data.errors)) {
       if (data.errors.length > 0) {
