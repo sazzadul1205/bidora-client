@@ -22,6 +22,7 @@ import {
   XCircle,
   TrendingUp,
   Target,
+  Users,
 } from "lucide-react";
 
 export default function AuctionDetails() {
@@ -473,6 +474,9 @@ export default function AuctionDetails() {
                 <span className="text-xs sm:text-sm font-medium text-gray-500 flex items-center gap-1">
                   <Gavel className="w-4 h-4" /> {auction.bidCount} Bids
                 </span>
+                <span className="text-xs sm:text-sm font-medium text-gray-500 flex items-center gap-1">
+                  <Users className="w-4 h-4" /> {new Set((bids || []).map((b) => b.bidderId).filter(Boolean)).size} Bidders
+                </span>
               </div>
 
               <div className="text-center mb-5 sm:mb-6">
@@ -692,3 +696,4 @@ export default function AuctionDetails() {
     </div>
   );
 }
+
