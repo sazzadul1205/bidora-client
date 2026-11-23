@@ -3,7 +3,8 @@ import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { TrendingUp, Package, ShieldCheck, CheckCircle2 } from "lucide-react";
-import { login } from "../../../services/authApi";
+import { login, googleLogin } from "../../../services/authApi";
+import { GoogleLogin } from "@react-oauth/google";
 import { getErrorMessage } from "../../../utils/apiError";
 
 function Login() {
@@ -202,6 +203,9 @@ function Login() {
                   {isSubmitting ? "Logging in..." : "Log in"}
                 </button>
               </form>
+      <div className="mt-4">
+        <GoogleLogin onSuccess={async (res) => { try { const r = await googleLogin(res.credential); const data = r.data?.data || {}; if (data.profileSetupRequired) navigate("/setup-profile"); else navigate(getDashboardPath((data.roles || [])[0])); } catch (e) { setServerError("Google login failed"); } }} onError={() => setServerError("Google login failed")} />
+      </div>
 
               <div className="mt-6 text-center text-sm text-text-muted">
                 New to Bidora?{" "}

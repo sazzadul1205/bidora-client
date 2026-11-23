@@ -134,3 +134,21 @@ export const logout = async () => {
 };
 
 export default authApi;
+export const googleLogin = async (credential) => {
+  const response = await authApi.post("/auth/google", { credential });
+  const data = response.data?.data || {};
+  if (data.token) {
+    localStorage.setItem("token", data.token);
+  }
+  if (data.refreshToken) {
+    localStorage.setItem("refreshToken", data.refreshToken);
+  }
+  if (data.roles) {
+    localStorage.setItem("roles", JSON.stringify(data.roles));
+  }
+  if (data.expiresInMinutes) {
+    localStorage.setItem("tokenExpiresInMinutes", data.expiresInMinutes);
+  }
+  localStorage.setItem("profileSetupRequired", String(!!data.profileSetupRequired));
+  return response;
+};

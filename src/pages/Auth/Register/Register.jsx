@@ -2,7 +2,8 @@ import PageTitle from "../../../components/PageTitle";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { register as registerUser } from "../../../services/authApi";
+import { register as registerUser, googleLogin } from "../../../services/authApi";
+import { GoogleLogin } from "@react-oauth/google";
 import { getErrorMessage } from "../../../utils/apiError";
 
 function Register() {
@@ -183,6 +184,9 @@ function Register() {
                   {isSubmitting ? "Creating account..." : "Create account"}
                 </button>
               </form>
+      <div className="mt-4">
+        <GoogleLogin onSuccess={async (res) => { try { const r = await googleLogin(res.credential); const data = r.data?.data || {}; if (data.profileSetupRequired) navigate("/setup-profile"); else navigate("/buyer/dashboard"); } catch (e) { setServerError("Google login failed"); } }} onError={() => setServerError("Google login failed")} />
+      </div>
 
               <div className="mt-6 text-center text-sm text-text-muted">
                 Already registered?{" "}
